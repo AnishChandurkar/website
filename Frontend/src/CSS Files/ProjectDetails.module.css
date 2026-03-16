@@ -1,0 +1,139 @@
+.container {
+  background-color: #ffffff;
+  min-height: 100vh;
+  padding: 30px;
+  color: #333333;
+  font-family: Arial, sans-serif;
+}
+.topBar {
+  margin-bottom: 20px;
+}
+.backLink {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.backLink:hover {
+  text-decoration: underline;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 30px;
+}
+.titleSection h1 {
+  font-size: 2rem;
+  margin: 0;
+  color: #000000;
+}
+.titleSection p {
+  color: #666666;
+  margin: 5px 0 0 0;
+}
+.actionButtons {
+  display: flex;
+  gap: 10px;
+}
+.newBoardBtn {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.newBoardBtn:hover {
+  background-color: #0056b3;
+}
+.inviteBtn {
+  background-color: #f4f4f4;
+  color: #333333;
+  border: 1px solid #cccccc;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.inviteBtn:hover {
+  background-color: #e0e0e0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+.card {
+  height: 180px;
+  border-radius: 4px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.createCard {
+  background-color: #f9f9f9;
+  border: 2px dashed #cccccc;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666666;
+  text-decoration: none;
+}
+.createCard:hover {
+  background-color: #f0f0f0;
+}
+.plusIcon {
+  font-size: 2rem;
+  background-color: #eeeeee;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  color: #333333;
+}
+.boardCard {
+  background-color: #ffffff;
+  text-decoration: none;
+  color: #333333;
+  border: 1px solid #cccccc;
+}
+.boardCard:hover {
+  background-color: #fcfcfc;
+}
+.cardIcon {
+  width: 40px;
+  height: 40px;
+  background-color: #eeeeee;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0;
+  color: #000000;
+}
+.cardDivider {
+  height: 1px;
+  background-color: #eeeeee;
+  margin: 15px 0;
+}
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #666666;
+}

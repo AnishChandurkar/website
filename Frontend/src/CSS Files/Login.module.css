@@ -1,0 +1,116 @@
+.pageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f4f9;
+  font-family: Arial, sans-serif;
+}
+.formPanel {
+  background-color: #ffffff;
+  padding: 40px;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+.formContainer {
+  width: 100%;
+}
+.formTitle {
+  font-size: 1.5rem;
+  color: #333333;
+  margin: 0 0 10px 0;
+  text-align: center;
+}
+.formSubtitle {
+  color: #666666;
+  font-size: 0.9rem;
+  margin: 0 0 25px 0;
+  text-align: center;
+}
+.fieldGroup {
+  margin-bottom: 15px;
+}
+.fieldLabel {
+  display: block;
+  color: #333333;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+.fieldInput {
+  width: 100%;
+  padding: 10px;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  color: #000000;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+.fieldInput:focus {
+  border-color: #007bff;
+  outline: none;
+}
+.passwordWrapper {
+  position: relative;
+}
+.passwordToggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.formRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+}
+.rememberMe {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #333333;
+}
+.forgotLink {
+  color: #007bff;
+  text-decoration: none;
+}
+.submitBtn {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.submitBtn:hover {
+  background-color: #0056b3;
+}
+.bottomLink {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: #666666;
+}
+.bottomLink a {
+  color: #007bff;
+  text-decoration: none;
+}
+.nameRow {
+  display: flex;
+  gap: 10px;
+}
+.nameRow .fieldGroup {
+  flex: 1;
+}
