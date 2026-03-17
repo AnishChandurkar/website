@@ -9,6 +9,7 @@ import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import ArchivedProjects from './pages/ArchivedProjects';
 import NotificationCentre from './pages/NotificationCentre';
+import ProtectedRoute from './ui_elements/ProtectedRoute';
 
 const App = () => {
   return (
@@ -17,14 +18,14 @@ const App = () => {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/project/:projectId" element={<ProjectDetails />} />
-        <Route path="/board/:boardId" element={<ProjectBoard />} />
-        <Route path="/notifications" element={<NotificationCentre />} />
-        <Route path="/team" element={<Team />} />
-        <Route path="/archived" element={<ArchivedProjects />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/project/:projectId" element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />
+        <Route path="/board/:boardId" element={<ProtectedRoute><ProjectBoard /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationCentre /></ProtectedRoute>} />
+        <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
+        <Route path="/archived" element={<ProtectedRoute><ArchivedProjects /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
