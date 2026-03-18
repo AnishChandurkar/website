@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const projectRole = require('../middleware/projectRole');
 
 const {
     getProjects,
@@ -15,9 +16,9 @@ const {
 router.get('/', auth, getProjects);
 router.get('/archived', auth, getArchivedProjects);
 router.post('/', auth, createProject);
-router.put('/:id', auth, updateProject);
-router.put('/:id/archive', auth, archiveProject);
-router.put('/:id/star', auth, toggleStar);
-router.delete('/:id', auth, deleteProject);
+router.put('/:id', auth, projectRole('Project Admin'), updateProject);
+router.put('/:id/archive', auth, projectRole('Project Admin'), archiveProject);
+router.delete('/:id', auth, projectRole('Project Admin'), deleteProject);
+router.put('/:id/star', auth, projectRole(), toggleStar);
 
 module.exports = router;

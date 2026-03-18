@@ -18,18 +18,24 @@ const getMembers = async (req, res) => {
 const addMember = async (req, res) => {
     try {
         const { emailid, role } = req.body;
+        const validRoles = ['Project Admin', 'Project Member', 'Project Viewer'];
+        const assignedRole = validRoles.includes(role) ? role : 'Project Member';
 
         const [users] = await pool.query('SELECT id FROM users WHERE emailid = ?', [emailid]);
         if (users.length === 0) {
             return res.status(404).json({ message: 'User not found with that email.' });
         }
 
+        if (users[0].id === req.user.id) {
+            return res.status(400).json({ message: 'You are already a member of this project.' });
+        }
+
         await pool.query(
             'INSERT INTO project_members (project_id, user_id, role) VALUES (?, ?, ?)',
-            [req.params.projectId, users[0].id, role || 'Member']
+            [req.params.projectId, users[0].id, assignedRole]
         );
 
-        res.status(201).json({ message: 'Member added' });
+        res.status(201).json({ message: 'Member added', role: assignedRole });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ message: 'User is already a member of this project.' });

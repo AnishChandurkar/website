@@ -93,6 +93,17 @@ const toggleStar = async (req, res) => {
 
 const deleteProject = async (req, res) => {
     try {
+        const [project] = await pool.query(
+            "SELECT owner_id FROM projects WHERE id = ?",
+            [req.params.id]
+        );
+        if (project.length === 0) {
+            return res.status(404).json({ message: "Project not found" });
+        }
+        if (project[0].owner_id !== req.user.id) {
+            return res.status(403).json({ message: "Only the project owner can delete this project" });
+        }
+
         await pool.query("DELETE FROM projects WHERE id = ?", [req.params.id]);
         res.json({ message: "Project deleted successfully" });
     } catch (error) {

@@ -30,7 +30,7 @@ const createBoard = async (req, res) => {
 
 const deleteBoard = async (req, res) => {
     try {
-        await pool.query('DELETE FROM boards WHERE id = ?', [req.params.id]);
+        await pool.query('DELETE FROM boards WHERE id = ?', [req.params.boardId]);
         res.json({ message: 'Board deleted' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
