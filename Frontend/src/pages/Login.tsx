@@ -16,7 +16,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const data = await loginUser(email, password);
-      saveAuth(data.token, data.user);
+      saveAuth(data.user);
       navigate('/dashboard');
     } catch (err: any) {
       alert(err.message || 'Login failed');

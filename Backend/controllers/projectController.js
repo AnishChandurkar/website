@@ -91,6 +91,15 @@ const toggleStar = async (req, res) => {
   }
 };
 
+const deleteProject = async (req, res) => {
+    try {
+        await pool.query("DELETE FROM projects WHERE id = ?", [req.params.id]);
+        res.json({ message: "Project deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
 module.exports = {
   getProjects,
   getArchivedProjects,

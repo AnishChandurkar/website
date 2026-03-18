@@ -1,25 +1,32 @@
 const BASE_URL = 'http://localhost:5000/api';
-const getToken = (): string | null => {
-    return localStorage.getItem('token');
-};
 const apiRequest = async (endpoint: string, method: string = 'GET', body?: object) => {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
     };
-    const token = getToken();
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
 
     const config: RequestInit = {
         method,
         headers,
+        credentials: 'include',
     };
 
     if (body) {
         config.body = JSON.stringify(body);
     }
-    const response = await fetch(`${BASE_URL}${endpoint}`, config);
+
+    let response = await fetch(`${BASE_URL}${endpoint}`, config);
+
+    if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/register') {
+        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (refreshRes.ok) {
+            response = await fetch(`${BASE_URL}${endpoint}`, config);
+        }
+    }
+
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.message || "Hmm..Something went wrong");
@@ -39,6 +46,10 @@ export const registerUser = (first_name: string, surname: string, emailid: strin
 export const getProfile = () => {
     return apiRequest('/auth/profile');
 }
+
+export const logoutUser = () => {
+    return apiRequest('/auth/logout', 'POST');
+};
 
 export const fetchProjects = () => {
     return apiRequest('/projects');
