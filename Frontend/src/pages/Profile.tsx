@@ -1,46 +1,146 @@
-import { useState, type ChangeEvent } from 'react';
+import { useState, useEffect, type ChangeEvent } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { getProfile, uploadAvatar } from '../services/api';
+import Sidebar from '../ui_elements/SideBar';
 import styles from '../CSS Files/Profile.module.css';
-interface UserProfile {
-  name: string;
-  email: string;
-  avatarUrl: string | null; 
+
+interface FullProfile {
+  id: number;
+  first_name: string;
+  surname: string;
+  emailid: string;
+  profile_url: string | null;
+  created_at: string;
 }
+
 const Profile = () => {
-  const [user, setUser] = useState<UserProfile>({
-    name: "Keshav",
-    email: "keshav@iitd.ac.in",
-    avatarUrl: null
-  });
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<FullProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await getProfile();
+        setProfile(data);
+      } catch {
+        setProfile(null);
+      }
+      setLoading(false);
+    };
+    loadProfile();
+  }, []);
+
+  const getInitials = (firstName: string, surname: string) => {
+    return `${firstName.charAt(0)}${surname.charAt(0)}`.toUpperCase();
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      console.log("File selected for upload:", e.target.files[0].name);
+      try {
+        const data = await uploadAvatar(e.target.files[0]);
+        if (profile) {
+          setProfile({ ...profile, profile_url: data.profile_url });
+        }
+      } catch (err: any) {
+        alert(err.message || 'Failed to upload avatar');
+      }
     }
   };
-  return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 style={{ color: '#000000', marginTop: 0 }}>My Profile</h1>
-        <div className={styles.avatarSection}>
-          <img
-            src={user.avatarUrl || "https://via.placeholder.com/150"}
-            alt="Profile"
-            className={styles.avatar}
-          />
-          <br />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className={styles.fileInput}
-          />
+
+  if (loading) {
+    return (
+      <div className={styles.layout}>
+        <Sidebar />
+        <div className={styles.container}>
+          <div className={styles.card}>
+            <p>Loading profile...</p>
+          </div>
         </div>
-        <div className={styles.infoSection}>
-          <div className={styles.label}>Full Name</div>
-          <div className={styles.value} style={{ color: '#000000' }}>{user.name}</div>
-          <div className={styles.label}>Email Address</div>
-          <div className={styles.value} style={{ color: '#000000' }}>{user.email}</div>
-          <div className={styles.label}>Role</div>
-          <div className={styles.value} style={{ color: '#000000' }}>Student / Developer</div>
+      </div>
+    );
+  }
+
+  const displayProfile = profile || (user ? {
+    id: user.id,
+    first_name: user.first_name,
+    surname: user.surname,
+    emailid: user.emailid,
+    profile_url: null,
+    created_at: new Date().toISOString()
+  } : null);
+
+  if (!displayProfile) {
+    return (
+      <div className={styles.layout}>
+        <Sidebar />
+        <div className={styles.container}>
+          <div className={styles.card}>
+            <p>Unable to load profile</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.layout}>
+      <Sidebar />
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <h1>My Profile</h1>
+          </div>
+
+          <div className={styles.avatarSection}>
+            {displayProfile.profile_url ? (
+              <img
+                src={`http://localhost:5000${displayProfile.profile_url}`}
+                alt="Profile"
+                className={styles.avatar}
+              />
+            ) : (
+              <div className={styles.avatarPlaceholder}>
+                {getInitials(displayProfile.first_name, displayProfile.surname)}
+              </div>
+            )}
+            <label className={styles.uploadBtn}>
+              Change Photo
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className={styles.fileInput}
+              />
+            </label>
+          </div>
+
+          <div className={styles.infoSection}>
+            <div className={styles.infoRow}>
+              <div className={styles.label}>First Name</div>
+              <div className={styles.value}>{displayProfile.first_name}</div>
+            </div>
+            <div className={styles.infoRow}>
+              <div className={styles.label}>Surname</div>
+              <div className={styles.value}>{displayProfile.surname}</div>
+            </div>
+            <div className={styles.infoRow}>
+              <div className={styles.label}>Email Address</div>
+              <div className={styles.value}>{displayProfile.emailid}</div>
+            </div>
+            <div className={styles.infoRow}>
+              <div className={styles.label}>Member Since</div>
+              <div className={styles.value}>{formatDate(displayProfile.created_at)}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

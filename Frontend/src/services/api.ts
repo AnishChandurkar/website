@@ -51,6 +51,23 @@ export const logoutUser = () => {
     return apiRequest('/auth/logout', 'POST');
 };
 
+export const uploadAvatar = async (file: File) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await fetch(`${BASE_URL}/auth/profile/avatar`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || 'Upload failed');
+    }
+    return data;
+};
+
 export const fetchProjects = () => {
     return apiRequest('/projects');
 };

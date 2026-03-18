@@ -193,4 +193,23 @@ const getProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, refresh, logout, getProfile };
+const updateProfilePicture = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const profileUrl = `/uploads/avatars/${req.file.filename}`;
+
+    await pool.query("UPDATE users SET profile_url = ? WHERE id = ?", [
+      profileUrl,
+      req.user.id,
+    ]);
+
+    res.json({ message: "Profile picture updated", profile_url: profileUrl });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+module.exports = { register, login, refresh, logout, getProfile, updateProfilePicture };
