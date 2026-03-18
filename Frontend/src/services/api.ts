@@ -44,8 +44,12 @@ export const fetchProjects = () => {
     return apiRequest('/projects');
 };
 
-export const createProject = (name: string) => {
-    return apiRequest('/projects', 'POST', { name });
+export const createProject = (name: string, description?: string, status?: string) => {
+    return apiRequest('/projects', 'POST', { name, description, status });
+};
+
+export const updateProject = (projectId: number, name: string, description: string, status: string, progress: number) => {
+    return apiRequest(`/projects/${projectId}`, 'PUT', { name, description, status, progress });
 };
 
 export const archiveProject = (projectId: number) => {
@@ -54,6 +58,10 @@ export const archiveProject = (projectId: number) => {
 
 export const deleteProject = (projectId: number) => {
     return apiRequest(`/projects/${projectId}`, 'DELETE');
+};
+
+export const toggleStarProject = (projectId: number, isStarred: boolean) => {
+    return apiRequest(`/projects/${projectId}/star`, 'PUT', { is_starred: isStarred });
 };
 
 export const fetchBoard = (projectId: number) => {

@@ -8,7 +8,8 @@ const {
     createProject,
     updateProject,
     archiveProject,
-    deleteProject
+    deleteProject,
+    toggleStar
 } = require('../controllers/projectController');
 
 router.get('/', auth, getProjects);
@@ -16,6 +17,7 @@ router.get('/archived', auth, getArchivedProjects);
 router.post('/', auth, createProject);
 router.put('/:id', auth, updateProject);
 router.put('/:id/archive', auth, archiveProject);
+router.put('/:id/star', auth, toggleStar);
 router.delete('/:id', auth, deleteProject);
 
 module.exports = router;

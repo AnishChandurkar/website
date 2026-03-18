@@ -1,19 +1,28 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/api';
 import styles from '../CSS Files/Login.module.css';
+import { useAuth } from '../context/AuthContext';
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-  const handleSubmit = (e: FormEvent) => {
+  const { saveAuth } = useAuth();
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
-    console.log("Remember Me:", rememberMe);
-    navigate('/dashboard');
+    try {
+      const data = await loginUser(email, password);
+      saveAuth(data.token, data.user);
+      navigate('/dashboard');
+    } catch (err: any) {
+      alert(err.message || 'Login failed');
+    }
   };
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.formPanel}>

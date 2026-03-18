@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from '../services/api';
 import styles from '../CSS Files/Login.module.css';
+import { useAuth } from '../context/AuthContext';
+
 const Register = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -10,15 +13,25 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   
   const navigate = useNavigate();
-  const handleSubmit = (e: FormEvent) => {
+  const { saveAuth } = useAuth();
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-    console.log("Registering:", firstName, lastName, email, password);
-    navigate('/dashboard');
+    try {
+      const data = await registerUser(firstName, lastName, email, password);
+      if (data.token && data.user) {
+        saveAuth(data.token, data.user);
+      }
+      navigate('/dashboard');
+    } catch (err: any) {
+      alert(err.message || 'Registration failed');
+    }
   };
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.formPanel}>
