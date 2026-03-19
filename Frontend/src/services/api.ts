@@ -136,8 +136,35 @@ export const fetchTasks = (boardId: number) => {
     return apiRequest(`/boards/${boardId}/tasks`);
 };
 
-export const createTask = (boardId: number, title: string, columnId: number, priority?: string, type?: string) => {
-    return apiRequest(`/boards/${boardId}/tasks`, 'POST', { title, column_id: columnId, priority, type });
+export const getTask = (taskId: number) => {
+    return apiRequest(`/boards/tasks/${taskId}`);
+};
+
+export const getChildTasks = (taskId: number) => {
+    return apiRequest(`/boards/tasks/${taskId}/children`);
+};
+
+export const createTask = (
+    boardId: number,
+    title: string,
+    columnId: number,
+    priority?: string,
+    type?: string,
+    description?: string,
+    assignedTo?: number | null,
+    dueDate?: string | null,
+    parentId?: number | null
+) => {
+    return apiRequest(`/boards/${boardId}/tasks`, 'POST', {
+        title,
+        column_id: columnId,
+        priority,
+        type,
+        description,
+        assigned_to: assignedTo,
+        due_date: dueDate,
+        parent_id: parentId,
+    });
 };
 
 export const moveTask = (taskId: number, columnId: number) => {

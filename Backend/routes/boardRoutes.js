@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const projectRole = require('../middleware/projectRole');
-const { getBoards, createBoard, deleteBoard } = require('../controllers/boardController');
+const { getBoards, createBoard, deleteBoard, getBoardProject } = require('../controllers/boardController');
 
 router.get('/:projectId/boards', auth, projectRole(), getBoards);
 router.post('/:projectId/boards', auth, projectRole('Project Admin'), createBoard);

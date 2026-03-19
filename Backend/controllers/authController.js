@@ -65,7 +65,9 @@ const register = async (req, res) => {
       user: { id: user.id, first_name, surname, emailid },
     });
   } catch (error) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+    res
+      .status(500)
+      .json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -120,7 +122,9 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+    res
+      .status(500)
+      .json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -189,7 +193,9 @@ const getProfile = async (req, res) => {
     }
     res.json(users[0]);
   } catch (error) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+    res
+      .status(500)
+      .json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -208,7 +214,9 @@ const updateProfilePicture = async (req, res) => {
 
     res.json({ message: "profile picture updated", profile_url: profileUrl });
   } catch (error) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+    res
+      .status(500)
+      .json({ message: "something went wrong :(", error: error.message });
   }
 };
 
