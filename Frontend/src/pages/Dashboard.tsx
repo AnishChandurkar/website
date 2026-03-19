@@ -14,6 +14,7 @@ interface ProjectData {
   progress: number;
   is_starred: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 const Dashboard = () => {
@@ -244,4 +245,4 @@ const Dashboard = () => {
     </div>
   );
 };
-export default Dashboard;
+export default Dashboard;

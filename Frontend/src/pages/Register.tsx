@@ -19,12 +19,14 @@ const Register = () => {
     e.preventDefault();
     setError('');
     if (password !== confirmPassword) {
-      setError("Passwords do not match!");
+      alert("passwords do not match ._.");
       return;
     }
     try {
       const data = await registerUser(firstName, lastName, email, password);
-      saveAuth(data.token, data.user);
+      if (data.user) {
+        saveAuth(data.user);
+      }
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message);

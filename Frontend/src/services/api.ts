@@ -1,25 +1,32 @@
 const BASE_URL = 'http://localhost:5000/api';
-const getToken = (): string | null => {
-    return localStorage.getItem('token');
-};
 const apiRequest = async (endpoint: string, method: string = 'GET', body?: object) => {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
     };
-    const token = getToken();
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
 
     const config: RequestInit = {
         method,
         headers,
+        credentials: 'include',
     };
 
     if (body) {
         config.body = JSON.stringify(body);
     }
-    const response = await fetch(`${BASE_URL}${endpoint}`, config);
+
+    let response = await fetch(`${BASE_URL}${endpoint}`, config);
+
+    if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/register') {
+        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (refreshRes.ok) {
+            response = await fetch(`${BASE_URL}${endpoint}`, config);
+        }
+    }
+
     const data = await response.json();
     if (!response.ok) {
         throw new Error(data.message || "Hmm..Something went wrong");
@@ -40,8 +47,33 @@ export const getProfile = () => {
     return apiRequest('/auth/profile');
 }
 
+export const logoutUser = () => {
+    return apiRequest('/auth/logout', 'POST');
+};
+
+export const uploadAvatar = async (file: File) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await fetch(`${BASE_URL}/auth/profile/avatar`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || 'Upload failed');
+    }
+    return data;
+};
+
 export const fetchProjects = () => {
     return apiRequest('/projects');
+};
+
+export const fetchProjectById = (projectId: number) => {
+    return apiRequest(`/projects/${projectId}`);
 };
 
 export const createProject = (name: string, description?: string, status?: string) => {
@@ -53,7 +85,11 @@ export const updateProject = (projectId: number, name: string, description: stri
 };
 
 export const archiveProject = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/archive`, 'PUT');
+    return apiRequest(`/projects/${projectId}/archive`, 'PUT', { is_archived: true });
+};
+
+export const restoreProject = (projectId: number) => {
+    return apiRequest(`/projects/${projectId}/archive`, 'PUT', { is_archived: false });
 };
 
 export const deleteProject = (projectId: number) => {
@@ -64,32 +100,68 @@ export const toggleStarProject = (projectId: number, isStarred: boolean) => {
     return apiRequest(`/projects/${projectId}/star`, 'PUT', { is_starred: isStarred });
 };
 
-export const fetchBoard = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/board`);
+export const fetchBoards = (projectId: number) => {
+    return apiRequest(`/projects/${projectId}/boards`);
 };
 
 export const createBoard = (projectId: number, name: string) => {
-    return apiRequest(`/boards/${projectId}/tasks`, 'POST', { name });
+    return apiRequest(`/projects/${projectId}/boards`, 'POST', { name });
 };
 
-// tasks
+export const fetchColumns = (boardId: number) => {
+    return apiRequest(`/boards/${boardId}/columns`);
+};
+
+export const createColumn = (boardId: number, name: string, wipLimit?: number) => {
+    return apiRequest(`/boards/${boardId}/columns`, 'POST', { name, wip_limit: wipLimit });
+};
+
+export const renameColumn = (columnId: number, name: string) => {
+    return apiRequest(`/boards/columns/${columnId}/rename`, 'PUT', { name });
+};
+
+export const updateColumnLimit = (columnId: number, wipLimit: number | null) => {
+    return apiRequest(`/boards/columns/${columnId}/limit`, 'PUT', { wip_limit: wipLimit });
+};
+
+export const reorderColumns = (boardId: number, order: number[]) => {
+    return apiRequest(`/boards/${boardId}/columns/reorder`, 'PUT', { order });
+};
+
+export const deleteColumn = (columnId: number) => {
+    return apiRequest(`/boards/columns/${columnId}`, 'DELETE');
+};
+
 export const fetchTasks = (boardId: number) => {
     return apiRequest(`/boards/${boardId}/tasks`);
 };
-export const createTask = (boardId: number, title: string, priority: string) => {
-    return apiRequest(`/boards/${boardId}/tasks`, 'POST', { title, priority });
+
+export const createTask = (boardId: number, title: string, columnId: number, priority?: string, type?: string) => {
+    return apiRequest(`/boards/${boardId}/tasks`, 'POST', { title, column_id: columnId, priority, type });
 };
-export const updateTaskStatus = (taskId: number, status: string) => {
-    return apiRequest(`/boards/tasks/${taskId}`, 'PUT', { status });
+
+export const moveTask = (taskId: number, columnId: number) => {
+    return apiRequest(`/boards/tasks/${taskId}/move`, 'PUT', { column_id: columnId });
 };
-// team
+
+export const updateTask = (taskId: number, updates: object) => {
+    return apiRequest(`/boards/tasks/${taskId}`, 'PUT', updates);
+};
+
+export const deleteTask = (taskId: number) => {
+    return apiRequest(`/boards/tasks/${taskId}`, 'DELETE');
+};
+
 export const fetchTeamMembers = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/team`);
+    return apiRequest(`/projects/${projectId}/members`);
 };
-export const inviteMember = (projectId: number, emailid: string) => {
-    return apiRequest(`/projects/${projectId}/team`, 'POST', { emailid });
+export const inviteMember = (projectId: number, emailid: string, role?: string) => {
+    return apiRequest(`/projects/${projectId}/members`, 'POST', { emailid, role });
 };
-// notifications
+export const removeMember = (projectId: number, userId: number) => {
+    return apiRequest(`/projects/${projectId}/members/${userId}`, 'DELETE');
+};
+
 export const fetchNotifications = () => {
     return apiRequest('/notifications');
 };

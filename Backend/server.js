@@ -1,30 +1,38 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
+const path = require('path');
 const pool = require('./config/db');
 
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const boardRoutes = require('./routes/boardRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const columnRoutes = require('./routes/columnRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 
 dotenv.config();
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/test', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT 1 + 1 AS result');
         res.json({
-            message: 'Backend is connected to MySQL!',
+            message: 'backend is connected to mysql!',
             dbResult: rows[0].result
         });
     } catch (error) {
-        res.status(500).json({ message: 'Database connection failed', error: error.message });
+        res.status(500).json({ message: 'database connection failed :(', error: error.message });
     }
 });
 
@@ -32,6 +40,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects', boardRoutes);
 app.use('/api/boards', taskRoutes);
+app.use('/api/boards', columnRoutes);
 app.use('/api/projects', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
 

@@ -8,7 +8,7 @@ const getNotifications = async (req, res) => {
         );
         res.json(rows);
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: 'something went wrong :(' , error: error.message });
     }
 };
 
@@ -20,11 +20,11 @@ const createNotification = async (req, res) => {
             [user_id, message]
         );
         res.status(201).json({
-            message: 'Notification created',
+            message: 'notification created!!',
             notification: { id: result.insertId, user_id, message }
         });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: 'something went wrong :(' , error: error.message });
     }
 };
 
@@ -33,9 +33,9 @@ const deleteNotification = async (req, res) => {
         await pool.query('DELETE FROM notifications WHERE id = ? AND user_id = ?',
             [req.params.id, req.user.id]
         );
-        res.json({ message: 'Notification deleted' });
+        res.json({ message: 'notification deleted!!' });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: 'something went wrong :(' , error: error.message });
     }
 };
 

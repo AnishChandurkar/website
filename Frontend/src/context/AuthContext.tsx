@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { getProfile } from '../services/api';
+import { getProfile, logoutUser } from '../services/api';
 
 interface User {
     id: number;
@@ -10,8 +10,7 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    token: string | null;
-    saveAuth: (token: string, user: User) => void;
+    saveAuth: (userData: User) => void;
     logout: () => void;
     loading: boolean;
 }
@@ -20,40 +19,37 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadUser = async () => {
-            if (token) {
-                try {
-                    const userData = await getProfile();
-                    setUser(userData);
-                } catch (error) {
-                    console.log('Token expired or invalid', error);
-                    localStorage.removeItem('token');
-                    setToken(null);
-                }
+            try {
+                const userData = await getProfile();
+                setUser(userData);
+            } catch (error) {
+                console.log('user not logged in!?!?! or session expired');
+                setUser(null);
             }
             setLoading(false);
         };
         loadUser();
-    }, [token]);
+    }, []);
 
-    const saveAuth = (newToken: string, userData: User) => {
-        localStorage.setItem('token', newToken);
-        setToken(newToken);
+    const saveAuth = (userData: User) => {
         setUser(userData);
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        setToken(null);
-        setUser(null);
+    const logout = async () => {
+        try {
+            await logoutUser();
+            setUser(null);
+        } catch (error) {
+            console.error('Logout failed', error);
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, saveAuth, logout, loading }}>
+        <AuthContext.Provider value={{ user, saveAuth, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

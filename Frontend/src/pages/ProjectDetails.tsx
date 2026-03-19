@@ -1,139 +1,231 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import styles from '../CSS Files/ProjectDetails.module.css'; 
+import Sidebar from '../ui_elements/SideBar';
+import styles from '../CSS Files/ProjectDetails.module.css';
 import AddBoardModal from '../ui_elements/AddBoardModal';
 import InviteMemberModal from '../ui_elements/InviteMemberModal';
+import { fetchProjectById, createBoard, inviteMember } from '../services/api';
+
 interface Board {
   id: number;
   name: string;
-  taskCount: number;
-  updatedAt: string;
+  task_count: number;
+  created_at: string;
   color: string;
 }
-interface Project {
+
+interface Member {
+  id: number;
+  first_name: string;
+  surname: string;
+  emailid: string;
+  profile_url: string | null;
+  role: string;
+}
+
+interface ProjectFull {
   id: number;
   name: string;
   description: string;
+  status: string;
+  progress: number;
+  created_at: string;
+  updated_at: string;
   boards: Board[];
-  members: string[];
+  members: Member[];
 }
+
 const ProjectDetails = () => {
   const { projectId } = useParams();
-  
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<ProjectFull | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showAddBoard, setShowAddBoard] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+
+  const loadProject = async () => {
+    try {
+      const data = await fetchProjectById(Number(projectId));
+      setProject(data);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load project');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setProject({
-      id: Number(projectId),
-      name: "Task Management App",
-      description: `Managing boards for Project #${projectId}`,
-      boards: [
-        { id: 101, name: "Frontend Tasks", taskCount: 12, updatedAt: "Updated 2h ago", color: "#007bff" }
-      ],
-      members: ["Keshav (Admin)", "John Smith"]
-    });
+    loadProject();
   }, [projectId]);
-  const handleAddBoard = (boardName: string) => {
-    if (!project) return;
-    
-    const newBoard: Board = {
-      id: Date.now(),
-      name: boardName,
-      taskCount: 0,
-      updatedAt: "Just now",
-      color: "#28a745"
-    };
-    
-    setProject({ 
-      ...project, 
-      boards: [...project.boards, newBoard] 
+
+  const handleAddBoard = async (boardName: string) => {
+    try {
+      await createBoard(Number(projectId), boardName);
+      await loadProject();
+      setShowAddBoard(false);
+    } catch (err: any) {
+      alert(err.message || 'Failed to create board');
+    }
+  };
+
+  const handleInvite = async (email: string, role: string) => {
+    try {
+      await inviteMember(Number(projectId), email, role);
+      await loadProject();
+      setShowInvite(false);
+    } catch (err: any) {
+      alert(err.message || 'Failed to invite member');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
-  const handleInvite = (email: string) => {
-    if (!project) return;
-    
-    setProject({ 
-      ...project, 
-      members: [...project.members, email] 
-    });
-    alert(`Invitation sent to ${email}`);
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
   };
-  if (!project) {
-    return <div style={{ color: '#333333', padding: '20px' }}>Loading...</div>;
-  }
-  return (
-    <div className={styles.container}>
-      
-      <div className={styles.topBar}>
-        <Link to="/dashboard" className={styles.backLink}>
-          ← Back to Projects
-        </Link>
-      </div>
-      <div className={styles.header}>
-        <div className={styles.titleSection}>
-          <h1 style={{ color: '#000000' }}>{project.name}</h1>
-          <p style={{ color: '#666666' }}>{project.description}</p>
+
+  if (loading) {
+    return (
+      <div className={styles.layout}>
+        <Sidebar />
+        <div className={styles.container}>
+          <p>Loading project...</p>
         </div>
-        
-        <div className={styles.actionButtons}>
-          <button 
-            className={styles.inviteBtn}
-            onClick={() => setShowInvite(true)}
-          >
-            + Invite People
-          </button>
-          <button 
-            className={styles.newBoardBtn}
+      </div>
+    );
+  }
+
+  if (error || !project) {
+    return (
+      <div className={styles.layout}>
+        <Sidebar />
+        <div className={styles.container}>
+          <p style={{ color: '#dc3545' }}>{error || 'Project not found'}</p>
+          <Link to="/dashboard">← Back to Projects</Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.layout}>
+      <Sidebar />
+      <div className={styles.container}>
+        <div className={styles.topBar}>
+          <Link to="/dashboard" className={styles.backLink}>
+            ← Back to Projects
+          </Link>
+        </div>
+
+        <div className={styles.header}>
+          <div className={styles.titleSection}>
+            <h1>{project.name}</h1>
+            <p className={styles.description}>
+              {project.description || 'No description'}
+            </p>
+            <div className={styles.metaRow}>
+              <span className={styles.statusBadge}>{project.status}</span>
+              <span className={styles.metaText}>Created {formatDate(project.created_at)}</span>
+              <span className={styles.metaText}>Updated {formatTimeAgo(project.updated_at)}</span>
+            </div>
+          </div>
+          <div className={styles.actionButtons}>
+            <button
+              className={styles.inviteBtn}
+              onClick={() => setShowInvite(true)}
+            >
+              + Invite People
+            </button>
+            <button
+              className={styles.newBoardBtn}
+              onClick={() => setShowAddBoard(true)}
+            >
+              + New Board
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.membersSection}>
+          <h3>Team ({project.members.length})</h3>
+          <div className={styles.membersList}>
+            {project.members.map((member) => (
+              <div key={member.id} className={styles.memberChip}>
+                <div className={styles.memberAvatar}>
+                  {member.first_name.charAt(0)}{member.surname.charAt(0)}
+                </div>
+                <div>
+                  <span className={styles.memberName}>
+                    {member.first_name} {member.surname}
+                  </span>
+                  <span className={styles.memberRole}>{member.role}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <h3 style={{ marginBottom: '15px', color: '#1a1a1a' }}>
+          Boards ({project.boards.length})
+        </h3>
+        <div className={styles.grid}>
+          <div
+            className={`${styles.card} ${styles.createCard}`}
             onClick={() => setShowAddBoard(true)}
           >
-            + New Board
-          </button>
-        </div>
-      </div>
-      <div className={styles.grid}>
-        
-        <div 
-          className={`${styles.card} ${styles.createCard}`}
-          onClick={() => setShowAddBoard(true)}
-        >
-          <div className={styles.plusIcon}>+</div>
-          <span>Create New Board</span>
-        </div>
-        {project.boards.map((board) => (
-          <Link 
-            key={board.id} 
-            to={`/board/${board.id}`} 
-            className={`${styles.card} ${styles.boardCard}`}
-          >
-            <div>
-              <div className={styles.cardIcon}>
-                <span style={{ fontSize: '1.2rem', color: board.color }}>◫</span>
+            <div className={styles.plusIcon}>+</div>
+            <span>Create New Board</span>
+          </div>
+          {project.boards.map((board) => (
+            <Link
+              key={board.id}
+              to={`/board/${board.id}`}
+              className={`${styles.card} ${styles.boardCard}`}
+            >
+              <div>
+                <div className={styles.cardIcon}>
+                  <span style={{ fontSize: '1.2rem', color: board.color }}>◫</span>
+                </div>
+                <h3 className={styles.cardTitle}>{board.name}</h3>
               </div>
-              <h3 className={styles.cardTitle}>{board.name}</h3>
-            </div>
-            <div>
-              <div className={styles.cardDivider}></div>
-              <div className={styles.cardFooter}>
-                <span>{board.taskCount} Tasks</span>
-                <span>{board.updatedAt}</span>
+              <div>
+                <div className={styles.cardDivider}></div>
+                <div className={styles.cardFooter}>
+                  <span>{board.task_count} Tasks</span>
+                  <span>{formatTimeAgo(board.created_at)}</span>
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </div>
+
+        {showAddBoard && (
+          <AddBoardModal
+            onClose={() => setShowAddBoard(false)}
+            onSave={handleAddBoard}
+          />
+        )}
+        {showInvite && (
+          <InviteMemberModal
+            onClose={() => setShowInvite(false)}
+            onInvite={handleInvite}
+          />
+        )}
       </div>
-      {showAddBoard && (
-        <AddBoardModal 
-          onClose={() => setShowAddBoard(false)} 
-          onSave={handleAddBoard} 
-        />
-      )}
-      {showInvite && (
-        <InviteMemberModal 
-          onClose={() => setShowInvite(false)} 
-          onInvite={handleInvite} 
-        />
-      )}
     </div>
   );
 };

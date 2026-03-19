@@ -18,7 +18,7 @@ const Login = () => {
     setError('');
     try {
       const data = await loginUser(email, password);
-      saveAuth(data.token, data.user);
+      saveAuth(data.user);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message);
