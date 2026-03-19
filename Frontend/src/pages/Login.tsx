@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import styles from '../CSS Files/Login.module.css';
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,6 +12,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { saveAuth } = useAuth();
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
@@ -22,6 +24,7 @@ const Login = () => {
       setError(err.message);
     }
   };
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.formPanel}>

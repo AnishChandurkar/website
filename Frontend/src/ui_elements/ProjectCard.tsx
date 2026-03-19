@@ -8,8 +8,12 @@ interface ProjectCardProps {
     progressPercentage: number;
     avatars: string[];
     additionalAvatars: number;
+    isStarred: boolean;
     onArchive?: (id: number) => void;
     onDelete?: (id: number) => void;
+    onEdit?: (id: number) => void;
+    onStarToggle?: (id: number, isStarred: boolean) => void;
+    onViewDetails?: (id: number) => void;
 }
 const ProjectCard = ({
     id,
@@ -19,8 +23,12 @@ const ProjectCard = ({
     progressPercentage,
     avatars,
     additionalAvatars,
+    isStarred,
     onArchive,
-    onDelete
+    onDelete,
+    onEdit,
+    onStarToggle,
+    onViewDetails
 }: ProjectCardProps) => {
     
     const [menuOpen, setMenuOpen] = useState(false);
@@ -36,7 +44,16 @@ const ProjectCard = ({
                     <span>📂</span>
                 </div>
                 <div className="card-actions">
-                    <span className="star-icon">★</span>
+                    <span 
+                        className={`star-icon ${isStarred ? 'starred' : ''}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onStarToggle && onStarToggle(id, !isStarred);
+                        }}
+                        style={{ cursor: 'pointer', color: isStarred ? '#ffc107' : '#cccccc' }}
+                    >
+                        {isStarred ? '★' : '☆'}
+                    </span>
                     
                     <div className="menu-container">
                         <span
@@ -47,6 +64,18 @@ const ProjectCard = ({
                         </span>
                         {menuOpen && (
                             <div className="dropdown-menu">
+                                {onEdit && (
+                                    <button
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            onEdit(id);
+                                            setMenuOpen(false);
+                                        }}
+                                    >
+                                        <span className="dropdown-icon">✏️</span>
+                                        Edit Details
+                                    </button>
+                                )}
                                 {onArchive && (
                                     <button
                                         className="dropdown-item"
@@ -87,6 +116,12 @@ const ProjectCard = ({
                 <div className="progress-label">
                     <strong>Progress:</strong> {progressPercentage}%
                 </div>
+                <div className="progress-bar-container" style={{ width: '100%', height: '8px', backgroundColor: '#eeeeee', borderRadius: '4px', marginTop: '5px' }}>
+                    <div 
+                        className="progress-bar-inner" 
+                        style={{ width: `${progressPercentage}%`, height: '100%', backgroundColor: '#28a745', borderRadius: '4px', transition: 'width 0.3s ease' }}
+                    ></div>
+                </div>
             </div>
             <div className="card-footer">
                 <div className="avatar-list">
@@ -101,9 +136,16 @@ const ProjectCard = ({
                         </div>
                     )}
                 </div>
-                <a href="#" className="view-details">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewDetails && onViewDetails(id);
+                  }} 
+                  className="view-details" 
+                  style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', textDecoration: 'underline' }}
+                >
                     View Details
-                </a>
+                </button>
             </div>
         </div>
     );

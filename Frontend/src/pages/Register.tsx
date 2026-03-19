@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { registerUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import styles from '../CSS Files/Login.module.css';
+
 const Register = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -13,6 +14,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { saveAuth } = useAuth();
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
@@ -28,6 +30,7 @@ const Register = () => {
       setError(err.message);
     }
   };
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.formPanel}>
