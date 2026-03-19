@@ -6,7 +6,7 @@ const projectRole = (...allowedRoles) => {
             const projectId = req.params.projectId || req.params.id;
 
             if (!projectId) {
-                return res.status(400).json({ message: 'Project ID is required' });
+                return res.status(400).json({ message: 'project id is required :(' });
             }
 
             const [rows] = await pool.query(
@@ -15,7 +15,7 @@ const projectRole = (...allowedRoles) => {
             );
 
             if (rows.length === 0) {
-                return res.status(403).json({ message: 'You are not a member of this project' });
+                return res.status(403).json({ message: 'you are not a member of this project :/' });
             }
 
             const userRole = rows[0].role;

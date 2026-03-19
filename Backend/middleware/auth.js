@@ -6,7 +6,7 @@ const auth = (req, res, next) => {
   if (!token) {
     return res
       .status(401)
-      .json({ message: "Authentication required!!try logging in again :(" });
+      .json({ message: "authentication required!! try logging in again :(" });
   }
 
   try {
@@ -16,7 +16,7 @@ const auth = (req, res, next) => {
   } catch (error) {
     return res
       .status(401)
-      .json({ message: "Session expired :( Please log in again." });
+      .json({ message: "session expired :( please log in again." });
   }
 };
 

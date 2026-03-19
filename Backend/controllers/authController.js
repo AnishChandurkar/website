@@ -26,7 +26,7 @@ const register = async (req, res) => {
     );
 
     if (existing.length > 0) {
-      return res.status(400).json({ message: "Email already exists" });
+      return res.status(400).json({ message: "email already exists :(" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -61,11 +61,11 @@ const register = async (req, res) => {
     });
 
     res.status(201).json({
-      message: "User registered!!",
+      message: "user registered!!",
       user: { id: user.id, first_name, surname, emailid },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -77,13 +77,13 @@ const login = async (req, res) => {
       emailid,
     ]);
     if (users.length === 0) {
-      return res.status(400).json({ message: "Invalid email" });
+      return res.status(400).json({ message: "invalid email :(" });
     }
     const user = users[0];
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid password" });
+      return res.status(400).json({ message: "invalid password :(" });
     }
 
     const accessToken = generateAccessToken(user);
@@ -111,7 +111,7 @@ const login = async (req, res) => {
     });
 
     res.json({
-      message: "Login successful",
+      message: "login successful!!",
       user: {
         id: user.id,
         first_name: user.first_name,
@@ -120,14 +120,14 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
 const refresh = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken)
-    return res.status(401).json({ message: "Refesh token required" });
+    return res.status(401).json({ message: "refresh token required :(" });
 
   try {
     const [tokenRows] = await pool.query(
@@ -136,7 +136,7 @@ const refresh = async (req, res) => {
     );
 
     if (tokenRows.length === 0) {
-      return res.status(403).json({ message: "Invalid refresh token" });
+      return res.status(403).json({ message: "invalid refresh token :(" });
     }
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
@@ -146,7 +146,7 @@ const refresh = async (req, res) => {
       [decoded.id],
     );
     if (userRows.length === 0)
-      return res.status(403).json({ message: "User not found" });
+      return res.status(403).json({ message: "user not found :(" });
 
     const newAccessToken = generateAccessToken(userRows[0]);
 
@@ -157,11 +157,11 @@ const refresh = async (req, res) => {
       maxAge: 15 * 60 * 1000,
     });
 
-    res.json({ message: "Token refreshed" });
+    res.json({ message: "token refreshed!!" });
   } catch (error) {
     return res
       .status(403)
-      .json({ message: "Refresh token expired or invalid" });
+      .json({ message: "refresh token expired or invalid :(" });
   }
 };
 
@@ -175,7 +175,7 @@ const logout = async (req, res) => {
 
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
-  res.json({ message: "Logged out successfully" });
+  res.json({ message: "logged out successfully!!" });
 };
 
 const getProfile = async (req, res) => {
@@ -189,7 +189,7 @@ const getProfile = async (req, res) => {
     }
     res.json(users[0]);
   } catch (error) {
-    res.status(500).json({ message: "server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -208,7 +208,7 @@ const updateProfilePicture = async (req, res) => {
 
     res.json({ message: "profile picture updated", profile_url: profileUrl });
   } catch (error) {
-    res.status(500).json({ message: "server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 

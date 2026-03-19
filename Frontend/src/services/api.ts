@@ -108,14 +108,48 @@ export const createBoard = (projectId: number, name: string) => {
     return apiRequest(`/projects/${projectId}/boards`, 'POST', { name });
 };
 
+export const fetchColumns = (boardId: number) => {
+    return apiRequest(`/boards/${boardId}/columns`);
+};
+
+export const createColumn = (boardId: number, name: string, wipLimit?: number) => {
+    return apiRequest(`/boards/${boardId}/columns`, 'POST', { name, wip_limit: wipLimit });
+};
+
+export const renameColumn = (columnId: number, name: string) => {
+    return apiRequest(`/boards/columns/${columnId}/rename`, 'PUT', { name });
+};
+
+export const updateColumnLimit = (columnId: number, wipLimit: number | null) => {
+    return apiRequest(`/boards/columns/${columnId}/limit`, 'PUT', { wip_limit: wipLimit });
+};
+
+export const reorderColumns = (boardId: number, order: number[]) => {
+    return apiRequest(`/boards/${boardId}/columns/reorder`, 'PUT', { order });
+};
+
+export const deleteColumn = (columnId: number) => {
+    return apiRequest(`/boards/columns/${columnId}`, 'DELETE');
+};
+
 export const fetchTasks = (boardId: number) => {
     return apiRequest(`/boards/${boardId}/tasks`);
 };
-export const createTask = (boardId: number, title: string, priority: string) => {
-    return apiRequest(`/boards/${boardId}/tasks`, 'POST', { title, priority });
+
+export const createTask = (boardId: number, title: string, columnId: number, priority?: string, type?: string) => {
+    return apiRequest(`/boards/${boardId}/tasks`, 'POST', { title, column_id: columnId, priority, type });
 };
-export const updateTaskStatus = (taskId: number, status: string) => {
-    return apiRequest(`/boards/tasks/${taskId}`, 'PUT', { status });
+
+export const moveTask = (taskId: number, columnId: number) => {
+    return apiRequest(`/boards/tasks/${taskId}/move`, 'PUT', { column_id: columnId });
+};
+
+export const updateTask = (taskId: number, updates: object) => {
+    return apiRequest(`/boards/tasks/${taskId}`, 'PUT', updates);
+};
+
+export const deleteTask = (taskId: number) => {
+    return apiRequest(`/boards/tasks/${taskId}`, 'DELETE');
 };
 
 export const fetchTeamMembers = (projectId: number) => {

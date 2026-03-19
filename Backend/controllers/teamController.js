@@ -11,7 +11,7 @@ const getMembers = async (req, res) => {
         );
         res.json(rows);
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: 'something went wrong :(' , error: error.message });
     }
 };
 
@@ -23,11 +23,11 @@ const addMember = async (req, res) => {
 
         const [users] = await pool.query('SELECT id FROM users WHERE emailid = ?', [emailid]);
         if (users.length === 0) {
-            return res.status(404).json({ message: 'User not found with that email.' });
+            return res.status(404).json({ message: 'user not found with that email :(' });
         }
 
         if (users[0].id === req.user.id) {
-            return res.status(400).json({ message: 'You are already a member of this project.' });
+            return res.status(400).json({ message: 'you are already a member of this project :/' });
         }
 
         await pool.query(
@@ -35,12 +35,12 @@ const addMember = async (req, res) => {
             [req.params.projectId, users[0].id, assignedRole]
         );
 
-        res.status(201).json({ message: 'Member added', role: assignedRole });
+        res.status(201).json({ message: 'member added!!', role: assignedRole });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
-            return res.status(400).json({ message: 'User is already a member of this project.' });
+            return res.status(400).json({ message: 'user is already a member of this project :/' });
         }
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: 'something went wrong :(' , error: error.message });
     }
 };
 
@@ -50,9 +50,9 @@ const removeMember = async (req, res) => {
             'DELETE FROM project_members WHERE project_id = ? AND user_id = ?',
             [req.params.projectId, req.params.userId]
         );
-        res.json({ message: 'Member removed' });
+        res.json({ message: 'member removed!!' });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: 'something went wrong :(' , error: error.message });
     }
 };
 

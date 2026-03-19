@@ -8,7 +8,7 @@ const getProjects = async (req, res) => {
     );
     res.json(rows);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -19,7 +19,7 @@ const getProjectById = async (req, res) => {
       [req.params.id]
     );
     if (projects.length === 0) {
-      return res.status(404).json({ message: "Project not found" });
+      return res.status(404).json({ message: "project not found :(" });
     }
 
     const [boards] = await pool.query(
@@ -42,7 +42,7 @@ const getProjectById = async (req, res) => {
       members
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -54,7 +54,7 @@ const getArchivedProjects = async (req, res) => {
     );
     res.json(rows);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -71,7 +71,7 @@ const createProject = async (req, res) => {
     );
 
     res.status(201).json({
-      message: "Project created!",
+      message: "project created!!",
       project: {
         id: result.insertId,
         name,
@@ -80,7 +80,7 @@ const createProject = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -91,9 +91,9 @@ const updateProject = async (req, res) => {
       "UPDATE projects SET name = COALESCE(?, name), description = COALESCE(?, description), status = COALESCE(?, status), progress = COALESCE(?, progress), updated_at = NOW() WHERE id = ?",
       [name, description, status, progress, req.params.id],
     );
-    res.json({ message: "Project updated" });
+    res.json({ message: "project updated!!" });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -108,7 +108,7 @@ const archiveProject = async (req, res) => {
       message: is_archived ? "Project archived" : "Project restored",
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -121,7 +121,7 @@ const toggleStar = async (req, res) => {
     ]);
     res.json({ message: is_starred ? "Project starred" : "Project unstarred" });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "something went wrong :(", error: error.message });
   }
 };
 
@@ -132,16 +132,16 @@ const deleteProject = async (req, res) => {
             [req.params.id]
         );
         if (project.length === 0) {
-            return res.status(404).json({ message: "Project not found" });
+            return res.status(404).json({ message: "project not found :(" });
         }
         if (project[0].owner_id !== req.user.id) {
-            return res.status(403).json({ message: "Only the project owner can delete this project" });
+            return res.status(403).json({ message: "only the project owner can delete this project :/" });
         }
 
         await pool.query("DELETE FROM projects WHERE id = ?", [req.params.id]);
-        res.json({ message: "Project deleted successfully" });
+        res.json({ message: "project deleted successfully!!" });
     } catch (error) {
-        res.status(500).json({ message: "Server error", error: error.message });
+        res.status(500).json({ message: "something went wrong :(", error: error.message });
     }
 };
 
