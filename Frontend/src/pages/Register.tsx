@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import styles from '../CSS Files/Login.module.css';
 const Register = () => {
   const [firstName, setFirstName] = useState('');
@@ -8,16 +10,23 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const handleSubmit = (e: FormEvent) => {
+  const { saveAuth } = useAuth();
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError('');
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setError("Passwords do not match!");
       return;
     }
-    console.log("Registering:", firstName, lastName, email, password);
-    navigate('/dashboard');
+    try {
+      const data = await registerUser(firstName, lastName, email, password);
+      saveAuth(data.token, data.user);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
   return (
     <div className={styles.pageContainer}>
@@ -25,6 +34,7 @@ const Register = () => {
         <div className={styles.formContainer}>
           <h2 className={styles.formTitle}>Create your account</h2>
           <p className={styles.formSubtitle}>Join WorkSpace and start managing projects.</p>
+          {error && <p style={{ color: 'red', fontSize: '0.9rem', margin: '0 0 10px' }}>{error}</p>}
           <form onSubmit={handleSubmit}>
             <div className={styles.nameRow}>
               <div className={styles.fieldGroup}>

@@ -1,18 +1,26 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import styles from '../CSS Files/Login.module.css';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const handleSubmit = (e: FormEvent) => {
+  const { saveAuth } = useAuth();
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
-    console.log("Remember Me:", rememberMe);
-    navigate('/dashboard');
+    setError('');
+    try {
+      const data = await loginUser(email, password);
+      saveAuth(data.token, data.user);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
   return (
     <div className={styles.pageContainer}>
@@ -20,6 +28,7 @@ const Login = () => {
         <div className={styles.formContainer}>
           <h2 className={styles.formTitle}>Log in to WorkSpace</h2>
           <p className={styles.formSubtitle}>Manage your projects efficiently.</p>
+          {error && <p style={{ color: 'red', fontSize: '0.9rem', margin: '0 0 10px' }}>{error}</p>}
           <form onSubmit={handleSubmit}>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Email or username</label>
