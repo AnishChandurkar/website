@@ -5,6 +5,7 @@ const projectRole = require('../middleware/projectRole');
 
 const {
     getProjects,
+    getProjectById,
     getArchivedProjects,
     createProject,
     updateProject,
@@ -16,6 +17,7 @@ const {
 router.get('/', auth, getProjects);
 router.get('/archived', auth, getArchivedProjects);
 router.post('/', auth, createProject);
+router.get('/:id', auth, projectRole(), getProjectById);
 router.put('/:id', auth, projectRole('Project Admin'), updateProject);
 router.put('/:id/archive', auth, projectRole('Project Admin'), archiveProject);
 router.delete('/:id', auth, projectRole('Project Admin'), deleteProject);

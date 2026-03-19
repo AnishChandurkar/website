@@ -72,6 +72,10 @@ export const fetchProjects = () => {
     return apiRequest('/projects');
 };
 
+export const fetchProjectById = (projectId: number) => {
+    return apiRequest(`/projects/${projectId}`);
+};
+
 export const createProject = (name: string, description?: string, status?: string) => {
     return apiRequest('/projects', 'POST', { name, description, status });
 };
@@ -81,7 +85,11 @@ export const updateProject = (projectId: number, name: string, description: stri
 };
 
 export const archiveProject = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/archive`, 'PUT');
+    return apiRequest(`/projects/${projectId}/archive`, 'PUT', { is_archived: true });
+};
+
+export const restoreProject = (projectId: number) => {
+    return apiRequest(`/projects/${projectId}/archive`, 'PUT', { is_archived: false });
 };
 
 export const deleteProject = (projectId: number) => {
@@ -92,15 +100,14 @@ export const toggleStarProject = (projectId: number, isStarred: boolean) => {
     return apiRequest(`/projects/${projectId}/star`, 'PUT', { is_starred: isStarred });
 };
 
-export const fetchBoard = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/board`);
+export const fetchBoards = (projectId: number) => {
+    return apiRequest(`/projects/${projectId}/boards`);
 };
 
 export const createBoard = (projectId: number, name: string) => {
-    return apiRequest(`/boards/${projectId}/tasks`, 'POST', { name });
+    return apiRequest(`/projects/${projectId}/boards`, 'POST', { name });
 };
 
-// tasks
 export const fetchTasks = (boardId: number) => {
     return apiRequest(`/boards/${boardId}/tasks`);
 };
@@ -110,14 +117,17 @@ export const createTask = (boardId: number, title: string, priority: string) => 
 export const updateTaskStatus = (taskId: number, status: string) => {
     return apiRequest(`/boards/tasks/${taskId}`, 'PUT', { status });
 };
-// team
+
 export const fetchTeamMembers = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/team`);
+    return apiRequest(`/projects/${projectId}/members`);
 };
-export const inviteMember = (projectId: number, emailid: string) => {
-    return apiRequest(`/projects/${projectId}/team`, 'POST', { emailid });
+export const inviteMember = (projectId: number, emailid: string, role?: string) => {
+    return apiRequest(`/projects/${projectId}/members`, 'POST', { emailid, role });
 };
-// notifications
+export const removeMember = (projectId: number, userId: number) => {
+    return apiRequest(`/projects/${projectId}/members/${userId}`, 'DELETE');
+};
+
 export const fetchNotifications = () => {
     return apiRequest('/notifications');
 };

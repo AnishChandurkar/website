@@ -185,18 +185,18 @@ const getProfile = async (req, res) => {
       [req.user.id],
     );
     if (users.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "user not found" });
     }
     res.json(users[0]);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "server error", error: error.message });
   }
 };
 
 const updateProfilePicture = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({ message: "no file uploaded" });
     }
 
     const profileUrl = `/uploads/avatars/${req.file.filename}`;
@@ -206,10 +206,17 @@ const updateProfilePicture = async (req, res) => {
       req.user.id,
     ]);
 
-    res.json({ message: "Profile picture updated", profile_url: profileUrl });
+    res.json({ message: "profile picture updated", profile_url: profileUrl });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "server error", error: error.message });
   }
 };
 
-module.exports = { register, login, refresh, logout, getProfile, updateProfilePicture };
+module.exports = {
+  register,
+  login,
+  refresh,
+  logout,
+  getProfile,
+  updateProfilePicture,
+};

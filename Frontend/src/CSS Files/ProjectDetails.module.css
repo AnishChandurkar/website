@@ -1,13 +1,20 @@
-.container {
-  background-color: #ffffff;
+.layout {
+  display: flex;
   min-height: 100vh;
+  background-color: #f4f4f9;
+}
+
+.container {
+  flex: 1;
   padding: 30px;
   color: #333333;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
+
 .topBar {
   margin-bottom: 20px;
 }
+
 .backLink {
   color: #007bff;
   text-decoration: none;
@@ -16,65 +23,159 @@
   align-items: center;
   gap: 5px;
 }
+
 .backLink:hover {
   text-decoration: underline;
 }
+
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   margin-bottom: 30px;
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
 }
+
 .titleSection h1 {
-  font-size: 2rem;
+  font-size: 1.6rem;
   margin: 0;
-  color: #000000;
+  color: #1a1a1a;
 }
-.titleSection p {
+
+.description {
   color: #666666;
-  margin: 5px 0 0 0;
+  margin: 6px 0 12px 0;
+  font-size: 0.95rem;
 }
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: #e8f4fd;
+  color: #0069d9;
+}
+
+.metaText {
+  font-size: 0.82rem;
+  color: #888888;
+}
+
 .actionButtons {
   display: flex;
   gap: 10px;
+  flex-shrink: 0;
 }
+
 .newBoardBtn {
   background-color: #007bff;
   color: #ffffff;
   border: none;
   padding: 10px 15px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
+
 .newBoardBtn:hover {
   background-color: #0056b3;
 }
+
 .inviteBtn {
   background-color: #f4f4f4;
   color: #333333;
   border: 1px solid #cccccc;
   padding: 10px 15px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
+
 .inviteBtn:hover {
   background-color: #e0e0e0;
 }
+
+.membersSection {
+  margin-bottom: 30px;
+}
+
+.membersSection h3 {
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+}
+
+.membersList {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.memberChip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.memberAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.memberName {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.memberRole {
+  display: block;
+  font-size: 0.75rem;
+  color: #888888;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 }
+
 .card {
   height: 180px;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
+
 .createCard {
   background-color: #f9f9f9;
   border: 2px dashed #cccccc;
@@ -83,10 +184,13 @@
   cursor: pointer;
   color: #666666;
   text-decoration: none;
+  transition: background-color 0.2s;
 }
+
 .createCard:hover {
   background-color: #f0f0f0;
 }
+
 .plusIcon {
   font-size: 2rem;
   background-color: #eeeeee;
@@ -99,20 +203,24 @@
   margin-bottom: 10px;
   color: #333333;
 }
+
 .boardCard {
   background-color: #ffffff;
   text-decoration: none;
   color: #333333;
-  border: 1px solid #cccccc;
+  border: 1px solid #e0e0e0;
+  transition: box-shadow 0.2s;
 }
+
 .boardCard:hover {
-  background-color: #fcfcfc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
 .cardIcon {
   width: 40px;
   height: 40px;
   background-color: #eeeeee;
-  border-radius: 4px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,17 +228,20 @@
   font-size: 1.2rem;
   margin-bottom: 10px;
 }
+
 .cardTitle {
   font-size: 1.1rem;
   font-weight: bold;
   margin: 0;
-  color: #000000;
+  color: #1a1a1a;
 }
+
 .cardDivider {
   height: 1px;
   background-color: #eeeeee;
   margin: 15px 0;
 }
+
 .cardFooter {
   display: flex;
   justify-content: space-between;

@@ -12,6 +12,40 @@ const getProjects = async (req, res) => {
   }
 };
 
+const getProjectById = async (req, res) => {
+  try {
+    const [projects] = await pool.query(
+      "SELECT * FROM projects WHERE id = ?",
+      [req.params.id]
+    );
+    if (projects.length === 0) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const [boards] = await pool.query(
+      `SELECT b.*, (SELECT COUNT(*) FROM tasks t WHERE t.board_id = b.id) AS task_count
+       FROM boards b WHERE b.project_id = ?`,
+      [req.params.id]
+    );
+
+    const [members] = await pool.query(
+      `SELECT u.id, u.first_name, u.surname, u.emailid, u.profile_url, pm.role
+       FROM project_members pm
+       JOIN users u ON pm.user_id = u.id
+       WHERE pm.project_id = ?`,
+      [req.params.id]
+    );
+
+    res.json({
+      ...projects[0],
+      boards,
+      members
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const getArchivedProjects = async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -54,7 +88,7 @@ const updateProject = async (req, res) => {
   try {
     const { name, status, progress, description } = req.body;
     await pool.query(
-      "UPDATE projects SET name = COALESCE(?, name), description = COALESCE(?, description), status = COALESCE(?, status), progress = COALESCE(?, progress) WHERE id = ?",
+      "UPDATE projects SET name = COALESCE(?, name), description = COALESCE(?, description), status = COALESCE(?, status), progress = COALESCE(?, progress), updated_at = NOW() WHERE id = ?",
       [name, description, status, progress, req.params.id],
     );
     res.json({ message: "Project updated" });
@@ -113,6 +147,7 @@ const deleteProject = async (req, res) => {
 
 module.exports = {
   getProjects,
+  getProjectById,
   getArchivedProjects,
   createProject,
   updateProject,
