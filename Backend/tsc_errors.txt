@@ -1,3 +1,0 @@
-controllers/authController.ts(2,8): error TS1259: Module '"C:/Users/Arin/Documents/website/Backend/node_modules/bcryptjs/umd/index"' can only be default-imported using the 'esModuleInterop' flag
-controllers/authController.ts(3,8): error TS1192: Module '"C:/Users/Arin/Documents/website/Backend/node_modules/@types/jsonwebtoken/index"' has no default export.
-controllers/authController.ts(5,8): error TS1259: Module '"C:/Users/Arin/Documents/website/Backend/config/db"' can only be default-imported using the 'esModuleInterop' flag
