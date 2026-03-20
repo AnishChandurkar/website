@@ -3,13 +3,14 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
+import fs from "fs";
+import path from "path";
 
 // --- Types & Interfaces ---
 
-// Extend the Express Request object to include user and file properties
+// Extend the Express Request object to include user
 export interface AuthRequest extends Request {
   user?: { id: number; emailid?: string } | undefined;
-  file?: Express.Multer.File | undefined;
 }
 
 interface UserRow extends RowDataPacket {
@@ -214,15 +215,34 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
 
 export const updateProfilePicture = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+    const { avatar } = req.body;
+    if (!avatar) {
+      return res.status(400).json({ message: "No avatar provided" });
     }
 
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const profileUrl = `/uploads/avatars/${req.file.filename}`;
+    const match = avatar.match(/^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/);
+    if (!match) {
+      return res.status(400).json({ message: "Invalid image format or missing base64 header" });
+    }
+
+    const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+    const base64Data = match[2];
+    const uniqueName = `${req.user.id}_${Date.now()}.${ext}`;
+    
+    // Ensure directory exists
+    const avatarsDir = path.join(__dirname, '..', 'uploads', 'avatars');
+    if (!fs.existsSync(avatarsDir)) {
+      fs.mkdirSync(avatarsDir, { recursive: true });
+    }
+
+    const filepath = path.join(avatarsDir, uniqueName);
+    fs.writeFileSync(filepath, base64Data, 'base64');
+
+    const profileUrl = `/uploads/avatars/${uniqueName}`;
 
     await pool.query(
       "UPDATE users SET profile_url = ? WHERE id = ?",

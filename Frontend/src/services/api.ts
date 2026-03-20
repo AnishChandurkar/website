@@ -52,13 +52,19 @@ export const logoutUser = () => {
 };
 
 export const uploadAvatar = async (file: File) => {
-    const formData = new FormData();
-    formData.append('avatar', file);
+    // Convert file to base64 to avoid using external upload libraries (like multer)
+    const base64Avatar = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
 
     const response = await fetch(`${BASE_URL}/auth/profile/avatar`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: formData,
+        body: JSON.stringify({ avatar: base64Avatar }),
     });
 
     const data = await response.json();
