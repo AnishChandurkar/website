@@ -158,12 +158,33 @@ const moveTask = async (req, res) => {
     const { column_id } = req.body;
     const taskId = req.params.id;
 
+    // grab old col info
+    const [task] = await pool.query(
+      `SELECT t.column_id AS old_col, t.board_id, c1.position AS old_pos, c1.name AS old_name 
+       FROM tasks t 
+       LEFT JOIN columns c1 ON t.column_id = c1.id 
+       WHERE t.id = ?`,
+      [taskId],
+    );
+    if (task.length === 0)
+      return res.status(404).json({ message: "task not found :/" });
+    const { old_col, board_id, old_pos, old_name } = task[0];
+
     const [col] = await pool.query(
-      "SELECT wip_limit, name FROM columns WHERE id = ?",
-      [column_id],
+      "SELECT wip_limit, name, position FROM columns WHERE id = ? AND board_id = ?",
+      [column_id, board_id],
     );
     if (col.length === 0) {
       return res.status(404).json({ message: "that column doesnt exist :/" });
+    }
+
+    const new_name = col[0].name;
+    const new_pos = col[0].position;
+
+    if (old_pos !== null && new_pos > old_pos + 1) {
+      return res
+        .status(400)
+        .json({ message: "whoa there! you cant skip stages in the workflow!" });
     }
 
     if (col[0].wip_limit !== null) {
@@ -178,10 +199,30 @@ const moveTask = async (req, res) => {
       }
     }
 
-    await pool.query("UPDATE tasks SET column_id = ? WHERE id = ?", [
-      column_id,
-      taskId,
-    ]);
+    const [maxCol] = await pool.query(
+      "SELECT MAX(position) AS max_pos FROM columns WHERE board_id = ?",
+      [board_id],
+    );
+    let extraUpdate = "";
+    if (new_pos === maxCol[0].max_pos) {
+      extraUpdate =
+        ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP), closed_at = IFNULL(closed_at, CURRENT_TIMESTAMP)";
+    } else {
+      extraUpdate = ", resolved_at = NULL, closed_at = NULL";
+    }
+
+    await pool.query(
+      `UPDATE tasks SET column_id = ? ${extraUpdate} WHERE id = ?`,
+      [column_id, taskId],
+    );
+
+    if (old_col !== column_id) {
+      await pool.query(
+        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'STATUS_CHANGE', ?, ?)",
+        [taskId, req.user.id, old_name || "Unplaced", new_name],
+      );
+    }
+
     res.json({ message: "task moved!" });
   } catch (error) {
     res
@@ -201,6 +242,14 @@ const updateTask = async (req, res) => {
       due_date,
       parent_id,
     } = req.body;
+
+    const [oldTask] = await pool.query(
+      "SELECT assigned_to FROM tasks WHERE id = ?",
+      [req.params.id],
+    );
+    if (oldTask.length === 0)
+      return res.status(404).json({ message: "task not found :/" });
+    const old_assignee = oldTask[0].assigned_to;
 
     if (parent_id !== undefined && parent_id !== null) {
       const [parent] = await pool.query("SELECT type FROM tasks WHERE id = ?", [
@@ -259,6 +308,30 @@ const updateTask = async (req, res) => {
       `UPDATE tasks SET ${sets.join(", ")} WHERE id = ?`,
       values,
     );
+
+    if ("assigned_to" in req.body && assigned_to !== old_assignee) {
+      let old_name = "Unassigned";
+      if (old_assignee) {
+        const [o] = await pool.query(
+          "SELECT first_name, surname FROM users WHERE id = ?",
+          [old_assignee],
+        );
+        if (o.length > 0) old_name = `${o[0].first_name} ${o[0].surname}`;
+      }
+      let new_name = "Unassigned";
+      if (assigned_to) {
+        const [n] = await pool.query(
+          "SELECT first_name, surname FROM users WHERE id = ?",
+          [assigned_to],
+        );
+        if (n.length > 0) new_name = `${n[0].first_name} ${n[0].surname}`;
+      }
+      await pool.query(
+        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'ASSIGNEE_CHANGE', ?, ?)",
+        [req.params.id, req.user.id, old_name, new_name],
+      );
+    }
+
     res.json({ message: "task updated!" });
   } catch (error) {
     res

@@ -1,6 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import styles from '../CSS Files/TaskDetailModal.module.css';
-import { getTask, getChildTasks, updateTask, deleteTask, fetchTeamMembers } from '../services/api';
+import { getTask, getChildTasks, updateTask, deleteTask, fetchTeamMembers, getComments, addComment, deleteComment } from '../services/api';
+
+interface Comment {
+  id: number;
+  task_id: number;
+  user_id: number;
+  content: string;
+  first_name: string;
+  surname: string;
+  created_at: string;
+}
 
 interface Task {
   id: number;
@@ -81,6 +91,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
   const [saving, setSaving]       = useState(false);
   const [dirty, setDirty]         = useState(false);
   const [editDesc, setEditDesc]   = useState(false);
+  const [comments, setComments]   = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState('');
 
   const [title, setTitle]           = useState('');
   const [description, setDescription] = useState('');
@@ -92,14 +104,16 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [taskData, childrenData, membersData] = await Promise.all([
+      const [taskData, childrenData, membersData, commentsData] = await Promise.all([
         getTask(taskId),
         getChildTasks(taskId),
         fetchTeamMembers(projectId),
+        getComments(taskId),
       ]);
       setTask(taskData);
       setChildren(childrenData);
       setMembers(membersData);
+      setComments(commentsData);
 
       setTitle(taskData.title ?? '');
       setDescription(taskData.description ?? '');
@@ -149,6 +163,28 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
       onClose();
     } catch (err: any) {
       alert(err.message || 'couldnt delete that task :/');
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    try {
+      await addComment(taskId, newComment.trim());
+      setNewComment('');
+      const commentsData = await getComments(taskId);
+      setComments(commentsData);
+    } catch (err: any) {
+      alert(err.message || 'couldnt add comment :/');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!window.confirm('delete this comment?')) return;
+    try {
+      await deleteComment(taskId, commentId);
+      setComments(comments.filter(c => c.id !== commentId));
+    } catch (err: any) {
+      alert(err.message || 'couldnt delete comment :/');
     }
   };
 
@@ -333,6 +369,40 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
                 <span className={styles.dueDateValue}>{formatDate(task.updated_at)}</span>
               </div>
             )}
+
+            <div className={styles.section}>
+              <span className={styles.sectionLabel}>Comments ({comments.length})</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }}>
+                {comments.map(c => (
+                  <div key={c.id} style={{ padding: '10px', border: '1px solid #cccccc', borderRadius: '4px', backgroundColor: '#fafafa' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{c.first_name} {c.surname}</span>
+                      <span style={{ fontSize: '0.75rem', color: '#666666' }}>
+                        {formatDate(c.created_at)}
+                        <span style={{ marginLeft: '10px', color: '#cc0000', cursor: 'pointer' }} onClick={() => handleDeleteComment(c.id)}>Delete</span>
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: '#333333', whiteSpace: 'pre-wrap' }}>{c.content}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  value={newComment} 
+                  onChange={e => setNewComment(e.target.value)} 
+                  placeholder="write a comment..." 
+                  style={{ flex: 1, padding: '8px 12px', border: '1px solid #cccccc', borderRadius: '4px', fontSize: '0.9rem' }}
+                  onKeyDown={e => e.key === 'Enter' && handleAddComment()}
+                />
+                <button 
+                  onClick={handleAddComment}
+                  style={{ padding: '8px 16px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem' }}
+                >
+                  Send
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className={styles.sidebar}>

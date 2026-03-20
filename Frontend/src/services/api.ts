@@ -84,6 +84,22 @@ export const updateProject = (projectId: number, name: string, description: stri
     return apiRequest(`/projects/${projectId}`, 'PUT', { name, description, status, progress });
 };
 
+export const getComments = async (taskId: number) => {
+    return apiRequest(`/tasks/${taskId}/comments`);
+};
+
+export const addComment = async (taskId: number, content: string) => {
+    return apiRequest(`/tasks/${taskId}/comments`, 'POST', { content });
+};
+
+export const editComment = async (taskId: number, commentId: number, content: string) => {
+    return apiRequest(`/tasks/${taskId}/comments/${commentId}`, 'PUT', { content });
+};
+
+export const deleteComment = async (taskId: number, commentId: number) => {
+    return apiRequest(`/tasks/${taskId}/comments/${commentId}`, 'DELETE');
+};
+
 export const archiveProject = (projectId: number) => {
     return apiRequest(`/projects/${projectId}/archive`, 'PUT', { is_archived: true });
 };
