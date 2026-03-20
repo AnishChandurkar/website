@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import styles from '../CSS Files/TaskDetailModal.module.css';
 import { getTask, getChildTasks, updateTask, deleteTask, fetchTeamMembers, getComments, addComment, deleteComment } from '../services/api';
 import { formatText } from '../services/formatText';
-
 interface Comment {
   id: number;
   task_id: number;
@@ -12,7 +11,6 @@ interface Comment {
   surname: string;
   created_at: string;
 }
-
 interface Task {
   id: number;
   title: string;
@@ -301,7 +299,7 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
                     autoFocus
                     onBlur={() => setEditDesc(false)}
                   />
-                  <span className={styles.formatHint}>**bold**  *italic*  `monospace`</span>
+                  <span className={styles.formatHint}>**bold** *italic* `monospace`</span>
                 </>
               ) : (
                 <div
@@ -407,7 +405,7 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
                     Send
                   </button>
                 </div>
-                <span className={styles.formatHint}>**bold**  *italic*  `monospace`  · Shift+Enter for new line</span>
+                <span className={styles.formatHint}>**bold** *italic* `monospace`  · Shift+Enter for new line</span>
               </div>
             </div>
           </div>
@@ -507,6 +505,21 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
         </div>
 
         <div className={styles.footer}>
+          <button 
+            onClick={handleDelete}
+            style={{ 
+              backgroundColor: '#ffffff', 
+              color: '#cc0000', 
+              border: '1px solid #cc0000', 
+              padding: '8px 16px', 
+              fontSize: '0.9rem', 
+              cursor: 'pointer', 
+              borderRadius: '4px',
+              marginRight: '10px'
+            }}
+          >
+            Close
+          </button>
           <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
           <button
             className={styles.saveBtn}

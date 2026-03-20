@@ -67,7 +67,6 @@ const Settings = () => {
                 <h1 style={{ marginBottom: '10px', color: '#000000' }}>Settings</h1>
                 <p style={{ color: '#666666', marginTop: 0, marginBottom: '30px' }}>Manage your account preferences.</p>
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                    
                     <div style={sectionStyle}>
                         <h2 style={{ marginTop: 0, fontSize: '1.2rem', color: '#000000' }}>Profile</h2>
                         <form onSubmit={handleProfileSave}>
