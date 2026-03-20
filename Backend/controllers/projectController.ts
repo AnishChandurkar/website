@@ -110,6 +110,10 @@ export const createProject = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    if (req.user.emailid !== 'admin@workspace.com') {
+      return res.status(403).json({ message: "only the global admin can create projects!" });
+    }
+
     const { name, status, description } = req.body;
     const [result] = await pool.query<ResultSetHeader>(
       "INSERT INTO projects (name, description, status, owner_id) VALUES (?, ?, ?, ?)",

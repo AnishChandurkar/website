@@ -5,6 +5,7 @@ import '../CSS Files/DashBoard.css';
 import ProjectCard from '../ui_elements/ProjectCard';
 import { fetchProjects, archiveProject, deleteProject, createProject, toggleStarProject, updateProject } from '../services/api';
 import NewProjectModal from '../ui_elements/NewProjectModal';
+import { useAuth } from '../context/AuthContext';
 
 interface ProjectData {
   id: number;
@@ -19,6 +20,7 @@ interface ProjectData {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -194,11 +196,13 @@ const Dashboard = () => {
             <p style={{ color: '#666666', margin: 0 }}>Overview of all our workspaces</p>
           </div>
           <div className="action-area">
-            <button 
-              onClick={() => setShowModal(true)}
-              style={{ padding: '10px 15px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-              New Project
-            </button>
+            {user?.emailid === 'admin@workspace.com' && (
+              <button 
+                onClick={() => setShowModal(true)}
+                style={{ padding: '10px 15px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                New Project
+              </button>
+            )}
           </div>
         </div>
         <div className="projects-grid">
@@ -224,7 +228,9 @@ const Dashboard = () => {
         {projects.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666666' }}>
             <p style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>No active projects</p>
-            <p>Ready to start something new? Create a project above!</p>
+            {user?.emailid === 'admin@workspace.com' && (
+              <p>Ready to start something new? Create a project above!</p>
+            )}
           </div>
         )}
         
