@@ -17,7 +17,7 @@ export const getTasks = async (req: AuthRequest, res: Response): Promise<any> =>
              LEFT JOIN users ua ON t.assigned_to = ua.id
              LEFT JOIN users ur ON t.reporter_id = ur.id
              LEFT JOIN tasks p  ON t.parent_id = p.id
-             WHERE t.board_id = ?
+             WHERE t.board_id = ? AND t.closed_at IS NULL
              ORDER BY t.created_at DESC`,
       [req.params.boardId],
     );
@@ -127,8 +127,16 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
       }
     }
 
+    const [targetCol] = await pool.query<RowDataPacket[]>("SELECT position FROM columns WHERE id = ?", [column_id]);
+    const [maxCol] = await pool.query<RowDataPacket[]>("SELECT MAX(position) AS max_pos FROM columns WHERE board_id = ?", [req.params.boardId]);
+    
+    let resolved_at = null;
+    if (targetCol.length > 0 && maxCol.length > 0 && targetCol[0].position === maxCol[0].max_pos) {
+      resolved_at = new Date();
+    }
+
     const [result] = await pool.query<ResultSetHeader>(
-      "INSERT INTO tasks (title, description, type, board_id, column_id, priority, assigned_to, reporter_id, parent_id, due_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO tasks (title, description, type, board_id, column_id, priority, assigned_to, reporter_id, parent_id, due_date, resolved_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         title,
         description || null,
@@ -140,7 +148,15 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
         req.user!.id,
         parent_id || null,
         due_date || null,
+        resolved_at,
       ],
+    );
+
+    const taskId = result.insertId;
+
+    await pool.query(
+      "INSERT INTO audit_logs (task_id, user_id, event_type, new_value) VALUES (?, ?, 'TASK_CREATED', ?)",
+      [taskId, req.user!.id, title]
     );
 
     if (parent_id) {
@@ -228,10 +244,9 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     );
     let extraUpdate = "";
     if (maxCol.length > 0 && new_pos === maxCol[0].max_pos) {
-      extraUpdate =
-        ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP), closed_at = IFNULL(closed_at, CURRENT_TIMESTAMP)";
+      extraUpdate = ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP)";
     } else {
-      extraUpdate = ", resolved_at = NULL, closed_at = NULL";
+      extraUpdate = ", resolved_at = NULL";
     }
 
     await pool.query(
@@ -271,13 +286,36 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
       parent_id,
     } = req.body;
 
-    const [oldTask] = await pool.query<RowDataPacket[]>(
-      "SELECT assigned_to FROM tasks WHERE id = ?",
+    const [oldRows] = await pool.query<RowDataPacket[]>(
+      "SELECT * FROM tasks WHERE id = ?",
       [req.params.id],
     );
-    if (oldTask.length === 0)
+    if (oldRows.length === 0)
       return res.status(404).json({ message: "task not found :/" });
-    const old_assignee = oldTask[0].assigned_to;
+    const oldTask = oldRows[0];
+    const old_assignee = oldTask.assigned_to;
+
+    //logging for changed assignee 
+    if (assigned_to !== undefined && assigned_to !== old_assignee) {
+      await pool.query(
+        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'ASSIGNEE_CHANGE', ?, ?)",
+        [req.params.id, req.user!.id, old_assignee ? String(old_assignee) : "Unassigned", assigned_to ? String(assigned_to) : "Unassigned"]
+      );
+    }
+
+    //general updates
+    if (title !== undefined && title !== oldTask.title) {
+      await pool.query(
+        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'TASK_UPDATED', ?, ?)",
+        [req.params.id, req.user!.id, oldTask.title, title]
+      );
+    }
+    if (priority !== undefined && priority !== oldTask.priority) {
+      await pool.query(
+        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'TASK_UPDATED', ?, ?)",
+        [req.params.id, req.user!.id, oldTask.priority, priority]
+      );
+    }
 
     if (parent_id !== undefined && parent_id !== null) {
       const [parent] = await pool.query<RowDataPacket[]>("SELECT type FROM tasks WHERE id = ?", [
@@ -337,27 +375,8 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
       values,
     );
 
-    if ("assigned_to" in req.body && assigned_to !== old_assignee) {
-      let old_name = "Unassigned";
-      if (old_assignee) {
-        const [o] = await pool.query<RowDataPacket[]>(
-          "SELECT first_name, surname FROM users WHERE id = ?",
-          [old_assignee],
-        );
-        if (o.length > 0) old_name = `${o[0].first_name} ${o[0].surname}`;
-      }
-      let new_name = "Unassigned";
-      if (assigned_to) {
-        const [n] = await pool.query<RowDataPacket[]>(
-          "SELECT first_name, surname FROM users WHERE id = ?",
-          [assigned_to],
-        );
-        if (n.length > 0) new_name = `${n[0].first_name} ${n[0].surname}`;
-      }
-      await pool.query(
-        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'ASSIGNEE_CHANGE', ?, ?)",
-        [req.params.id, req.user!.id, old_name, new_name],
-      );
+    if (parent_id) {
+      await updateParentStoryStatus(parent_id, oldTask.board_id);
     }
 
     res.json({ message: "task updated!" });
@@ -426,10 +445,45 @@ const updateParentStoryStatus = async (parentId: string | number, boardId: strin
 
   if (targetCols.length > 0) {
     const [maxCol] = await pool.query<RowDataPacket[]>("SELECT MAX(position) AS max_pos FROM columns WHERE board_id = ?", [boardId]);
-    let extraUpdate = ", resolved_at = NULL, closed_at = NULL";
+    let extraUpdate = ", resolved_at = NULL";
     if (maxCol.length > 0 && targetCols[0].position === maxCol[0].max_pos) {
-      extraUpdate = ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP), closed_at = IFNULL(closed_at, CURRENT_TIMESTAMP)";
+      extraUpdate = ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP)";
     }
     await pool.query(`UPDATE tasks SET column_id = ? ${extraUpdate} WHERE id = ?`, [targetCols[0].id, parentId]);
+  }
+};
+
+export const closeTask = async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    const taskId = req.params.id;
+
+    const [task] = await pool.query<RowDataPacket[]>(
+      `SELECT t.id, t.board_id, c.position, (SELECT MAX(position) FROM columns WHERE board_id = t.board_id) as max_pos
+       FROM tasks t
+       JOIN columns c ON t.column_id = c.id
+       WHERE t.id = ?`,
+      [taskId]
+    );
+
+    if (task.length === 0) return res.status(404).json({ message: "Task not found" });
+
+    if (task[0].position !== task[0].max_pos) {
+      return res.status(400).json({ message: "Only tasks in the final status progress can be closed!" });
+    }
+
+    await pool.query(
+      "UPDATE tasks SET closed_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [taskId]
+    );
+
+    await pool.query(
+      "INSERT INTO audit_logs (task_id, user_id, event_type) VALUES (?, ?, 'TASK_CLOSED')",
+      [taskId, req.user.id]
+    );
+
+    res.json({ message: "Task closed successfully!" });
+  } catch (error: any) {
+    res.status(500).json({ message: "Failed to close task", error: error.message });
   }
 };

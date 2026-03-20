@@ -14,6 +14,7 @@ import teamRoutes from "./routes/teamRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import commentRoutes from "./routes/commentRoutes";
 import workflowRoutes from "./routes/workflowRoutes";
+import auditRoutes from "./routes/auditRoutes";
 
 dotenv.config();
 const app = express();
@@ -47,6 +48,7 @@ app.use('/api/boards', columnRoutes);
 app.use('/api/projects', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tasks/:taskId/comments', commentRoutes);
+app.use('/api/boards', auditRoutes);
 
 const seedAdmin = async () => {
   try {
