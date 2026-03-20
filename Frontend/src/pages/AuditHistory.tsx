@@ -72,8 +72,8 @@ const AuditHistory = () => {
                     <td className={styles.tableCell}>{log.new_value || '-'}</td>
                     <td className={styles.tableCell}>{log.creator_first_name} {log.creator_surname}</td>
                     <td className={styles.tableCell}>{log.editor_first_name} {log.editor_surname}</td>
-                    <td className={styles.tableCell}>{log.closed_at ? 'YES' : 'NO'}</td>
-                    <td className={styles.tableCell}>{log.resolved_at ? 'YES' : 'NO'}</td>
+                    <td className={styles.tableCell}>{log.closed_at ? 'YES' : '-'}</td>
+                    <td className={styles.tableCell}>{log.resolved_at ? 'YES' : '-'}</td>
                     <td className={styles.tableCell}>{formatDate(log.created_at)}</td>
                   </tr>
                 ))
@@ -85,4 +85,5 @@ const AuditHistory = () => {
     </div>
   );
 };
-export default AuditHistory;
+
+export default AuditHistory;

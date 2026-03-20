@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import styles from '../CSS Files/TaskDetailModal.module.css';
-import { getTask, getChildTasks, updateTask, deleteTask, fetchTeamMembers, getComments, addComment, deleteComment } from '../services/api';
+import { getTask, getChildTasks, updateTask, deleteTask, closeTask, fetchTeamMembers, getComments, addComment, deleteComment } from '../services/api';
 import { formatText } from '../services/formatText';
 interface Comment {
   id: number;
@@ -162,6 +162,20 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
       onClose();
     } catch (err: any) {
       alert(err.message || 'couldnt delete that task :/');
+    }
+  };
+
+  const handleCloseTask = async () => {
+    if (!window.confirm(`this will permanently close the task and remove it from the board. continue?`)) return;
+    setSaving(true);
+    try {
+      await closeTask(taskId);
+      onUpdated();
+      onClose();
+    } catch (err: any) {
+      alert(err.message || 'couldnt close task :/');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -506,19 +520,20 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
 
         <div className={styles.footer}>
           <button 
-            onClick={handleDelete}
+            onClick={handleCloseTask}
+            disabled={saving}
             style={{ 
-              backgroundColor: '#ffffff', 
-              color: '#cc0000', 
-              border: '1px solid #cc0000', 
+              backgroundColor: '#10b981', 
+              color: '#ffffff', 
+              border: 'none', 
               padding: '8px 16px', 
               fontSize: '0.9rem', 
               cursor: 'pointer', 
               borderRadius: '4px',
-              marginRight: '10px'
+              marginRight: 'auto'
             }}
           >
-            Close
+            Close Task
           </button>
           <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
           <button

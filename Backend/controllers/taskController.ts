@@ -453,6 +453,7 @@ const updateParentStoryStatus = async (parentId: string | number, boardId: strin
   }
 };
 
+
 export const closeTask = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
