@@ -419,3 +419,64 @@
   color: #999999;
   font-style: italic;
 }
+
+/* --- Rich text rendered content --- */
+
+.richContent {
+  font-size: 0.88rem;
+  color: #374151;
+  line-height: 1.6;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.richContent code {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #f0f0f0;
+  border: 1px solid #dddddd;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.84rem;
+  color: #cc3300;
+}
+
+.richContent strong {
+  font-weight: 700;
+  color: #111827;
+}
+
+.richContent em {
+  font-style: italic;
+}
+
+.formatHint {
+  font-size: 0.72rem;
+  color: #aaaaaa;
+  margin-top: 4px;
+}
+
+.commentContent {
+  font-size: 0.88rem;
+  color: #333333;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.commentContent code {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #f0f0f0;
+  border: 1px solid #dddddd;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.84rem;
+  color: #cc3300;
+}
+
+.commentContent strong {
+  font-weight: 700;
+  color: #111827;
+}
+
+.commentContent em {
+  font-style: italic;
+}

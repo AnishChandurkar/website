@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import styles from '../CSS Files/TaskDetailModal.module.css';
 import { getTask, getChildTasks, updateTask, deleteTask, fetchTeamMembers, getComments, addComment, deleteComment } from '../services/api';
+import { formatText } from '../services/formatText';
 
 interface Comment {
   id: number;
@@ -61,14 +62,14 @@ interface Props {
 
 const TYPE_LABEL: Record<string, string> = {
   Story: 'Story',
-  Task:  'Task',
-  Bug:   'Bug',
+  Task: 'Task',
+  Bug: 'Bug',
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
-  LOW:      'Low',
-  MEDIUM:   'Medium',
-  HIGH:     'High',
+  LOW: 'Low',
+  MEDIUM: 'Medium',
+  HIGH: 'High',
   CRITICAL: 'Critical',
 };
 
@@ -84,22 +85,22 @@ function isOverdue(iso: string | null): boolean {
 }
 
 const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: Props) => {
-  const [task, setTask]           = useState<Task | null>(null);
-  const [children, setChildren]   = useState<ChildTask[]>([]);
-  const [members, setMembers]     = useState<Member[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [saving, setSaving]       = useState(false);
-  const [dirty, setDirty]         = useState(false);
-  const [editDesc, setEditDesc]   = useState(false);
-  const [comments, setComments]   = useState<Comment[]>([]);
+  const [task, setTask] = useState<Task | null>(null);
+  const [children, setChildren] = useState<ChildTask[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [editDesc, setEditDesc] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
 
-  const [title, setTitle]           = useState('');
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType]             = useState<'Story' | 'Task' | 'Bug'>('Task');
-  const [priority, setPriority]     = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'>('MEDIUM');
+  const [type, setType] = useState<'Story' | 'Task' | 'Bug'>('Task');
+  const [priority, setPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'>('MEDIUM');
   const [assignedTo, setAssignedTo] = useState<number | null>(null);
-  const [dueDate, setDueDate]       = useState('');
+  const [dueDate, setDueDate] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -138,12 +139,12 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
     setSaving(true);
     try {
       await updateTask(taskId, {
-        title:       title.trim() || task?.title,
+        title: title.trim() || task?.title,
         description: description || null,
         type,
         priority,
         assigned_to: assignedTo,
-        due_date:    dueDate || null,
+        due_date: dueDate || null,
       });
       setDirty(false);
       onUpdated();
@@ -200,14 +201,14 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
 
   const getTypeClass = (t: string) => {
     if (t === 'Story') return styles.typeStory;
-    if (t === 'Bug')   return styles.typeBug;
+    if (t === 'Bug') return styles.typeBug;
     return styles.typeTask;
   };
 
   const getPriorityClass = (p: string) => {
-    if (p === 'LOW')      return styles.priorityLow;
-    if (p === 'MEDIUM')   return styles.priorityMedium;
-    if (p === 'HIGH')     return styles.priorityHigh;
+    if (p === 'LOW') return styles.priorityLow;
+    if (p === 'MEDIUM') return styles.priorityMedium;
+    if (p === 'HIGH') return styles.priorityHigh;
     if (p === 'CRITICAL') return styles.priorityCritical;
     return '';
   };
@@ -291,14 +292,17 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
             <div className={styles.section}>
               <span className={styles.sectionLabel}>Description</span>
               {editDesc ? (
-                <textarea
-                  className={styles.descriptionTextarea}
-                  value={description}
-                  onChange={e => { setDescription(e.target.value); markDirty(); }}
-                  placeholder="Add a description…"
-                  autoFocus
-                  onBlur={() => setEditDesc(false)}
-                />
+                <>
+                  <textarea
+                    className={styles.descriptionTextarea}
+                    value={description}
+                    onChange={e => { setDescription(e.target.value); markDirty(); }}
+                    placeholder="Add a description…"
+                    autoFocus
+                    onBlur={() => setEditDesc(false)}
+                  />
+                  <span className={styles.formatHint}>**bold**  *italic*  `monospace`</span>
+                </>
               ) : (
                 <div
                   className={styles.descriptionPlaceholder}
@@ -306,7 +310,7 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
                   title="Click to edit description"
                 >
                   {description
-                    ? <span style={{ color: '#374151', fontStyle: 'normal', whiteSpace: 'pre-wrap' }}>{description}</span>
+                    ? <span className={styles.richContent} dangerouslySetInnerHTML={{ __html: formatText(description) }} />
                     : 'Click to add a description…'}
                 </div>
               )}
@@ -382,25 +386,28 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
                         <span style={{ marginLeft: '10px', color: '#cc0000', cursor: 'pointer' }} onClick={() => handleDeleteComment(c.id)}>Delete</span>
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.9rem', color: '#333333', whiteSpace: 'pre-wrap' }}>{c.content}</div>
+                    <div className={styles.commentContent} dangerouslySetInnerHTML={{ __html: formatText(c.content) }} />
                   </div>
                 ))}
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input 
-                  type="text" 
-                  value={newComment} 
-                  onChange={e => setNewComment(e.target.value)} 
-                  placeholder="write a comment..." 
-                  style={{ flex: 1, padding: '8px 12px', border: '1px solid #cccccc', borderRadius: '4px', fontSize: '0.9rem' }}
-                  onKeyDown={e => e.key === 'Enter' && handleAddComment()}
-                />
-                <button 
-                  onClick={handleAddComment}
-                  style={{ padding: '8px 16px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem' }}
-                >
-                  Send
-                </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <textarea
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    placeholder="write a comment... (**bold** *italic* `code`)"
+                    style={{ flex: 1, padding: '8px 12px', border: '1px solid #cccccc', borderRadius: '4px', fontSize: '0.9rem', fontFamily: 'Arial, sans-serif', resize: 'vertical', minHeight: '38px' }}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
+                    rows={1}
+                  />
+                  <button
+                    onClick={handleAddComment}
+                    style={{ padding: '8px 16px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', alignSelf: 'flex-end' }}
+                  >
+                    Send
+                  </button>
+                </div>
+                <span className={styles.formatHint}>**bold**  *italic*  `monospace`  · Shift+Enter for new line</span>
               </div>
             </div>
           </div>
