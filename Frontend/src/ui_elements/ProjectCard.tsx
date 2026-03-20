@@ -85,7 +85,7 @@ const ProjectCard = ({
                                         }}
                                     >
                                         <span className="dropdown-icon">📦</span>
-                                        Archive
+                                        Change Archive Status
                                     </button>
                                 )}
                                 {onDelete && (
