@@ -1,8 +1,9 @@
-const express = require('express');
+import express from "express";
+import auth from "../middleware/auth";
+import { requireAdminBoard, requireAdminColumn } from "../middleware/boardAdminCheck";
+import { getColumns, createColumn, renameColumn, updateColumnLimit, reorderColumns, deleteColumn } from "../controllers/columnController";
+
 const router = express.Router();
-const auth = require('../middleware/auth');
-const { requireAdminBoard, requireAdminColumn } = require('../middleware/boardAdminCheck');
-const { getColumns, createColumn, renameColumn, updateColumnLimit, reorderColumns, deleteColumn } = require('../controllers/columnController');
 
 router.get('/:boardId/columns', auth, getColumns);
 router.post('/:boardId/columns', auth, requireAdminBoard, createColumn);
@@ -11,4 +12,4 @@ router.put('/columns/:columnId/rename', auth, requireAdminColumn, renameColumn);
 router.put('/columns/:columnId/limit', auth, requireAdminColumn, updateColumnLimit);
 router.delete('/columns/:columnId', auth, requireAdminColumn, deleteColumn);
 
-module.exports = router;
+export default router;

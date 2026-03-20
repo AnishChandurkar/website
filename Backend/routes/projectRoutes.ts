@@ -1,18 +1,18 @@
-const express = require('express');
-const router = express.Router();
-const auth = require('../middleware/auth');
-const projectRole = require('../middleware/projectRole');
+import express from "express";
+import auth from "../middleware/auth";
+import projectRole from "../middleware/projectRole";
+import {
+  getProjects,
+  getProjectById,
+  getArchivedProjects,
+  createProject,
+  updateProject,
+  archiveProject,
+  deleteProject,
+  toggleStar
+} from "../controllers/projectController";
 
-const {
-    getProjects,
-    getProjectById,
-    getArchivedProjects,
-    createProject,
-    updateProject,
-    archiveProject,
-    deleteProject,
-    toggleStar
-} = require('../controllers/projectController');
+const router = express.Router();
 
 router.get('/', auth, getProjects);
 router.get('/archived', auth, getArchivedProjects);
@@ -23,4 +23,4 @@ router.put('/:id/archive', auth, projectRole('Project Admin'), archiveProject);
 router.delete('/:id', auth, projectRole('Project Admin'), deleteProject);
 router.put('/:id/star', auth, projectRole(), toggleStar);
 
-module.exports = router;
+export default router;
