@@ -46,7 +46,26 @@ app.use('/api/projects', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tasks/:taskId/comments', commentRoutes);
 
+const seedAdmin = async () => {
+  try {
+    const [rows] = await pool.query('SELECT id FROM users WHERE emailid = ?', ['admin@workspace.com']) as any;
+    if (rows.length === 0) {
+      const bcrypt = require('bcryptjs');
+      const hash = await bcrypt.hash('admin123', 10);
+      await pool.query(
+        'INSERT INTO users (first_name, surname, emailid, password_hash, global_role) VALUES (?, ?, ?, ?, ?)',
+        ['System', 'Admin', 'admin@workspace.com', hash, 'Global Admin']
+      );
+      console.log('seeded global admin');
+    }
+  } catch (error) {
+    console.error('failed to seed', error);
+  }
+};
+
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server is running fine :) on http://localhost:${PORT}`);
+seedAdmin().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server is running fine :) on http://localhost:${PORT}`);
+  });
 });

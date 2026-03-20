@@ -1,0 +1,153 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f4f4f9;
+  font-family: Arial, sans-serif;
+}
+.topBar {
+  padding: 12px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #cccccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.topBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.boardTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #000000;
+}
+.backLink {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.backLink:hover {
+  text-decoration: underline;
+}
+.contentArea {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+.addBtn {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+}
+.addBtn:hover {
+  background-color: #0056b3;
+}
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modalContent {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 4px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.modalTitle {
+  margin: 0 0 20px 0;
+  color: #000000;
+  font-size: 1.2rem;
+}
+.formGroup {
+  margin-bottom: 16px;
+}
+.formLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: #333333;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+.selectInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+.selectInput:focus {
+  outline: none;
+  border-color: #007bff;
+}
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+.saveBtn {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.cancelBtn {
+  background-color: #eeeeee;
+  color: #333333;
+  border: 1px solid #cccccc;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.tableContainer {
+  margin-top: 20px;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.workflowTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.tableHeader {
+  background-color: #eeeeee;
+  padding: 12px 16px;
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: #000000;
+  border-bottom: 1px solid #cccccc;
+}
+.tableCell {
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  color: #333333;
+  border-bottom: 1px solid #eeeeee;
+}
+.tableRow:last-child .tableCell {
+  border-bottom: none;
+}
