@@ -27,9 +27,17 @@ const apiRequest = async (endpoint: string, method: string = 'GET', body?: objec
         }
     }
 
-    const data = await response.json();
+    const text = await response.text();
+    let data: any = null;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        // not a json
+    }
+
     if (!response.ok) {
-        throw new Error(data.message || "Hmm..Something went wrong");
+        const errorMsg = data?.message || `Server error (${response.status}) at ${BASE_URL}${endpoint}: ${text.slice(0, 100)}...`;
+        throw new Error(errorMsg);
     }
 
     return data;
@@ -37,7 +45,7 @@ const apiRequest = async (endpoint: string, method: string = 'GET', body?: objec
 //auth checks 
 export const loginUser = (emailid: string, password: string) => {
     return apiRequest('/auth/login', 'POST', { emailid, password });
-}; // we USE POST API here and not get, for security reasons
+}; // we USE POST API here and not get, for security reasonsx`
 
 export const registerUser = (first_name: string, surname: string, emailid: string, password: string) => {
     return apiRequest('/auth/register', 'POST', { first_name, surname, emailid, password });
@@ -52,7 +60,6 @@ export const logoutUser = () => {
 };
 
 export const uploadAvatar = async (file: File) => {
-    // Convert file to base64 to avoid using external upload libraries (like multer)
     const base64Avatar = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
@@ -128,6 +135,10 @@ export const fetchBoards = (projectId: number) => {
 
 export const createBoard = (projectId: number, name: string) => {
     return apiRequest(`/projects/${projectId}/boards`, 'POST', { name });
+};
+
+export const fetchBoardProject = (boardId: number) => {
+    return apiRequest(`/boards/${boardId}/project`);
 };
 
 export const fetchColumns = (boardId: number) => {
@@ -213,4 +224,16 @@ export const removeMember = (projectId: number, userId: number) => {
 
 export const fetchNotifications = () => {
     return apiRequest('/notifications');
+};
+
+export const fetchProjectWorkflows = (projectId: number) => {
+    return apiRequest(`/projects/${projectId}/workflows`);
+};
+
+export const addWorkflow = (projectId: number, board_id: number, from_column_id: number, to_column_id: number) => {
+    return apiRequest(`/projects/${projectId}/workflows`, 'POST', { board_id, from_column_id, to_column_id });
+};
+
+export const deleteWorkflow = (projectId: number, workflowId: number) => {
+    return apiRequest(`/projects/${projectId}/workflows/${workflowId}`, 'DELETE');
 };

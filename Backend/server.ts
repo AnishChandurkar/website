@@ -13,6 +13,7 @@ import columnRoutes from "./routes/columnRoutes";
 import teamRoutes from "./routes/teamRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import commentRoutes from "./routes/commentRoutes";
+import workflowRoutes from "./routes/workflowRoutes";
 
 dotenv.config();
 const app = express();
@@ -38,6 +39,7 @@ app.get('/api/test', async (req: Request, res: Response) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/projects', workflowRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects', boardRoutes);
 app.use('/api/boards', taskRoutes);
@@ -62,6 +64,20 @@ const seedAdmin = async () => {
     console.error('failed to seed', error);
   }
 };
+
+// Global 404 handler for API routes
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ message: "Oh no! There's nothing at this endpoint :/" });
+});
+
+// Global Error handler
+app.use((err: any, req: Request, res: Response, next: any) => {
+  console.error('SERVER ERROR:', err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Something went poof on the server :(',
+    error: process.env.NODE_ENV === 'development' ? err : {}
+  });
+});
 
 const PORT = process.env.PORT || 3001;
 seedAdmin().then(() => {

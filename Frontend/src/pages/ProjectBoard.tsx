@@ -4,7 +4,7 @@ import styles from '../CSS Files/ProjectBoard.module.css';
 import {
   fetchColumns, fetchTasks, createTask, moveTask,
   createColumn, renameColumn, deleteColumn, updateColumnLimit,
-  reorderColumns, fetchTeamMembers,
+  reorderColumns, fetchTeamMembers, fetchProjectWorkflows
 } from '../services/api';
 import TaskDetailModal from '../ui_elements/TaskDetailModal';
 interface Task {
@@ -53,6 +53,7 @@ const ProjectBoard = () => {
   const [members, setMembers]       = useState<Member[]>([]);
   const [loading, setLoading]       = useState(true);
   const [projectId, setProjectId]   = useState<number | null>(null);
+  const [allowedWorkflows, setAllowedWorkflows] = useState<{from_column_id: number, to_column_id: number}[]>([]);
   const [dragOverCol, setDragOverCol] = useState<number | null>(null);
   const [filterType, setFilterType]         = useState<string>('ALL');
   const [filterPriority, setFilterPriority] = useState<string>('ALL');
@@ -97,8 +98,12 @@ const ProjectBoard = () => {
         if (res.ok) {
           const data = await res.json();
           setProjectId(data.project_id);
-          const membersData = await fetchTeamMembers(data.project_id);
+          const [membersData, workflowsData] = await Promise.all([
+            fetchTeamMembers(data.project_id),
+            fetchProjectWorkflows(data.project_id)
+          ]);
           setMembers(membersData);
+          setAllowedWorkflows(workflowsData);
         }
       } catch {
       }
@@ -121,6 +126,25 @@ const ProjectBoard = () => {
     const taskId = parseInt(e.dataTransfer.getData('text/plain'));
     const task = tasks.find(t => t.id === taskId);
     if (!task || task.column_id === targetColId) return;
+
+    // Workflow Check
+    const sourceIdx = columns.findIndex(c => c.id === task.column_id);
+    const targetIdx = columns.findIndex(c => c.id === targetColId);
+    
+    if (sourceIdx !== -1 && targetIdx !== -1) {
+      const distance = Math.abs(targetIdx - sourceIdx);
+      if (distance > 1) {
+        // Enforce custom transitions
+        const isAllowed = allowedWorkflows.find(
+          w => w.from_column_id === task.column_id && w.to_column_id === targetColId
+        );
+        if (!isAllowed) {
+          alert('Invalid transition: You cannot skip stages unless permitted in Allowed Workflows!');
+          return;
+        }
+      }
+    }
+
     const prev = [...tasks];
     setTasks(ts => ts.map(t => t.id === taskId ? { ...t, column_id: targetColId } : t));
     try {

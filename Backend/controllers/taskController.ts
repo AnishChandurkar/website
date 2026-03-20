@@ -144,7 +144,7 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
     );
 
     if (parent_id) {
-        await updateParentStoryStatus(parent_id, req.params.boardId as string);
+      await updateParentStoryStatus(parent_id, req.params.boardId as string);
     }
 
     res.status(201).json({
@@ -180,7 +180,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     );
     if (task.length === 0)
       return res.status(404).json({ message: "task not found :/" });
-      
+
     if (task[0].type === "Story") {
       return res.status(400).json({ message: "Stories cannot be directly moved across workflow columns!" });
     }
@@ -199,9 +199,15 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     const new_pos = col[0].position;
 
     if (old_pos !== null && Math.abs(new_pos - old_pos) > 1) {
-      return res
-        .status(400)
-        .json({ message: "whoa there! you cant skip stages or move backwards in the workflow!" });
+      const [allowed] = await pool.query<RowDataPacket[]>(
+        "SELECT id FROM allowed_workflows WHERE from_column_id = ? AND to_column_id = ?",
+        [old_col, column_id]
+      );
+      if (allowed.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "whoa there! you cant skip stages or move backwards in the workflow!" });
+      }
     }
 
     if (col[0].wip_limit !== null) {
@@ -241,7 +247,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     }
 
     if (parent_id) {
-        await updateParentStoryStatus(parent_id, board_id);
+      await updateParentStoryStatus(parent_id, board_id);
     }
 
     res.json({ message: "task moved!" });
@@ -369,7 +375,7 @@ export const deleteTask = async (req: AuthRequest, res: Response): Promise<any> 
     await pool.query("DELETE FROM tasks WHERE id = ?", [req.params.id]);
 
     if (task.length > 0 && task[0].parent_id) {
-        await updateParentStoryStatus(task[0].parent_id, task[0].board_id);
+      await updateParentStoryStatus(task[0].parent_id, task[0].board_id);
     }
 
     res.json({ message: "task deleted!" });
@@ -381,49 +387,49 @@ export const deleteTask = async (req: AuthRequest, res: Response): Promise<any> 
 };
 
 const updateParentStoryStatus = async (parentId: string | number, boardId: string | number) => {
-    if (!parentId) return;
-    
-    const [children] = await pool.query<RowDataPacket[]>(
-        `SELECT c.name as column_name 
+  if (!parentId) return;
+
+  const [children] = await pool.query<RowDataPacket[]>(
+    `SELECT c.name as column_name 
          FROM tasks t 
          LEFT JOIN columns c ON t.column_id = c.id 
          WHERE t.parent_id = ?`,
-        [parentId]
-    );
+    [parentId]
+  );
 
-    if (children.length === 0) return;
+  if (children.length === 0) return;
 
-    let allDone = true;
-    let anyInProgress = false;
+  let allDone = true;
+  let anyInProgress = false;
 
-    for (const child of children) {
-        const colName = child.column_name ? child.column_name.toLowerCase() : "";
-        if (colName !== "done") {
-            allDone = false;
-        }
-        if (colName === "in progress" || colName === "review") {
-            anyInProgress = true;
-        }
+  for (const child of children) {
+    const colName = child.column_name ? child.column_name.toLowerCase() : "";
+    if (colName !== "done") {
+      allDone = false;
     }
-
-    let targetColumnName = "To Do";
-    if (allDone) {
-        targetColumnName = "Done";
-    } else if (anyInProgress || children.some(c => c.column_name && c.column_name.toLowerCase() === "done")) {
-        targetColumnName = "In Progress";
+    if (colName === "in progress" || colName === "review") {
+      anyInProgress = true;
     }
+  }
 
-    const [targetCols] = await pool.query<RowDataPacket[]>(
-        "SELECT id, position FROM columns WHERE board_id = ? AND LOWER(name) = ? LIMIT 1",
-        [boardId, targetColumnName.toLowerCase()]
-    );
+  let targetColumnName = "To Do";
+  if (allDone) {
+    targetColumnName = "Done";
+  } else if (anyInProgress || children.some(c => c.column_name && c.column_name.toLowerCase() === "done")) {
+    targetColumnName = "In Progress";
+  }
 
-    if (targetCols.length > 0) {
-        const [maxCol] = await pool.query<RowDataPacket[]>("SELECT MAX(position) AS max_pos FROM columns WHERE board_id = ?", [boardId]);
-        let extraUpdate = ", resolved_at = NULL, closed_at = NULL";
-        if (maxCol.length > 0 && targetCols[0].position === maxCol[0].max_pos) {
-            extraUpdate = ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP), closed_at = IFNULL(closed_at, CURRENT_TIMESTAMP)";
-        }
-        await pool.query(`UPDATE tasks SET column_id = ? ${extraUpdate} WHERE id = ?`, [targetCols[0].id, parentId]);
+  const [targetCols] = await pool.query<RowDataPacket[]>(
+    "SELECT id, position FROM columns WHERE board_id = ? AND LOWER(name) = ? LIMIT 1",
+    [boardId, targetColumnName.toLowerCase()]
+  );
+
+  if (targetCols.length > 0) {
+    const [maxCol] = await pool.query<RowDataPacket[]>("SELECT MAX(position) AS max_pos FROM columns WHERE board_id = ?", [boardId]);
+    let extraUpdate = ", resolved_at = NULL, closed_at = NULL";
+    if (maxCol.length > 0 && targetCols[0].position === maxCol[0].max_pos) {
+      extraUpdate = ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP), closed_at = IFNULL(closed_at, CURRENT_TIMESTAMP)";
     }
+    await pool.query(`UPDATE tasks SET column_id = ? ${extraUpdate} WHERE id = ?`, [targetCols[0].id, parentId]);
+  }
 };

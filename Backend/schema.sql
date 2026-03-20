@@ -128,3 +128,15 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Allowed Workflows Table (References Boards and Columns)
+CREATE TABLE IF NOT EXISTS allowed_workflows (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    board_id INT NOT NULL,
+    from_column_id INT NOT NULL,
+    to_column_id INT NOT NULL,
+    FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE CASCADE,
+    FOREIGN KEY (from_column_id) REFERENCES columns(id) ON DELETE CASCADE,
+    FOREIGN KEY (to_column_id) REFERENCES columns(id) ON DELETE CASCADE,
+    UNIQUE(from_column_id, to_column_id)
+);

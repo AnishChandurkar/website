@@ -110,7 +110,7 @@ export const login = async (req: Request, res: Response) => {
 
     const user = users[0];
     if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" }); // Vague on purpose for security
+      return res.status(400).json({ message: "Invalid email or password" });
     }
     const isMatch = await bcrypt.compare(password, user.password_hash);
 
@@ -232,7 +232,7 @@ export const updateProfilePicture = async (req: AuthRequest, res: Response) => {
     const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
     const base64Data = match[2];
     const uniqueName = `${req.user.id}_${Date.now()}.${ext}`;
-    
+
     // Ensure directory exists
     const avatarsDir = path.join(__dirname, '..', 'uploads', 'avatars');
     if (!fs.existsSync(avatarsDir)) {
