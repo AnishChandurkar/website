@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f4f4f9;
+  background-color: #e0e0e0;
   font-family: Arial, sans-serif;
 }
 
@@ -89,7 +89,7 @@
 }
 .boardSidebar {
   width: 220px;
-  background-color: #ffffff;
+  background-color: #c0d8c0;
   border-right: 1px solid #cccccc;
   padding: 20px 10px;
   display: flex;
