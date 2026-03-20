@@ -204,6 +204,10 @@ export const moveTask = (taskId: number, columnId: number) => {
     return apiRequest(`/boards/tasks/${taskId}/move`, 'PUT', { column_id: columnId });
 };
 
+export const closeTask = (taskId: number) => {
+    return apiRequest(`/boards/tasks/${taskId}/close`, 'PUT');
+};
+
 export const updateTask = (taskId: number, updates: object) => {
     return apiRequest(`/boards/tasks/${taskId}`, 'PUT', updates);
 };
@@ -228,6 +232,10 @@ export const fetchNotifications = () => {
 
 export const fetchProjectWorkflows = (projectId: number) => {
     return apiRequest(`/projects/${projectId}/workflows`);
+};
+
+export const fetchAuditLogs = (boardId: number | string) => {
+    return apiRequest(`/boards/${boardId}/audit`);
 };
 
 export const addWorkflow = (projectId: number, board_id: number, from_column_id: number, to_column_id: number) => {

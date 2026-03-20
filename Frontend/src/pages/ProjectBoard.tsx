@@ -4,7 +4,7 @@ import styles from '../CSS Files/ProjectBoard.module.css';
 import {
   fetchColumns, fetchTasks, createTask, moveTask,
   createColumn, renameColumn, deleteColumn, updateColumnLimit,
-  reorderColumns, fetchTeamMembers, fetchProjectWorkflows
+  reorderColumns, fetchTeamMembers, fetchProjectWorkflows, closeTask
 } from '../services/api';
 import TaskDetailModal from '../ui_elements/TaskDetailModal';
 interface Task {
@@ -111,6 +111,17 @@ const ProjectBoard = () => {
     fetchBoardInfo();
     loadBoard();
   }, [boardId, loadBoard]);
+
+  const handleCloseTask = async (taskId: number) => {
+    if (!window.confirm("Are you sure you want to close this task? It will be removed from the board.")) return;
+    try {
+      await closeTask(taskId);
+      loadBoard();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   const handleDragStart = (e: DragEvent<HTMLDivElement>, taskId: number) => {
     e.dataTransfer.setData('text/plain', String(taskId));
     e.dataTransfer.effectAllowed = 'move';
@@ -403,6 +414,25 @@ const ProjectBoard = () => {
                         )}
                       </div>
                     </div>
+                    {columns.findIndex(c => c.id === col.id) === columns.length - 1 && (
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleCloseTask(task.id); }}
+                        style={{ 
+                          marginTop: '8px', 
+                          width: '100%', 
+                          padding: '6px', 
+                          fontSize: '0.8rem', 
+                          backgroundColor: '#fff', 
+                          color: '#cc0000', 
+                          border: '1px solid #cc0000', 
+                          borderRadius: '4px', 
+                          cursor: 'pointer',
+                          fontWeight: '500'
+                        }}
+                      >
+                        Close Task
+                      </button>
+                    )}
                   </div>
                 ))}
                 {showAddTask === col.id ? (
