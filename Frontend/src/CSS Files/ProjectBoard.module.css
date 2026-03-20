@@ -62,7 +62,6 @@
   color: #333333;
   width: 170px;
 }
-
 .searchInput:focus {
   outline: none;
   border-color: #007bff;
@@ -83,7 +82,38 @@
   outline: none;
   border-color: #007bff;
 }
+.contentArea {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+.boardSidebar {
+  width: 220px;
+  background-color: #ffffff;
+  border-right: 1px solid #cccccc;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
 
+.sidebarBtn {
+  background-color: transparent;
+  border: 1px solid transparent;
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #333333;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+}
+.sidebarBtn:hover {
+  background-color: #eeeeee;
+  border-color: #cccccc;
+}
 .boardContainer {
   display: flex;
   padding: 20px;
