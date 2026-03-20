@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = 'http://localhost:3001/api';
 const apiRequest = async (endpoint: string, method: string = 'GET', body?: object) => {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',

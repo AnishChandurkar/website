@@ -46,7 +46,7 @@ app.use('/api/projects', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tasks/:taskId/comments', commentRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running fine :) on http://localhost:${PORT}`);
 });

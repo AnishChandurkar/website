@@ -103,7 +103,7 @@ const Profile = () => {
           <div className={styles.avatarSection}>
             {displayProfile.profile_url ? (
               <img
-                src={`http://localhost:5000${displayProfile.profile_url}`}
+                src={`http://localhost:3001${displayProfile.profile_url}`}
                 alt="Profile"
                 className={styles.avatar}
               />
