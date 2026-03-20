@@ -12,6 +12,7 @@ import taskRoutes from "./routes/taskRoutes";
 import columnRoutes from "./routes/columnRoutes";
 import teamRoutes from "./routes/teamRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
+import commentRoutes from "./routes/commentRoutes";
 
 dotenv.config();
 const app = express();
@@ -43,6 +44,7 @@ app.use('/api/boards', taskRoutes);
 app.use('/api/boards', columnRoutes);
 app.use('/api/projects', teamRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/tasks/:taskId/comments', commentRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
