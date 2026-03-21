@@ -1,7 +1,7 @@
 .layout {
   display: flex;
   min-height: 100vh;
-  background-color: #e0e0e0;
+  background: linear-gradient(135deg, #f5f5dc, #d2b48c);
 }
 
 .container {
@@ -205,7 +205,7 @@
 }
 
 .boardCard {
-  background-color: #ffffff;
+  background-color: lightcyan;
   text-decoration: none;
   color: #333333;
   border: 1px solid #e0e0e0;

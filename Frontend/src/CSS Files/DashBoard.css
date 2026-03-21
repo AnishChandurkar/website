@@ -1,7 +1,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #e0e0e0;
+    background: linear-gradient(135deg, #f5f5dc, #d2b48c);
     color: #333333;
 }
 .dashboard-layout {
@@ -10,7 +10,7 @@ body {
 }
 .sidebar {
     width: 200px;
-    background-color: #81a681;
+    background-color: #87CEEB;
     padding: 20px 15px;
     border-right: 1px solid #cccccc;
     display: flex;
@@ -83,7 +83,7 @@ body {
     flex: 1;
     padding: 30px;
     overflow-y: auto;
-    background-color: #e0e0e0;
+    background-color: transparent;
 }
 .header-section {
     display: flex;

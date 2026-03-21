@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #e0e0e0;
+  background: linear-gradient(135deg, #f5f5dc, #d2b48c);
   font-family: Arial, sans-serif;
 }
 
@@ -89,7 +89,7 @@
 }
 .boardSidebar {
   width: 220px;
-  background-color: #c0d8c0;
+  background-color: #87CEEB;
   border-right: 1px solid #cccccc;
   padding: 20px 10px;
   display: flex;
@@ -121,7 +121,7 @@
   gap: 16px;
   overflow-x: auto;
   align-items: flex-start;
-  background-color: #f4f4f9;
+  background-color: transparent;
 }
 
 .column {
@@ -255,7 +255,7 @@
 }
 
 .taskCard {
-  background-color: #ffffff;
+  background-color: lightcyan;
   padding: 12px;
   border: 1px solid #cccccc;
   border-radius: 4px;

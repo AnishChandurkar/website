@@ -3,7 +3,7 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #e0e0e0;
+  background: linear-gradient(135deg, #f5f5dc, #d2b48c);
   font-family: Arial, sans-serif;
 }
 .formPanel {
