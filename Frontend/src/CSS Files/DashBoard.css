@@ -22,11 +22,11 @@ body {
 .brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 20px;
 }
 .brand h2 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 1.5rem;
     color: #000000;
 }
 .sidebar-nav ul {
@@ -97,7 +97,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
 }
 .title-area h1 {
     margin: 0 0 5px 0;
@@ -112,7 +112,7 @@ body {
     color: #ffffff;
     border: none;
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 7px;
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
     transition: all 0.2s ease;

@@ -26,14 +26,14 @@ const InviteMemberModal = ({ onClose, onInvite }: InviteMemberModalProps) => {
         
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#333333', fontSize: '0.9rem' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#333333', fontSize: '1.2rem' }}>
               Email Address
             </label>
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="friend@example.com"
+              placeholder="go@goat.com"
               required
               style={{ 
                 width: '100%', 
@@ -41,14 +41,15 @@ const InviteMemberModal = ({ onClose, onInvite }: InviteMemberModalProps) => {
                 borderRadius: '6px', 
                 border: '1px solid #cccccc',
                 color: '#000000',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                fontSize: '1rem'
               }}
               autoFocus
             />
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#333333', fontSize: '0.9rem' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#333333', fontSize: '1.2rem' }}>
               Role
             </label>
             <select
@@ -61,7 +62,8 @@ const InviteMemberModal = ({ onClose, onInvite }: InviteMemberModalProps) => {
                 border: '1px solid #cccccc',
                 color: '#000000',
                 boxSizing: 'border-box',
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                fontSize: '1.1rem'
               }}
             >
               <option value="Project Admin">Project Admin — can edit project & manage members</option>
@@ -80,7 +82,8 @@ const InviteMemberModal = ({ onClose, onInvite }: InviteMemberModalProps) => {
                 color: '#333333', 
                 border: '1px solid #cccccc', 
                 borderRadius: '6px', 
-                cursor: 'pointer' 
+                cursor: 'pointer',
+                fontSize: '1rem'
               }}
             >
               Cancel
@@ -93,7 +96,8 @@ const InviteMemberModal = ({ onClose, onInvite }: InviteMemberModalProps) => {
                 color: '#ffffff', 
                 border: 'none', 
                 borderRadius: '6px', 
-                cursor: 'pointer' 
+                cursor: 'pointer',
+                fontSize: '1rem'
               }}
             >
               Send Invite
