@@ -42,8 +42,26 @@ const AuditHistory = () => {
         </div>
       </div>
       <div className={styles.contentArea}>
-        <div className={styles.tableContainer}>
-          <table className={styles.auditTable}>
+        <div className={styles.boardSidebar}>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/allowed-workflows`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/allowed-workflows`)}>
+            Allowed Workflows
+          </button>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/stories`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/stories`)}>
+            Stories
+          </button>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/audit-history`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/audit-history`)}>
+            Audit History
+          </button>
+        </div>
+        <div className={styles.mainWorkArea}>
+          <div className={styles.tableContainer}>
+            <table className={styles.auditTable}>
             <thead>
               <tr>
                 <th className={styles.tableHeader}>Task Name</th>
@@ -88,6 +106,7 @@ const AuditHistory = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 
