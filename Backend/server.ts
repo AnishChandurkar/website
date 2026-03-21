@@ -56,7 +56,7 @@ const seedAdmin = async () => {
     const [rows] = await pool.query('SELECT id FROM users WHERE emailid = ?', ['admin@workspace.com']) as any;
     if (rows.length === 0) {
       const bcrypt = require('bcryptjs');
-      const hash = await bcrypt.hash('admin123', 10);
+      const hash = await bcrypt.hash('12345678', 10);
       await pool.query(
         'INSERT INTO users (first_name, surname, emailid, password_hash, global_role) VALUES (?, ?, ?, ?, ?)',
         ['System', 'Admin', 'admin@workspace.com', hash, 'Global Admin']
