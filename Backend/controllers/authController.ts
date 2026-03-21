@@ -6,9 +6,6 @@ import pool from "../config/db";
 import fs from "fs";
 import path from "path";
 
-// --- Types & Interfaces ---
-
-// Extend the Express Request object to include user
 export interface AuthRequest extends Request {
   user?: { id: number; emailid?: string; projectRole?: string } | undefined;
 }
@@ -22,8 +19,6 @@ interface UserRow extends RowDataPacket {
   profile_url?: string;
   created_at?: Date;
 }
-
-// --- Helpers ---
 
 const generateAccessToken = (id: number, emailid: string): string => {
   return jwt.sign({ id, emailid }, process.env.JWT_SECRET as string, {
@@ -54,8 +49,6 @@ const setRefreshTokenCookie = (res: Response, token: string) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
-
-// --- Controllers ---
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -110,12 +103,12 @@ export const login = async (req: Request, res: Response) => {
 
     const user = users[0];
     if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid Email-ID!!" });
     }
     const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid Password!!" });
     }
 
     const accessToken = generateAccessToken(user.id, user.emailid);
@@ -224,32 +217,12 @@ export const updateProfilePicture = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const match = avatar.match(/^data:image\/(png|jpeg|jpg|webp|gif);base64,(.+)$/);
-    if (!match) {
-      return res.status(400).json({ message: "Invalid image format or missing base64 header" });
-    }
-
-    const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-    const base64Data = match[2];
-    const uniqueName = `${req.user.id}_${Date.now()}.${ext}`;
-
-    // Ensure directory exists
-    const avatarsDir = path.join(__dirname, '..', 'uploads', 'avatars');
-    if (!fs.existsSync(avatarsDir)) {
-      fs.mkdirSync(avatarsDir, { recursive: true });
-    }
-
-    const filepath = path.join(avatarsDir, uniqueName);
-    fs.writeFileSync(filepath, base64Data, 'base64');
-
-    const profileUrl = `/uploads/avatars/${uniqueName}`;
-
     await pool.query(
       "UPDATE users SET profile_url = ? WHERE id = ?",
-      [profileUrl, req.user.id]
+      [avatar, req.user.id]
     );
 
-    res.json({ message: "Profile picture updated", profile_url: profileUrl });
+    res.json({ message: "Profile picture updated", profile_url: avatar });
   } catch (error: any) {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }

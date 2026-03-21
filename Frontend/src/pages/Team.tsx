@@ -129,7 +129,7 @@ const Team = () => {
               >
                 {member.profile_url ? (
                   <img
-                    src={`http://localhost:3001${member.profile_url}`}
+                    src={member.profile_url.startsWith('data:') ? member.profile_url : `http://localhost:3001${member.profile_url}`}
                     alt={member.name}
                     style={{
                       width: '60px',

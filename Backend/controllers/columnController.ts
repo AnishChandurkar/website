@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
 
-// --- Types & Interfaces ---
-
 interface ColumnRow extends RowDataPacket {
   id: number;
   name: string;
@@ -19,8 +17,6 @@ interface MaxPosRow extends RowDataPacket {
 interface TaskCountRow extends RowDataPacket {
   count: number;
 }
-
-// --- Controllers ---
 
 export const getColumns = async (req: Request, res: Response) => {
   try {
@@ -47,7 +43,7 @@ export const createColumn = async (req: Request, res: Response) => {
 
     const [result] = await pool.query<ResultSetHeader>(
       'INSERT INTO columns (name, board_id, position, wip_limit) VALUES (?, ?, ?, ?)',
-      [name, req.params.boardId, nextPosition, wip_limit || null]
+      [name, req.params.boardId, nextPosition, wip_limit || 3]
     );
 
     res.status(201).json({
@@ -89,10 +85,18 @@ export const reorderColumns = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'order must be an array of column ids :/' });
     }
 
-    const queries = order.map((columnId: number, index: number) =>
-      pool.query('UPDATE columns SET position = ? WHERE id = ? AND board_id = ?',
-        [index + 1, columnId, req.params.boardId])
-    );
+    const queries: Promise<any>[] = [];
+
+    for (let i = 0; i < order.length; i++) {
+      const columnId = order[i];
+      queries.push(
+        pool.query(
+          'UPDATE columns SET position = ? WHERE id = ? AND board_id = ?',
+          [i + 1, columnId, req.params.boardId]
+        )
+      );
+    }
+
     await Promise.all(queries);
 
     res.json({ message: 'columns reordered!' });
