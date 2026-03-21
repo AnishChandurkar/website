@@ -43,7 +43,7 @@ const NewProjectModal = ({ onClose, onSave, onUpdate, initialData }: NewProjectM
               type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cccccc', color: '#000000', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '15px', borderRadius: '7px', border: '1px solid #cccccc', color: '#000000', boxSizing: 'border-box', fontSize: '1.2rem' }}
               placeholder="e.g. My Website Redesign"
               required
               autoFocus
@@ -55,7 +55,7 @@ const NewProjectModal = ({ onClose, onSave, onUpdate, initialData }: NewProjectM
             <textarea 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cccccc', color: '#000000', boxSizing: 'border-box', minHeight: '80px', resize: 'vertical' }}
+              style={{ width: '100%', padding: '15px', borderRadius: '7px', border: '1px solid #cccccc', color: '#000000', boxSizing: 'border-box', minHeight: '80px', resize: 'vertical', fontSize: '1.2rem' }}
               placeholder="What is this project about?"
             />
           </div>
@@ -65,7 +65,7 @@ const NewProjectModal = ({ onClose, onSave, onUpdate, initialData }: NewProjectM
             <select 
               value={status}
               onChange={(e) => setStatus(e.target.value as any)}
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #cccccc', color: '#000000', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '15px', borderRadius: '7px', border: '1px solid #cccccc', color: '#000000', boxSizing: 'border-box', fontSize: '1.2rem' }}
             >
               <option value="Planning">Planning</option>
               <option value="In Progress">In Progress</option>
@@ -90,8 +90,8 @@ const NewProjectModal = ({ onClose, onSave, onUpdate, initialData }: NewProjectM
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-            <button type="button" onClick={onClose} style={{ padding: '10px 15px', backgroundColor: '#eeeeee', color: '#333333', border: '1px solid #cccccc', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-            <button type="submit" style={{ padding: '10px 15px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            <button type="button" onClick={onClose} style={{ padding: '10px 15px', backgroundColor: '#eeeeee', color: '#333333', border: '1px solid #cccccc', borderRadius: '7px', cursor: 'pointer', fontSize: '1.2rem' }}>Cancel</button>
+            <button type="submit" style={{ padding: '10px 15px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '7px', cursor: 'pointer', fontSize: '1.2rem' }}>
               {initialData ? 'Update Project' : 'Create Project'}
             </button>
           </div>
