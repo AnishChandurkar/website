@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100vh;
   background: linear-gradient(135deg, #f5f5dc, #d2b48c);
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 .topBar {
   padding: 12px 20px;
@@ -59,7 +59,7 @@
   color: #333333;
   cursor: pointer;
   border-radius: 8px;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
@@ -90,7 +90,7 @@
   font-size: 0.9rem;
   cursor: pointer;
   border-radius: 4px;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 .addBtn:hover {
   background-color: #0056b3;
@@ -136,7 +136,7 @@
   border: 1px solid #cccccc;
   border-radius: 4px;
   font-size: 0.9rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   box-sizing: border-box;
 }
 .selectInput:focus {

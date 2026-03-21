@@ -3,13 +3,13 @@
   flex-direction: column;
   height: 100vh;
   background: linear-gradient(135deg, #f5f5dc, #d2b48c);
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .loadingContainer {
   padding: 40px;
   color: #333333;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .topBar {
@@ -58,7 +58,7 @@
   border: 1px solid #cccccc;
   border-radius: 4px;
   font-size: 0.85rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   color: #333333;
   width: 170px;
 }
@@ -72,7 +72,7 @@
   border: 1px solid #cccccc;
   border-radius: 4px;
   font-size: 0.82rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   color: #333333;
   background-color: #ffffff;
   cursor: pointer;
@@ -108,7 +108,7 @@
   color: #333333;
   cursor: pointer;
   border-radius: 8px;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 .sidebarBtn:hover {
@@ -188,7 +188,7 @@
   border-radius: 2px;
   padding: 2px 4px;
   font-size: 0.9rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   width: 120px;
   outline: none;
 }
@@ -429,7 +429,7 @@
   margin-top: 6px;
   width: 100%;
   text-align: left;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .addTaskBtn:hover {
@@ -452,7 +452,7 @@
   border: 1px solid #cccccc;
   border-radius: 2px;
   font-size: 0.85rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   color: #333333;
   box-sizing: border-box;
 }
@@ -468,7 +468,7 @@
   border: 1px solid #cccccc;
   border-radius: 2px;
   font-size: 0.85rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   color: #333333;
   background-color: #ffffff;
   cursor: pointer;
@@ -486,7 +486,7 @@
   border: 1px solid #cccccc;
   border-radius: 2px;
   font-size: 0.85rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   color: #333333;
   resize: none;
   box-sizing: border-box;
@@ -510,7 +510,7 @@
   font-size: 0.85rem;
   cursor: pointer;
   border-radius: 2px;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .addTaskConfirm:hover {
@@ -525,7 +525,7 @@
   color: #333333;
   cursor: pointer;
   border-radius: 2px;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .addTaskCancel:hover {

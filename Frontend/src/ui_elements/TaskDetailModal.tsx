@@ -412,7 +412,7 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
                     value={newComment}
                     onChange={e => setNewComment(e.target.value)}
                     placeholder="write a comment... (**bold** *italic* `code`)"
-                    style={{ flex: 1, padding: '8px 12px', border: '1px solid #cccccc', borderRadius: '4px', fontSize: '0.9rem', fontFamily: 'Arial, sans-serif', resize: 'vertical', minHeight: '38px' }}
+                    style={{ flex: 1, padding: '8px 12px', border: '1px solid #cccccc', borderRadius: '4px', fontSize: '0.9rem', fontFamily: '"Monaco", "Courier New", monospace', resize: 'vertical', minHeight: '38px' }}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
                     rows={1}
                   />

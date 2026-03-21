@@ -6,7 +6,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .modal {
@@ -64,7 +64,7 @@
   padding: 3px 5px;
   width: 100%;
   cursor: text;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .editableTitle:focus {
@@ -107,7 +107,7 @@
   cursor: pointer;
   font-size: 0.8rem;
   color: #cc0000;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .deleteBtn:hover {
@@ -160,7 +160,7 @@
   border: 1px solid #cccccc;
   border-radius: 2px;
   font-size: 0.88rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   color: #333333;
   resize: vertical;
   box-sizing: border-box;
@@ -195,7 +195,7 @@
   border: 1px solid #cccccc;
   border-radius: 2px;
   font-size: 0.85rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   color: #333333;
   background-color: #ffffff;
   cursor: pointer;
@@ -212,7 +212,7 @@
   border: 1px solid #cccccc;
   border-radius: 2px;
   font-size: 0.85rem;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
   color: #333333;
   background-color: #ffffff;
   box-sizing: border-box;
@@ -372,7 +372,7 @@
   font-size: 0.88rem;
   cursor: pointer;
   border-radius: 2px;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .saveBtn:hover {
@@ -392,7 +392,7 @@
   color: #333333;
   cursor: pointer;
   border-radius: 2px;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .cancelBtn:hover {

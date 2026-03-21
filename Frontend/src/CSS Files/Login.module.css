@@ -4,7 +4,7 @@
   align-items: center;
   height: 100vh;
   background: linear-gradient(135deg, #f5f5dc, #d2b48c);
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 .formPanel {
   background-color: #ffffff;
