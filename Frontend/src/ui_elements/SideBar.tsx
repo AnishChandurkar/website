@@ -30,7 +30,7 @@ const Sidebar = () => {
         <div className="sidebar">
             <div className="sidebar-header">
                 <div className="brand">
-                    <img src="/workspace-logo.svg" alt="Logo" width="30" height="30" />
+                    <img src="/logo.jpg" alt="Logo" width="60" height="50" />
                     <h2>WORKSPACE</h2>
                 </div>
             </div>

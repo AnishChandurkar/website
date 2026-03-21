@@ -9,7 +9,7 @@ body {
     height: 100vh;
 }
 .sidebar {
-    width: 200px;
+    width: 220px;
     background-color: #87CEEB;
     padding: 20px 15px;
     border-right: 1px solid #cccccc;
@@ -22,7 +22,7 @@ body {
 .brand {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 10px;
 }
 .brand h2 {
     margin: 0;
