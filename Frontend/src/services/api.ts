@@ -230,6 +230,14 @@ export const fetchNotifications = () => {
     return apiRequest('/notifications');
 };
 
+export const markNotificationAsRead = (id: number) => {
+    return apiRequest(`/notifications/${id}/read`, 'PUT');
+};
+
+export const deleteNotification = (id: number) => {
+    return apiRequest(`/notifications/${id}`, 'DELETE');
+};
+
 export const fetchProjectWorkflows = (projectId: number) => {
     return apiRequest(`/projects/${projectId}/workflows`);
 };

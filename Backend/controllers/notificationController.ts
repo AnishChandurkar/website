@@ -8,9 +8,24 @@ import { AuthRequest } from "./authController";
 interface NotificationRow extends RowDataPacket {
   id: number;
   user_id: number;
+  type: string;
   message: string;
+  is_read: boolean;
   created_at?: Date;
 }
+
+export const internalCreateNotification = async (userId: number, type: string, message: string) => {
+  try {
+    const [result] = await pool.query<ResultSetHeader>(
+      'INSERT INTO notifications (user_id, type, message) VALUES (?, ?, ?)',
+      [userId, type, message]
+    );
+    return result.insertId;
+  } catch (error) {
+    console.error('Failed to create notification internally:', error);
+    return null;
+  }
+};
 
 // --- Controllers ---
 
@@ -32,15 +47,42 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
 
 export const createNotification = async (req: AuthRequest, res: Response) => {
   try {
-    const { user_id, message } = req.body;
-    const [result] = await pool.query<ResultSetHeader>(
-      'INSERT INTO notifications (user_id, message) VALUES (?, ?)',
-      [user_id, message]
-    );
+    const { user_id, type, message } = req.body;
+    const insertId = await internalCreateNotification(user_id, type, message);
     res.status(201).json({
       message: 'notification created!!',
-      notification: { id: result.insertId, user_id, message }
+      notification: { id: insertId, user_id, type, message }
     });
+  } catch (error: any) {
+    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  }
+};
+
+export const markAsRead = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    await pool.query('UPDATE notifications SET is_read = TRUE WHERE id = ? AND user_id = ?',
+      [req.params.id, req.user.id]
+    );
+    res.json({ message: 'notification marked as read!!' });
+  } catch (error: any) {
+    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  }
+};
+
+export const markAllAsRead = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    await pool.query('UPDATE notifications SET is_read = TRUE WHERE user_id = ?',
+      [req.user.id]
+    );
+    res.json({ message: 'all notifications marked as read!!' });
   } catch (error: any) {
     res.status(500).json({ message: 'something went wrong :(', error: error.message });
   }

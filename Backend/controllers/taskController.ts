@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
+import { internalCreateNotification } from "./notificationController";
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -163,6 +164,14 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
       await updateParentStoryStatus(parent_id, req.params.boardId as string);
     }
 
+    if (assigned_to && assigned_to !== req.user!.id) {
+      await internalCreateNotification(
+        assigned_to,
+        'TASK_ASSIGNED',
+        `You have been assigned to a new task: ${title}`
+      );
+    }
+
     res.status(201).json({
       message: "task created!",
       task: {
@@ -188,7 +197,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
 
     // grab old col info
     const [task] = await pool.query<RowDataPacket[]>(
-      `SELECT t.column_id AS old_col, t.board_id, t.type, t.parent_id, c1.position AS old_pos, c1.name AS old_name 
+      `SELECT t.title, t.assigned_to, t.column_id AS old_col, t.board_id, t.type, t.parent_id, c1.position AS old_pos, c1.name AS old_name 
        FROM tasks t 
        LEFT JOIN columns c1 ON t.column_id = c1.id 
        WHERE t.id = ?`,
@@ -201,7 +210,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
       return res.status(400).json({ message: "Stories cannot be directly moved across workflow columns!" });
     }
 
-    const { old_col, board_id, old_pos, old_name, parent_id } = task[0];
+    const { title, assigned_to, old_col, board_id, old_pos, old_name, parent_id } = task[0];
 
     const [col] = await pool.query<RowDataPacket[]>(
       "SELECT wip_limit, name, position FROM columns WHERE id = ? AND board_id = ?",
@@ -263,6 +272,14 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
 
     if (parent_id) {
       await updateParentStoryStatus(parent_id, board_id);
+    }
+
+    if (assigned_to && assigned_to !== req.user!.id) {
+      await internalCreateNotification(
+        assigned_to,
+        'STATUS_CHANGED',
+        `Task "${title}" status changed from "${old_name || 'Unplaced'}" to "${new_name}"`
+      );
     }
 
     res.json({ message: "task moved!" });
@@ -377,6 +394,14 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
 
     if (parent_id) {
       await updateParentStoryStatus(parent_id, oldTask.board_id);
+    }
+
+    if (assigned_to && assigned_to !== old_assignee && assigned_to !== req.user!.id) {
+      await internalCreateNotification(
+        assigned_to,
+        'TASK_ASSIGNED',
+        `You have been assigned to task: ${oldTask.title}`
+      );
     }
 
     res.json({ message: "task updated!" });

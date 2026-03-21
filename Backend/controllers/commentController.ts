@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
+import { internalCreateNotification } from "./notificationController";
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -28,6 +29,9 @@ export const addComment = async (req: AuthRequest, res: Response): Promise<any> 
     const { content } = req.body;
     if (!content) return res.status(400).json({ message: "comment cannot be empty :/" });
 
+    const [commenterRows] = await pool.query<RowDataPacket[]>("SELECT first_name, surname FROM users WHERE id = ?", [req.user!.id]);
+    const commenterName = commenterRows.length > 0 ? `${commenterRows[0].first_name} ${commenterRows[0].surname}` : 'Someone';
+
     const [result] = await pool.query<ResultSetHeader>(
       "INSERT INTO comments (task_id, user_id, content) VALUES (?, ?, ?)",
       [req.params.taskId, req.user!.id, content]
@@ -37,6 +41,40 @@ export const addComment = async (req: AuthRequest, res: Response): Promise<any> 
       "INSERT INTO audit_logs (task_id, user_id, event_type, new_value) VALUES (?, ?, 'COMMENT_ADDED', ?)",
       [req.params.taskId, req.user!.id, content.substring(0, 50)]
     );
+
+    // Notify assigned user
+    const [taskRows] = await pool.query<RowDataPacket[]>(
+      "SELECT title, assigned_to FROM tasks WHERE id = ?",
+      [req.params.taskId]
+    );
+    if (taskRows.length > 0) {
+      const task = taskRows[0];
+      if (task.assigned_to && task.assigned_to !== req.user!.id) {
+        await internalCreateNotification(
+          task.assigned_to,
+          'COMMENT_ADDED',
+          `${commenterName} commented on your task: ${task.title}`
+        );
+      }
+    }
+
+    const mentions = content.match(/@(\w+)/g);
+    if (mentions) {
+      for (const mention of mentions) {
+        const surname = mention.substring(1);
+        const [userRows] = await pool.query<RowDataPacket[]>(
+          "SELECT id FROM users WHERE surname = ? OR first_name = ?",
+          [surname, surname]
+        );
+        if (userRows.length > 0 && userRows[0].id !== req.user!.id) {
+          await internalCreateNotification(
+            userRows[0].id,
+            'USER_MENTIONED',
+            `${commenterName} mentioned you in a comment`
+          );
+        }
+      }
+    }
 
     res.status(201).json({ message: "comment added!" });
   } catch (error: any) {
