@@ -1,26 +1,70 @@
-import { useState, type FormEvent, type CSSProperties } from 'react';
+import { useState, useEffect, type FormEvent, type CSSProperties } from 'react';
 import Sidebar from '../ui_elements/SideBar';
 import '../CSS Files/DashBoard.css';
+import { getProfile, updateUserProfile, changePassword } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+
 const Settings = () => {
+    const { saveAuth } = useAuth();
     const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
-    const [description, setDescription] = useState('');
+    const [email, setEmail] = useState('');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const handleProfileSave = (e: FormEvent) => {
+    const [profileMsg, setProfileMsg] = useState('');
+    const [passwordMsg, setPasswordMsg] = useState('');
+    const [profileError, setProfileError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const data = await getProfile();
+                setName(data.first_name || '');
+                setSurname(data.surname || '');
+                setEmail(data.emailid || '');
+            } catch {}
+        };
+        load();
+    }, []);
+
+    const handleProfileSave = async (e: FormEvent) => {
         e.preventDefault();
-        console.log("Profile updated:", name, surname, description);
+        setProfileMsg('');
+        setProfileError('');
+        try {
+            const res = await updateUserProfile({ first_name: name, surname, emailid: email });
+            setProfileMsg(res.message || 'Profile updated!');
+            if (res.user) {
+                saveAuth(res.user);
+            }
+        } catch (err: any) {
+            setProfileError(err.message || 'Failed to update profile');
+        }
     };
-    const handlePasswordChange = (e: FormEvent) => {
+
+    const handlePasswordChange = async (e: FormEvent) => {
         e.preventDefault();
-        
+        setPasswordMsg('');
+        setPasswordError('');
+
         if (newPassword !== confirmPassword) {
-            alert("New passwords do not match!");
+            setPasswordError("New passwords do not match!");
             return;
         }
-        console.log("Password changed!");
+
+        try {
+            const res = await changePassword(currentPassword, newPassword, confirmPassword);
+            setPasswordMsg(res.message || 'Password changed!');
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+        } catch (err: any) {
+            setPasswordError(err.message || 'Failed to change password');
+        }
     };
+
     const sectionStyle: CSSProperties = {
         backgroundColor: '#f0fff0', 
         border: '1px solid #cccccc',
@@ -28,8 +72,8 @@ const Settings = () => {
         padding: '20px',
         marginBottom: '20px',
         maxWidth: '600px',
-        flex: 1, 
-        minWidth: '300px' 
+        flex: 1,
+        minWidth: '300px'
     };
     const labelStyle: CSSProperties = {
         display: 'block',
@@ -46,7 +90,7 @@ const Settings = () => {
         borderRadius: '4px',
         color: '#000000',
         fontSize: '0.9rem',
-        boxSizing: 'border-box', 
+        boxSizing: 'border-box',
         marginTop: '5px',
         marginBottom: '15px'
     };
@@ -60,6 +104,17 @@ const Settings = () => {
         cursor: 'pointer',
         marginTop: '10px'
     };
+    const successStyle: CSSProperties = {
+        color: '#28a745',
+        fontSize: '0.85rem',
+        marginTop: '10px'
+    };
+    const errorStyle: CSSProperties = {
+        color: '#dc3545',
+        fontSize: '0.85rem',
+        marginTop: '10px'
+    };
+
     return (
         <div className="dashboard-layout">
             <Sidebar />
@@ -71,13 +126,12 @@ const Settings = () => {
                         <h2 style={{ marginTop: 0, fontSize: '1.2rem', color: '#000000' }}>Profile</h2>
                         <form onSubmit={handleProfileSave}>
                             <div>
-                                <label style={labelStyle}>Name</label>
+                                <label style={labelStyle}>First Name</label>
                                 <input
                                     type="text"
                                     style={inputStyle}
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="Enter your name"
                                 />
                             </div>
                             <div>
@@ -87,19 +141,20 @@ const Settings = () => {
                                     style={inputStyle}
                                     value={surname}
                                     onChange={(e) => setSurname(e.target.value)}
-                                    placeholder="Enter your surname"
                                 />
                             </div>
                             <div>
-                                <label style={labelStyle}>Description</label>
-                                <textarea
-                                    style={{ ...inputStyle, minHeight: '80px', resize: 'vertical', fontFamily: 'inherit' }}
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Tell us about yourself"
+                                <label style={labelStyle}>Email</label>
+                                <input
+                                    type="email"
+                                    style={inputStyle}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                 />
                             </div>
                             <button type="submit" style={buttonStyle}>Update Profile</button>
+                            {profileMsg && <p style={successStyle}>{profileMsg}</p>}
+                            {profileError && <p style={errorStyle}>{profileError}</p>}
                         </form>
                     </div>
                     <div style={sectionStyle}>
@@ -133,6 +188,8 @@ const Settings = () => {
                                 />
                             </div>
                             <button type="submit" style={buttonStyle}>Change Password</button>
+                            {passwordMsg && <p style={successStyle}>{passwordMsg}</p>}
+                            {passwordError && <p style={errorStyle}>{passwordError}</p>}
                         </form>
                     </div>
                 </div>

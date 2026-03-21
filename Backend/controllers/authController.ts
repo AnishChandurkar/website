@@ -254,3 +254,83 @@ export const updateProfilePicture = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Not authorized to do this" });
+
+    const { first_name, surname, emailid } = req.body;
+
+    if (emailid) {
+      const [existing] = await pool.query<RowDataPacket[]>(
+        "SELECT id FROM users WHERE emailid = ? AND id != ?",
+        [emailid, req.user.id]
+      );
+      if (existing.length > 0) {
+        return res.status(400).json({ message: "Email already exists, maybe try adding a few special characters towards the end instead?" });
+      }
+    }
+
+    const sets: string[] = [];
+    const values: any[] = [];
+
+    if (first_name !== undefined) { sets.push("first_name = ?"); values.push(first_name); }
+    if (surname !== undefined) { sets.push("surname = ?"); values.push(surname); }
+    if (emailid !== undefined) { sets.push("emailid = ?"); values.push(emailid); }
+
+    if (sets.length === 0) return res.status(400).json({ message: "Nothing to update" });
+
+    values.push(req.user.id);
+    await pool.query(`UPDATE users SET ${sets.join(", ")} WHERE id = ?`, values);
+
+    const [updated] = await pool.query<UserRow[]>(
+      "SELECT id, first_name, surname, emailid, profile_url, created_at FROM users WHERE id = ?",
+      [req.user.id]
+    );
+
+    res.json({ message: "Profile updated", user: updated[0] });
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const changePassword = async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: "All password fields are required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "New passwords do not match" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters" });
+    }
+
+    const [users] = await pool.query<UserRow[]>(
+      "SELECT password_hash FROM users WHERE id = ?",
+      [req.user.id]
+    );
+
+    if (users.length === 0) return res.status(404).json({ message: "User not found" });
+
+    const isMatch = await bcrypt.compare(currentPassword, users[0].password_hash);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const newHash = await bcrypt.hash(newPassword, salt);
+
+    await pool.query("UPDATE users SET password_hash = ? WHERE id = ?", [newHash, req.user.id]);
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};

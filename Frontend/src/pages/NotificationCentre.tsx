@@ -106,7 +106,7 @@ const NotificationCentre = () => {
                         fontSize: '0.8rem'
                       }}
                     >
-                      Read
+                      Mark as Read
                     </button>
                   )}
                   <button
