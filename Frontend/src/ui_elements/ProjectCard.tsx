@@ -32,6 +32,7 @@ const ProjectCard = ({
 }: ProjectCardProps) => {
     
     const [menuOpen, setMenuOpen] = useState(false);
+    // set dynamic class based on status
     let statusClass = 'status-in-progress';
     if (status === 'Completed') statusClass = 'status-completed';
     if (status === 'Planning') statusClass = 'status-planning';

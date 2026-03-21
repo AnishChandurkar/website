@@ -38,6 +38,7 @@ const Stories = () => {
   const loadData = async () => {
     try {
       if (boardId) {
+        // load board tasks and stories
         const fetchedTasks = await fetchTasks(Number(boardId));
         const allStories = fetchedTasks.filter((t: any) => t.type === 'Story');
         const allChildTasks = fetchedTasks.filter((t: any) => t.type !== 'Story' && t.parent_id !== null);
@@ -65,6 +66,7 @@ const Stories = () => {
     if (!newStoryTitle.trim()) return;
     try {
       if (boardId) {
+        // create a new story on board
         await createTask(Number(boardId), newStoryTitle, null, 'MEDIUM', 'Story', newStoryDesc, null, null, null);
         setShowAddStoryModal(false);
         setNewStoryTitle('');
@@ -79,6 +81,7 @@ const Stories = () => {
   const handleAddTaskToStory = async () => {
     if (!selectedTaskId || !selectedStory) return;
     try {
+      // link a task to a story
       await updateTask(Number(selectedTaskId), { parent_id: selectedStory.id });
       setSelectedTaskId('');
       loadData();
@@ -90,6 +93,7 @@ const Stories = () => {
   const handleRemoveTask = async (taskId: number) => {
     if (window.confirm('Remove this task from the story?')) {
       try {
+        // unlink task from story
         await updateTask(taskId, { parent_id: null });
         loadData();
       } catch(err: any) {
@@ -100,6 +104,7 @@ const Stories = () => {
 
   const handleSync = async () => {
       try {
+          // sync story statuses from tasks
           await reSyncStories(Number(boardId));
           await loadData();
           alert('Stories re-synced! All story statuses updated to reflect the minimum status of their child tasks.');

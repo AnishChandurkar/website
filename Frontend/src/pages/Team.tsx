@@ -20,6 +20,7 @@ const Team = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // fetch team members from backend
     const loadTeammates = async () => {
       try {
         const data = await fetchMyTeammates();
@@ -42,11 +43,13 @@ const Team = () => {
   }, []);
 
   const filteredMembers = members.filter(member =>
+    // filter members by search criteria
     member.name.toLowerCase().includes(search.toLowerCase()) ||
     member.email.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleInvite = () => {
+    // invite new member to team
     const email = window.prompt("Enter the email address to invite:");
     if (email) {
       alert(`Invite sent to ${email}!`);
@@ -54,6 +57,7 @@ const Team = () => {
   };
 
   const getInitials = (name: string) => {
+    // get first letters of member name
     const parts = name.split(' ');
     if (parts.length >= 2) {
       return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();

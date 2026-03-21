@@ -14,6 +14,7 @@ const AuditHistory = () => {
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
+    // fetch audit logs when component loads
     const loadLogs = async () => {
       try {
         if (boardId) {
@@ -30,6 +31,7 @@ const AuditHistory = () => {
   }, [boardId]);
 
   const formatDate = (dateStr: string) => {
+    // convert date string to readable format
     return new Date(dateStr).toLocaleString();
   };
 

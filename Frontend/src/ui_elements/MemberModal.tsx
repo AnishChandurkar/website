@@ -16,6 +16,7 @@ interface MemberModalProps {
 
 const MemberModal = ({ member, onClose }: MemberModalProps) => {
   const getInitials = (name: string) => {
+    // extract member initials from name
     const parts = name.split(' ');
     if (parts.length >= 2) {
       return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();

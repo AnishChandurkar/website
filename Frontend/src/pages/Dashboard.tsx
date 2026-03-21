@@ -28,6 +28,7 @@ const Dashboard = () => {
   const [editingProject, setEditingProject] = useState<ProjectData | null>(null);
 
   useEffect(() => {
+    // fetch all projects from api on load
     const getProjects = async () => {
       try {
         const data = await fetchProjects();
@@ -43,6 +44,7 @@ const Dashboard = () => {
 
   const handleArchive = async (id: number) => {
     try {
+      // archive selected project
       await archiveProject(id);
       setProjects(projects.filter(p => p.id !== id));
     } catch (err: any) {
@@ -51,6 +53,7 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (id: number) => {
+    // confirm with user before delete
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
         await deleteProject(id);
@@ -98,6 +101,7 @@ const Dashboard = () => {
   const handleCreateProject = async (name: string, description: string, status: string) => {
     try {
       setLoading(true);
+      // create new project and refresh list
       await createProject(name, description, status);
       const updatedProjects = await fetchProjects();
       setProjects(updatedProjects);
@@ -151,6 +155,7 @@ const Dashboard = () => {
     );
   }
 
+  // filter projects by star status
   const starredProjects = projects.filter(p => p.is_starred);
   const otherProjects = projects.filter(p => !p.is_starred);
 

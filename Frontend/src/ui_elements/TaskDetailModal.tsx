@@ -126,13 +126,12 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [taskData, childrenData, membersData, commentsData, logsData] = await Promise.all([
-        getTask(taskId),
-        getChildTasks(taskId),
-        fetchTeamMembers(projectId),
-        getComments(taskId),
-        fetchTaskAuditLogs(taskId),
-      ]);
+      // fetch all details separately
+      const taskData = await getTask(taskId);
+      const childrenData = await getChildTasks(taskId);
+      const membersData = await fetchTeamMembers(projectId);
+      const commentsData = await getComments(taskId);
+      const logsData = await fetchTaskAuditLogs(taskId);
       setTask(taskData);
       setChildren(childrenData);
       setMembers(membersData);
@@ -160,6 +159,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
   const handleSave = async () => {
     if (!dirty) return;
     setSaving(true);
+    
+    // save the changes to the backend
     try {
       await updateTask(taskId, {
         title: title.trim() || task?.title,
@@ -181,6 +182,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
 
   const handleDelete = async () => {
     if (!window.confirm(`delete "${task?.title}"? this cant be undone! :o`)) return;
+    
+    // delete the task completely
     try {
       await deleteTask(taskId);
       onUpdated();

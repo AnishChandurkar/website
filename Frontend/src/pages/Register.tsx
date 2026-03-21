@@ -18,11 +18,13 @@ const Register = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    // check if passwords match
     if (password !== confirmPassword) {
       alert("passwords do not match ._.");
       return;
     }
     try {
+      // handle user registration
       const data = await registerUser(firstName, lastName, email, password);
       if (data.user) {
         saveAuth(data.user);

@@ -20,6 +20,7 @@ const ArchivedProjects = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // load archived projects from server
     const loadArchived = async () => {
       try {
         const response = await fetch(`${BASE_URL}/projects/archived`, {
@@ -36,9 +37,11 @@ const ArchivedProjects = () => {
   }, []);
 
   const formatTimeAgo = (dateString: string) => {
+    // calculate time difference
     const date = new Date(dateString);
     const now = new Date();
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    // return formatted string based on difference
     if (seconds < 60) return 'just now';
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
@@ -50,7 +53,9 @@ const ArchivedProjects = () => {
 
   const handleRestore = async (id: number) => {
     try {
+      // restore project via api
       await restoreProject(id);
+      // remove from local state
       setArchived(archived.filter(p => p.id !== id));
     } catch (err: any) {
       alert(err.message || 'Failed to restore');
@@ -58,9 +63,11 @@ const ArchivedProjects = () => {
   };
 
   const handleDelete = async (id: number) => {
+    // ask user before deleting
     if (window.confirm('Permanently delete this project?')) {
       try {
         await deleteProject(id);
+        // remove from local state after delete
         setArchived(archived.filter(p => p.id !== id));
       } catch (err: any) {
         alert(err.message || 'Failed to delete');

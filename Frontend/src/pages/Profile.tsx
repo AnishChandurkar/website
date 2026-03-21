@@ -21,6 +21,7 @@ const Profile = () => {
   useEffect(() => {
     const loadProfile = async () => {
       try {
+        // fetch user profile data
         const data = await getProfile();
         setProfile(data);
       } catch {
@@ -32,10 +33,12 @@ const Profile = () => {
   }, []);
 
   const getInitials = (firstName: string, surname: string) => {
+    // extract first letters of name
     return `${firstName.charAt(0)}${surname.charAt(0)}`.toUpperCase();
   };
 
   const formatDate = (dateString: string) => {
+    // format date for display
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -46,6 +49,7 @@ const Profile = () => {
   const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       try {
+        // handle avatar upload
         const data = await uploadAvatar(e.target.files[0]);
         if (profile) {
           setProfile({ ...profile, profile_url: data.profile_url });

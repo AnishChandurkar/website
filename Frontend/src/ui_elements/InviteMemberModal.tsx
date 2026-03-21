@@ -8,6 +8,7 @@ const InviteMemberModal = ({ onClose, onInvite }: InviteMemberModalProps) => {
   const [role, setRole] = useState('Project Member');
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // send invite to new member
     if (email.trim()) {
       onInvite(email, role);
     }

@@ -20,6 +20,7 @@ const Settings = () => {
     useEffect(() => {
         const load = async () => {
             try {
+                // load current profile
                 const data = await getProfile();
                 setName(data.first_name || '');
                 setSurname(data.surname || '');
@@ -34,6 +35,7 @@ const Settings = () => {
         setProfileMsg('');
         setProfileError('');
         try {
+            // update profile details
             const res = await updateUserProfile({ first_name: name, surname, emailid: email });
             setProfileMsg(res.message || 'Profile updated!');
             if (res.user) {
@@ -49,12 +51,14 @@ const Settings = () => {
         setPasswordMsg('');
         setPasswordError('');
 
+        // check if subbed passwords match
         if (newPassword !== confirmPassword) {
             setPasswordError("New passwords do not match!");
             return;
         }
 
         try {
+            // change user password
             const res = await changePassword(currentPassword, newPassword, confirmPassword);
             setPasswordMsg(res.message || 'Password changed!');
             setCurrentPassword('');

@@ -21,6 +21,7 @@ const NewProjectModal = ({ onClose, onSave, onUpdate, initialData }: NewProjectM
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // handle new project creation
     if (name.trim()) {
       if (initialData && onUpdate) {
         onUpdate(initialData.id, name, description, status, progress);
