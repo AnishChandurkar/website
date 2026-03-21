@@ -105,13 +105,16 @@
   background-color: lightcyan;
   border: 1px solid #cccccc;
   border-left: 4px solid #6600cc;
-  border-radius: 4px;
+  border-radius: 7px;
   padding: 16px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .storyCard:hover {
   border-color: #999999;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  transform: translateY(-2px);
 }
 .storyTitle {
   margin: 0 0 8px 0;
@@ -137,9 +140,9 @@
   z-index: 1000;
 }
 .modalContent {
-  background-color: powderblue;
+  background-color: #ffffff;
   padding: 24px;
-  border-radius: 7px;
+  border-radius: 15px;
   width: 500px;
   max-width: 90%;
   max-height: 85vh;
