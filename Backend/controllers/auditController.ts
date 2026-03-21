@@ -13,9 +13,10 @@ export const getBoardAuditLogs = async (req: AuthRequest, res: Response): Promis
     const [logs] = await pool.query<RowDataPacket[]>(
       `SELECT 
           al.id, al.task_id, al.event_type, al.old_value, al.new_value, al.created_at,
-          t.title as task_title, t.resolved_at, t.closed_at,
+          t.title as task_title, t.closed_at,
           u_creator.first_name as creator_first_name, u_creator.surname as creator_surname,
-          u_editor.first_name as editor_first_name, u_editor.surname as editor_surname
+          u_editor.first_name as editor_first_name, u_editor.surname as editor_surname,
+          (SELECT name FROM columns WHERE board_id = t.board_id ORDER BY position DESC LIMIT 1) as max_col_name
        FROM audit_logs al
        JOIN tasks t ON al.task_id = t.id
        JOIN users u_editor ON al.user_id = u_editor.id

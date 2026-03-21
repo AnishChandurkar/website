@@ -85,3 +85,23 @@ export const removeMember = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'something went wrong :(', error: error.message });
   }
 };
+
+export const getMyTeammates = async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const [rows] = await pool.query<MemberRow[]>(
+      `SELECT DISTINCT u.id, u.first_name, u.surname, u.emailid, u.profile_url
+       FROM project_members pm
+       JOIN users u ON pm.user_id = u.id
+       WHERE pm.project_id IN (
+         SELECT project_id FROM project_members WHERE user_id = ?
+       ) AND u.id != ?`,
+      [req.user.id, req.user.id]
+    );
+
+    res.json(rows);
+  } catch (error: any) {
+    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  }
+};

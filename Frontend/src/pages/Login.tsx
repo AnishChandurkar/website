@@ -73,7 +73,6 @@ const Login = () => {
                 />
                 Remember me
               </label>
-              <Link to="#" className={styles.forgotLink}>Forgot password?</Link>
             </div>
             <button type="submit" className={styles.submitBtn}>
               Log In

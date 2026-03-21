@@ -257,3 +257,15 @@ export const deleteWorkflow = (projectId: number, workflowId: number) => {
 export const reSyncStories = (boardId: number) => {
     return apiRequest(`/boards/${boardId}/sync-stories`, 'PUT');
 };
+
+export const updateUserProfile = (data: { first_name?: string; surname?: string; emailid?: string }) => {
+    return apiRequest('/auth/profile', 'PUT', data);
+};
+
+export const changePassword = (currentPassword: string, newPassword: string, confirmPassword: string) => {
+    return apiRequest('/auth/profile/password', 'POST', { currentPassword, newPassword, confirmPassword });
+};
+
+export const fetchMyTeammates = () => {
+    return apiRequest('/auth/teammates', 'GET');
+};
