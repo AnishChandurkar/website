@@ -8,7 +8,7 @@
   flex: 1;
   padding: 30px;
   color: #333333;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: 'Segoe UI', "Monaco", "Courier New", monospace;
 }
 
 .topBar {

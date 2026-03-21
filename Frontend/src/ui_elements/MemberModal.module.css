@@ -19,7 +19,7 @@
   text-align: center;
   position: relative;
   color: #333333;
-  font-family: Arial, sans-serif;
+  font-family: "Monaco", "Courier New", monospace;
 }
 .closeButton {
   position: absolute;

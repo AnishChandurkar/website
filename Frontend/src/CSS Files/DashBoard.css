@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: "Monaco", "Courier New", monospace;
     background: linear-gradient(135deg, #f5f5dc, #d2b48c);
     color: #333333;
 }
