@@ -16,7 +16,8 @@ interface AuditLog {
   editor_first_name: string | null;
   editor_surname: string | null;
   task_title: string;
-  closed_at: string | null;
+  is_closed: boolean;
+  is_resolved: boolean;
   max_col_name: string | null;
 }
 interface Comment {
