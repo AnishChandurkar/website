@@ -449,6 +449,27 @@
   font-style: italic;
 }
 
+.richContent a {
+  color: #007bff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.richContent a:hover {
+  text-decoration: none;
+  color: #0056b3;
+}
+
+.richContent ul {
+  padding-left: 20px;
+  margin: 5px 0;
+  list-style-type: disc;
+}
+
+.richContent li {
+  margin-bottom: 3px;
+}
+
 .formatHint {
   font-size: 0.72rem;
   color: #aaaaaa;
@@ -479,4 +500,25 @@
 
 .commentContent em {
   font-style: italic;
+}
+
+.commentContent a {
+  color: #007bff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.commentContent a:hover {
+  text-decoration: none;
+  color: #0056b3;
+}
+
+.commentContent ul {
+  padding-left: 20px;
+  margin: 5px 0;
+  list-style-type: disc;
+}
+
+.commentContent li {
+  margin-bottom: 3px;
 }
