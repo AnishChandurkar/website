@@ -15,6 +15,7 @@ import NotificationCentre from './pages/NotificationCentre';
 import ProtectedRoute from './ui_elements/ProtectedRoute';
 
 const App = () => {
+  // application entry point with routing
   return (
     <BrowserRouter>
       <Routes>

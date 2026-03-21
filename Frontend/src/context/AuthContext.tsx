@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const loadUser = async () => {
+            // check if user is logged in on load
             try {
                 const userData = await getProfile();
                 setUser(userData);
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const logout = async () => {
+        // clear user session and logout
         try {
             await logoutUser();
             setUser(null);

@@ -1,4 +1,5 @@
 function escapeHtml(text: string): string {
+  // escape special html characters for safety
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -7,6 +8,7 @@ function escapeHtml(text: string): string {
 }
 
 export function formatText(raw: string): string {
+  // parse basic markdown into html components
   let s = escapeHtml(raw);
 
   // `monospace`

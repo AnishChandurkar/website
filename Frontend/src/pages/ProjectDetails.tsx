@@ -45,6 +45,7 @@ const ProjectDetails = () => {
 
   const loadProject = async () => {
     try {
+      // load specific project data
       const data = await fetchProjectById(Number(projectId));
       setProject(data);
     } catch (err: any) {
@@ -60,6 +61,7 @@ const ProjectDetails = () => {
 
   const handleAddBoard = async (boardName: string) => {
     try {
+      // create new board in project
       await createBoard(Number(projectId), boardName);
       await loadProject();
       setShowAddBoard(false);
@@ -70,6 +72,7 @@ const ProjectDetails = () => {
 
   const handleInvite = async (email: string, role: string) => {
     try {
+      // invite member to project
       await inviteMember(Number(projectId), email, role);
       await loadProject();
       setShowInvite(false);
@@ -79,6 +82,7 @@ const ProjectDetails = () => {
   };
 
   const formatDate = (dateString: string) => {
+    // format creation date
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -87,6 +91,7 @@ const ProjectDetails = () => {
   };
 
   const formatTimeAgo = (dateString: string) => {
+    // calculate time since update
     const date = new Date(dateString);
     const now = new Date();
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);

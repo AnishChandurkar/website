@@ -16,6 +16,7 @@ const NotificationCentre = () => {
 
   const loadNotifications = async () => {
     try {
+      // fetch notifications from backend
       const data = await fetchNotifications();
       setNotifications(data);
     } catch (err) {
@@ -33,6 +34,7 @@ const NotificationCentre = () => {
 
   const handleMarkAsRead = async (id: number) => {
     try {
+      // mark notification as read
       await markNotificationAsRead(id);
       setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (err) {
@@ -42,6 +44,7 @@ const NotificationCentre = () => {
 
   const handleDelete = async (id: number) => {
     try {
+      // delete notification from list
       await deleteNotification(id);
       setNotifications(notifications.filter(notif => notif.id !== id));
     } catch (err) {
@@ -50,6 +53,7 @@ const NotificationCentre = () => {
   };
 
   const formatTime = (timeStr: string) => {
+    // format timestamp to local string
     return new Date(timeStr).toLocaleString();
   };
 

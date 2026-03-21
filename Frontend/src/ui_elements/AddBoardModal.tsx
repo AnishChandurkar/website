@@ -7,6 +7,7 @@ const AddBoardModal = ({ onClose, onSave }: AddBoardModalProps) => {
   const [boardName, setBoardName] = useState('');
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // handle form submission for new board
     if (boardName.trim()) {
       onSave(boardName);
       onClose();

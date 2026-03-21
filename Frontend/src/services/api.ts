@@ -5,6 +5,7 @@ const apiRequest = async (endpoint: string, method: string = 'GET', body?: objec
     };
 
     const config: RequestInit = {
+        // fetch wrapper with auth interception
         method,
         headers,
         credentials: 'include',
@@ -32,7 +33,7 @@ const apiRequest = async (endpoint: string, method: string = 'GET', body?: objec
     try {
         data = JSON.parse(text);
     } catch (e) {
-        // not a json
+        // not a json response
     }
 
     if (!response.ok) {
@@ -42,10 +43,10 @@ const apiRequest = async (endpoint: string, method: string = 'GET', body?: objec
 
     return data;
 };
-//auth checks 
+// auth checks 
 export const loginUser = (emailid: string, password: string) => {
     return apiRequest('/auth/login', 'POST', { emailid, password });
-}; // we USE POST API here and not get, for security reasonsx`
+}; // use post api for security
 
 export const registerUser = (first_name: string, surname: string, emailid: string, password: string) => {
     return apiRequest('/auth/register', 'POST', { first_name, surname, emailid, password });
