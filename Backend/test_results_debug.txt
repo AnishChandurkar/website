@@ -1,0 +1,211 @@
+﻿  console.log
+    [dotenv@17.3.1] injecting env (7) from .env -- tip: ΓÜí∩╕Å secrets for agents: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env -- tip: ≡ƒñû agentic secret storage: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+node.exe : FAIL 
+tests/auth.test.ts
+At C:\Program 
+Files\nodejs\npx.ps1:29 
+char:3
++   & $NODE_EXE $NPX_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (FAIL te  
+  sts/auth.test.ts:String)   
+  [], RemoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+  Auth Endpoints
+    ├ù should register a new 
+user (192 ms)
+    ├ù should fail to 
+register the same user again 
+(11 ms)
+    ├ù should login the user 
+and return tokens (135 ms)
+    ├ù should fail with 
+wrong password (119 ms)
+
+  ΓùÅ Auth Endpoints ΓÇ║ 
+should register a new user
+
+    expect(received).toHavePr
+operty(path, value)
+
+    Expected path: "message"
+
+    Expected value: "User 
+registered in the database, 
+also seed complete!"
+    Received value: "User 
+registered successfully"
+
+    [0m [90m 29 |[39m     
+    
+     [90m 30 |[39m         
+expect(res[33m.[39mstatusCo
+de)[33m.[39mtoEqual([35m20
+1[39m)[33m;[39m
+    
+[31m[1m>[22m[39m[90m 31 
+|[39m         expect(res[33
+m.[39mbody)[33m.[39mtoHave
+Property([32m'message'[39m
+[33m,[39m [32m'User 
+registered in the database, 
+also seed 
+complete!'[39m)[33m;[39m
+     [90m    |[39m         
+                 
+[31m[1m^[22m[39m
+     [90m 32 |[39m     
+})[33m;[39m
+     [90m 33 |[39m
+     [90m 34 |[39m     
+it([32m'should fail to 
+register the same user 
+again'[39m[33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at Object.<anonymous> 
+(tests/auth.test.ts:31:26)
+
+  ΓùÅ Auth Endpoints ΓÇ║ 
+should fail to register the 
+same user again
+
+    expect(received).toHavePr
+operty(path, value)
+
+    Expected path: "message"
+
+    Expected value: "User 
+with email already exists in 
+the workspace database!"
+    Received value: "Email 
+already exists"
+
+    [0m [90m 38 |[39m     
+    
+     [90m 39 |[39m         
+expect(res[33m.[39mstatusCo
+de)[33m.[39mtoEqual([35m40
+0[39m)[33m;[39m
+    
+[31m[1m>[22m[39m[90m 40 
+|[39m         expect(res[33
+m.[39mbody)[33m.[39mtoHave
+Property([32m'message'[39m
+[33m,[39m [32m'User with 
+email already exists in the 
+workspace 
+database!'[39m)[33m;[39m
+     [90m    |[39m         
+                 
+[31m[1m^[22m[39m
+     [90m 41 |[39m     
+})[33m;[39m
+     [90m 42 |[39m
+     [90m 43 |[39m     
+it([32m'should login the 
+user and return 
+tokens'[39m[33m,[39m 
+[36masync[39m () 
+[33m=>[39m {[0m
+
+      at Object.<anonymous> 
+(tests/auth.test.ts:40:26)
+
+  ΓùÅ Auth Endpoints ΓÇ║ 
+should login the user and 
+return tokens
+
+    expect(received).toEqual(
+expected) // deep equality
+
+    Expected: 200
+    Received: 500
+
+    [0m [90m 49 |[39m     
+        })[33m;[39m
+     [90m 50 |[39m         
+    
+[31m[1m>[22m[39m[90m 51 
+|[39m         expect(res[33
+m.[39mstatusCode)[33m.[39m
+toEqual([35m200[39m)[33m;
+[39m
+     [90m    |[39m         
+                       
+[31m[1m^[22m[39m
+     [90m 52 |[39m         
+expect(res[33m.[39mbody)[3
+3m.[39mtoHaveProperty([32m'
+user'[39m)[33m;[39m
+     [90m 53 |[39m         
+expect(res[33m.[39mbody[33
+m.[39muser)[33m.[39mtoHave
+Property([32m'emailid'[39m
+[33m,[39m testUser[33m.[39
+memailid)[33m;[39m
+     [90m 54 |[39m         
+[0m
+
+      at Object.<anonymous> 
+(tests/auth.test.ts:51:32)
+
+  ΓùÅ Auth Endpoints ΓÇ║ 
+should fail with wrong 
+password
+
+    expect(received).toEqual(
+expected) // deep equality
+
+    Expected: 401
+    Received: 400
+
+    [0m [90m 69 |[39m     
+        })[33m;[39m
+     [90m 70 |[39m         
+    
+[31m[1m>[22m[39m[90m 71 
+|[39m         expect(res[33
+m.[39mstatusCode)[33m.[39m
+toEqual([35m401[39m)[33m;
+[39m
+     [90m    |[39m         
+                       
+[31m[1m^[22m[39m
+     [90m 72 |[39m         
+expect(res[33m.[39mbody)[3
+3m.[39mtoHaveProperty([32m'
+message'[39m[33m,[39m 
+[32m'Incorrect 
+password!'[39m)[33m;[39m
+     [90m 73 |[39m     
+})[33m;[39m
+     [90m 74 |[39m 
+})[33m;[39m[0m
+
+      at Object.<anonymous> 
+(tests/auth.test.ts:71:32)
+
+Test Suites: 1 failed, 1 
+total
+Tests:       4 failed, 4 
+total
+Snapshots:   0 total
+Time:        1.448 s, 
+estimated 2 s
+Ran all test suites matching 
+tests/auth.test.ts.

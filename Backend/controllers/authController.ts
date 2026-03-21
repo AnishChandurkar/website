@@ -114,6 +114,8 @@ export const login = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(user.id, user.emailid);
     const refreshToken = generateRefreshToken(user.id);
 
+    await pool.query("DELETE FROM refresh_tokens WHERE user_id = ?", [user.id]);
+
     await pool.query(
       "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
       [user.id, refreshToken, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)]

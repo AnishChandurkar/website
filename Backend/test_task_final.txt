@@ -1,0 +1,126 @@
+﻿  console.log
+    [dotenv@17.3.1] injecting env (7) from .env -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env -- tip: ≡ƒ¢í∩╕Å auth for agents: https://vestauth.com
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+node.exe : FAIL 
+tests/task.test.ts
+At C:\Program 
+Files\nodejs\npx.ps1:29 
+char:3
++   & $NODE_EXE $NPX_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (FAIL te  
+  sts/task.test.ts:String)   
+  [], RemoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+  Task Workflow & WIP Limits 
+(Business Logic)
+    ΓêÜ should create a task 
+successfully inside To Do 
+(28 ms)
+    ├ù should allow moving 
+the task within allowed 
+workflow bounds (14 ms)
+    ├ù should REJECT moving 
+another task if the WIP 
+limit is exceeded (33 ms)
+
+  ΓùÅ Task Workflow & WIP 
+Limits (Business Logic) ΓÇ║ 
+should allow moving the task 
+within allowed workflow 
+bounds
+
+    expect(received).toEqual(
+expected) // deep equality
+
+    Expected: 200
+    Received: 404
+
+    [0m [90m 90 |[39m     
+        [33m.[39msend({ 
+new_column_id[33m:[39m 
+inProgressColumnId 
+})[33m;[39m
+     [90m 91 |[39m         
+    
+[31m[1m>[22m[39m[90m 92 
+|[39m         expect(res[33
+m.[39mstatusCode)[33m.[39m
+toEqual([35m200[39m)[33m;
+[39m
+     [90m    |[39m         
+                       
+[31m[1m^[22m[39m
+     [90m 93 |[39m         
+expect(res[33m.[39mbody[33
+m.[39mmessage)[33m.[39mtoC
+ontain([32m'moved successful
+ly'[39m)[33m;[39m
+     [90m 94 |[39m     
+})[33m;[39m
+     [90m 95 |[39m[0m
+
+      at Object.<anonymous> 
+(tests/task.test.ts:92:32)
+
+  ΓùÅ Task Workflow & WIP 
+Limits (Business Logic) ΓÇ║ 
+should REJECT moving another 
+task if the WIP limit is 
+exceeded
+
+    expect(received).toEqual(
+expected) // deep equality
+
+    Expected: 400
+    Received: 404
+
+    [0m [90m 115 |[39m    
+         [33m.[39msend({ 
+new_column_id[33m:[39m 
+inProgressColumnId 
+})[33m;[39m
+     [90m 116 |[39m        
+ 
+    
+[31m[1m>[22m[39m[90m 
+117 |[39m         expect(res
+[33m.[39mstatusCode)[33m.
+[39mtoEqual([35m400[39m)[3
+3m;[39m
+     [90m     |[39m        
+                        
+[31m[1m^[22m[39m
+     [90m 118 |[39m        
+ expect(res[33m.[39mbody[3
+3m.[39mmessage)[33m.[39mto
+Contain([32m'exceeds the 
+WIP limit'[39m)[33m;[39m
+     [90m 119 |[39m     
+})[33m;[39m
+     [90m 120 |[39m[0m
+
+      at Object.<anonymous> 
+(tests/task.test.ts:117:32)
+
+Test Suites: 1 failed, 1 
+total
+Tests:       2 failed, 1 
+passed, 3 total
+Snapshots:   0 total
+Time:        1.884 s, 
+estimated 2 s
+Ran all test suites matching 
+tests/task.test.ts.

@@ -1,0 +1,98 @@
+﻿  console.log
+    [dotenv@17.3.1] injecting env (7) from .env -- tip: ΓÜÖ∩╕Å  specify custom .env file path with { path: '/custom/path/.env' }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env -- tip: ΓÜí∩╕Å secrets for agents: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    LOGIN FAILED: 500 {
+      message: 'Internal server error',
+      error: "Duplicate entry 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiaWF0IjoxNzc0MTI' for key 'refresh_tokens.token'"
+    }
+
+      at Object.<anonymous> (tests/auth.test.ts:48:44)
+
+node.exe : FAIL 
+tests/auth.test.ts
+At C:\Program 
+Files\nodejs\npx.ps1:29 
+char:3
++   & $NODE_EXE $NPX_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (FAIL te  
+  sts/auth.test.ts:String)   
+  [], RemoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+  Auth Endpoints
+    ΓêÜ should register a 
+new user (189 ms)
+    ΓêÜ should fail to 
+register the same user again 
+(10 ms)
+    ├ù should login the user 
+and return tokens (133 ms)
+    ΓêÜ should fail with 
+wrong password (117 ms)
+
+  ΓùÅ Auth Endpoints ΓÇ║ 
+should login the user and 
+return tokens
+
+    expect(received).toEqual(
+expected) // deep equality
+
+    Expected: 200
+    Received: 500
+
+    [0m [90m 48 |[39m     
+    [36mif[39m(res[33m.[3
+9mstatusCode [33m!==[39m 
+[35m200[39m) console[33m.
+[39mlog([32m"LOGIN 
+FAILED:"[39m[33m,[39m res
+[33m.[39mstatusCode[33m,[3
+9m res[33m.[39mbody)[33m;
+[39m
+     [90m 49 |[39m         
+    
+[31m[1m>[22m[39m[90m 50 
+|[39m         expect(res[33
+m.[39mstatusCode)[33m.[39m
+toEqual([35m200[39m)[33m;
+[39m
+     [90m    |[39m         
+                       
+[31m[1m^[22m[39m
+     [90m 51 |[39m         
+expect(res[33m.[39mbody)[3
+3m.[39mtoHaveProperty([32m'
+user'[39m)[33m;[39m
+     [90m 52 |[39m         
+expect(res[33m.[39mbody[33
+m.[39muser)[33m.[39mtoHave
+Property([32m'emailid'[39m
+[33m,[39m testUser[33m.[39
+memailid)[33m;[39m
+     [90m 53 |[39m         
+[0m
+
+      at Object.<anonymous> 
+(tests/auth.test.ts:50:32)
+
+Test Suites: 1 failed, 1 
+total
+Tests:       1 failed, 3 
+passed, 4 total
+Snapshots:   0 total
+Time:        1.42 s
+Ran all test suites matching 
+tests/auth.test.ts.
