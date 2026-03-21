@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import styles from '../CSS Files/TaskDetailModal.module.css';
+import { useAuth } from '../context/AuthContext';
 import { getTask, getChildTasks, updateTask, deleteTask, closeTask, fetchTeamMembers, getComments, addComment, deleteComment, fetchTaskAuditLogs } from '../services/api';
 import { formatText } from '../services/formatText';
 
@@ -65,6 +66,7 @@ interface Member {
   first_name: string;
   surname: string;
   emailid: string;
+  role: string;
 }
 
 interface Props {
@@ -111,6 +113,7 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [activeTab, setActiveTab] = useState<'details' | 'timeline'>('details');
   const [newComment, setNewComment] = useState('');
+  const { user } = useAuth();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -272,6 +275,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
 
   const assignedMember = members.find(m => m.id === assignedTo);
   const overdue = isOverdue(dueDate || null);
+  const currentUserRole = members.find(m => m.id === user?.id)?.role;
+  const isProjectMember = currentUserRole === 'Project Member';
 
   return (
     <div className={styles.overlay} onClick={handleBackdropClick}>
@@ -498,6 +503,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
                 className={styles.fieldSelect}
                 value={assignedTo ?? ''}
                 onChange={e => { setAssignedTo(e.target.value ? Number(e.target.value) : null); markDirty(); }}
+                disabled={isProjectMember}
+                title={isProjectMember ? "Only Project Admins can assign tasks" : ""}
               >
                 <option value="">Unassigned</option>
                 {members.map(m => (

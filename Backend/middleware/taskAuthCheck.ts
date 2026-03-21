@@ -1,10 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { RowDataPacket } from "mysql2";
 import pool from "../config/db";
-
-export interface AuthRequest extends Request {
-  user?: any;
-}
+import { AuthRequest } from "../controllers/authController";
 
 export const requireTaskReadAccess = async (req: AuthRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
@@ -64,7 +61,12 @@ export const requireTaskWriteAccess = async (req: AuthRequest, res: Response, ne
             return res.status(403).json({ message: 'you are not a member of this project :/' });
         }
         
-        if (role[0].role === 'Project Viewer') {
+        const projectRole = role[0].role;
+        if (req.user) {
+            req.user.projectRole = projectRole;
+        }
+        
+        if (projectRole === 'Project Viewer') {
             return res.status(403).json({ message: 'Project Viewers cannot modify tasks or boards :/' });
         }
         
