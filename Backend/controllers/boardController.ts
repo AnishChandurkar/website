@@ -76,11 +76,14 @@ export const deleteBoard = async (req: Request, res: Response) => {
 export const getBoardProject = async (req: Request, res: Response): Promise<any> => {
     try {
         const [rows] = await pool.query<RowDataPacket[]>(
-            'SELECT project_id FROM boards WHERE id = ?',
-            [req.params.boardId]
+            `SELECT b.project_id, pm.role 
+             FROM boards b 
+             JOIN project_members pm ON b.project_id = pm.project_id 
+             WHERE b.id = ? AND pm.user_id = ?`,
+            [req.params.boardId, (req as any).user?.id]
         );
-        if (rows.length === 0) return res.status(404).json({ message: 'board not found :/' });
-        res.json({ project_id: rows[0].project_id });
+        if (rows.length === 0) return res.status(404).json({ message: 'board not found or access denied :/' });
+        res.json({ project_id: rows[0].project_id, currentUserRole: rows[0].role });
     } catch (error: any) {
         res.status(500).json({ message: 'something went wrong :(', error: error.message });
     }

@@ -55,6 +55,7 @@ const ProjectBoard = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [projectId, setProjectId] = useState<number | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [allowedWorkflows, setAllowedWorkflows] = useState<{ from_column_id: number, to_column_id: number }[]>([]);
   const [dragOverCol, setDragOverCol] = useState<number | null>(null);
   const [filterType, setFilterType] = useState<string>('ALL');
@@ -100,6 +101,7 @@ const ProjectBoard = () => {
         if (res.ok) {
           const data = await res.json();
           setProjectId(data.project_id);
+          setCurrentUserRole(data.currentUserRole);
           const [membersData, workflowsData] = await Promise.all([
             fetchTeamMembers(data.project_id),
             fetchProjectWorkflows(data.project_id)
@@ -462,6 +464,8 @@ const ProjectBoard = () => {
                       value={newAssignee}
                       onChange={e => setNewAssignee(e.target.value)}
                       className={styles.addFormSelect}
+                      disabled={currentUserRole === 'Project Member'}
+                      title={currentUserRole === 'Project Member' ? "Only Project Admins can assign tasks" : ""}
                     >
                       <option value="">Unassigned</option>
                       {members.map(m => (

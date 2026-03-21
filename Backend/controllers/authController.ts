@@ -10,7 +10,7 @@ import path from "path";
 
 // Extend the Express Request object to include user
 export interface AuthRequest extends Request {
-  user?: { id: number; emailid?: string } | undefined;
+  user?: { id: number; emailid?: string; projectRole?: string } | undefined;
 }
 
 interface UserRow extends RowDataPacket {

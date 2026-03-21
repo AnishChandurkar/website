@@ -2,10 +2,9 @@ import { Request, Response } from "express";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
 import { internalCreateNotification } from "./notificationController";
+import { AuthRequest } from "./authController";
 
-export interface AuthRequest extends Request {
-  user?: any;
-}
+
 
 export const getTasks = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
@@ -108,6 +107,10 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
       parent_id,
       due_date,
     } = req.body;
+    
+    if (assigned_to && req.user?.projectRole === 'Project Member') {
+      return res.status(403).json({ message: "Project Members are not allowed to assign tasks! Only Project Admins can do that :/" });
+    }
 
     if (parent_id) {
       const [parent] = await pool.query<RowDataPacket[]>("SELECT type FROM tasks WHERE id = ?", [
@@ -175,10 +178,11 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
     );
 
     const taskId = result.insertId;
+    const taskTypeForEvent = (type || "Task").toUpperCase();
 
     await pool.query(
-      "INSERT INTO audit_logs (task_id, user_id, event_type, new_value) VALUES (?, ?, 'TASK_CREATED', ?)",
-      [taskId, req.user!.id, title]
+      "INSERT INTO audit_logs (task_id, user_id, event_type, new_value) VALUES (?, ?, ?, ?)",
+      [taskId, req.user!.id, `${taskTypeForEvent}_CREATED`, title]
     );
 
     if (parent_id) {
@@ -331,8 +335,12 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
       return res.status(404).json({ message: "task not found :/" });
     const oldTask = oldRows[0];
     const old_assignee = oldTask.assigned_to;
+    const taskTypeForEvent = (oldTask.type || "Task").toUpperCase();
 
-    if (assigned_to !== undefined && assigned_to !== old_assignee) {
+    if (assigned_to !== undefined && Number(assigned_to) !== Number(old_assignee)) {
+      if (req.user?.projectRole === 'Project Member') {
+        return res.status(403).json({ message: "Project Members are not allowed to assign or change task assignments! Ask a Project Admin instead :/" });
+      }
       await pool.query(
         "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'ASSIGNEE_CHANGE', ?, ?)",
         [req.params.id, req.user!.id, old_assignee ? String(old_assignee) : "Unassigned", assigned_to ? String(assigned_to) : "Unassigned"]
@@ -341,14 +349,14 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
 
     if (title !== undefined && title !== oldTask.title) {
       await pool.query(
-        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'TASK_UPDATED', ?, ?)",
-        [req.params.id, req.user!.id, oldTask.title, title]
+        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, ?, ?, ?)",
+        [req.params.id, req.user!.id, `${taskTypeForEvent}_UPDATED`, oldTask.title, title]
       );
     }
     if (priority !== undefined && priority !== oldTask.priority) {
       await pool.query(
-        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'TASK_UPDATED', ?, ?)",
-        [req.params.id, req.user!.id, oldTask.priority, priority]
+        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, ?, ?, ?)",
+        [req.params.id, req.user!.id, `${taskTypeForEvent}_UPDATED`, oldTask.priority, priority]
       );
     }
 
@@ -494,7 +502,7 @@ export const closeTask = async (req: AuthRequest, res: Response): Promise<any> =
     const taskId = req.params.id;
 
     const [task] = await pool.query<RowDataPacket[]>(
-      `SELECT t.id, t.board_id, c.position, (SELECT MAX(position) FROM columns WHERE board_id = t.board_id) as max_pos
+      `SELECT t.id, t.type, t.board_id, c.position, (SELECT MAX(position) FROM columns WHERE board_id = t.board_id) as max_pos
        FROM tasks t
        JOIN columns c ON t.column_id = c.id
        WHERE t.id = ?`,
@@ -512,9 +520,10 @@ export const closeTask = async (req: AuthRequest, res: Response): Promise<any> =
       [taskId]
     );
 
+    const taskTypeForEvent = (task[0].type || "Task").toUpperCase();
     await pool.query(
-      "INSERT INTO audit_logs (task_id, user_id, event_type) VALUES (?, ?, 'TASK_CLOSED')",
-      [taskId, req.user.id]
+      "INSERT INTO audit_logs (task_id, user_id, event_type) VALUES (?, ?, ?)",
+      [taskId, req.user.id, `${taskTypeForEvent}_CLOSED`]
     );
 
     res.json({ message: "Task closed successfully!" });

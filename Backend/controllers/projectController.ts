@@ -78,10 +78,13 @@ export const getProjectById = async (req: AuthRequest, res: Response) => {
       [req.params.id]
     );
 
+    const currentUserRole = members.find(m => m.id === req.user?.id)?.role || null;
+
     res.json({
       ...project,
       boards,
-      members
+      members,
+      currentUserRole
     });
   } catch (error: any) {
     res.status(500).json({ message: "something went wrong :(", error: error.message });
