@@ -15,22 +15,23 @@ interface Task {
   id: number;
   title: string;
   description: string | null;
+  priority: 'HIGH' | 'CRITICAL' | 'MEDIUM' | 'LOW';
   type: 'Story' | 'Task' | 'Bug';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  assigned_to: number | null;
+  due_date: string | null;
   column_id: number | null;
   column_name: string | null;
   parent_id: number | null;
   parent_title: string | null;
+  parent_column_name: string | null;
   parent_type: string | null;
-  assigned_to: number | null;
+  board_id: number;
+  created_at: string;
   assigned_first_name: string | null;
   assigned_surname: string | null;
   reporter_first_name: string | null;
   reporter_surname: string | null;
-  due_date: string | null;
-  created_at: string;
   updated_at: string;
-  board_id: number;
 }
 
 interface ChildTask {
@@ -294,7 +295,10 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
                     title="Open parent story"
                   >
                     <span className={styles.parentLinkText}>
-                      #{task.parent_id} — {task.parent_title ?? 'Story'}
+                      #{task.parent_id} — {task.parent_title ?? 'Story'} 
+                      <span style={{ marginLeft: '10px', fontSize: '0.8rem', color: '#666' }}>
+                        ({task.parent_column_name || 'Unplaced'})
+                      </span>
                     </span>
                   </span>
                 </div>

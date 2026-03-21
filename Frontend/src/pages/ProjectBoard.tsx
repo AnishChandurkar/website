@@ -12,6 +12,7 @@ interface Task {
   title: string;
   description: string | null;
   column_id: number | null;
+  column_name: string | null;
   priority: 'HIGH' | 'CRITICAL' | 'MEDIUM' | 'LOW';
   type: 'Story' | 'Task' | 'Bug';
   assigned_to: number | null;
@@ -19,6 +20,7 @@ interface Task {
   assigned_surname: string | null;
   parent_id: number | null;
   parent_title: string | null;
+  parent_column_name: string | null;
   due_date: string | null;
   created_at: string;
 }
@@ -36,7 +38,7 @@ interface Member {
 const PRIORITY_DOT: Record<string, string> = {
   LOW: '#22c55e', MEDIUM: '#f59e0b', HIGH: '#ef4444', CRITICAL: '#a855f7',
 };
-const COL_PALETTE = ['#6366f1','#3b82f6','#0ea5e9','#22c55e','#f59e0b','#ef4444','#a855f7'];
+const COL_PALETTE = ['#6366f1', '#3b82f6', '#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#a855f7'];
 function formatDue(iso: string | null): string {
   if (!iso) return '';
   return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
@@ -48,31 +50,31 @@ function isOverdue(iso: string | null): boolean {
 const ProjectBoard = () => {
   const { boardId } = useParams();
   const navigate = useNavigate();
-  const [columns, setColumns]       = useState<Column[]>([]);
-  const [tasks, setTasks]           = useState<Task[]>([]);
-  const [members, setMembers]       = useState<Member[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [projectId, setProjectId]   = useState<number | null>(null);
-  const [allowedWorkflows, setAllowedWorkflows] = useState<{from_column_id: number, to_column_id: number}[]>([]);
+  const [columns, setColumns] = useState<Column[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [projectId, setProjectId] = useState<number | null>(null);
+  const [allowedWorkflows, setAllowedWorkflows] = useState<{ from_column_id: number, to_column_id: number }[]>([]);
   const [dragOverCol, setDragOverCol] = useState<number | null>(null);
-  const [filterType, setFilterType]         = useState<string>('ALL');
+  const [filterType, setFilterType] = useState<string>('ALL');
   const [filterPriority, setFilterPriority] = useState<string>('ALL');
   const [filterAssignee, setFilterAssignee] = useState<string>('ALL');
-  const [searchQuery, setSearchQuery]       = useState('');
-  const [showAddTask, setShowAddTask]   = useState<number | null>(null);
-  const [newTitle, setNewTitle]         = useState('');
-  const [newType, setNewType]           = useState<'Story' | 'Task' | 'Bug'>('Task');
-  const [newPriority, setNewPriority]   = useState('MEDIUM');
-  const [newAssignee, setNewAssignee]   = useState('');
-  const [newDueDate, setNewDueDate]     = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddTask, setShowAddTask] = useState<number | null>(null);
+  const [newTitle, setNewTitle] = useState('');
+  const [newType, setNewType] = useState<'Story' | 'Task' | 'Bug'>('Task');
+  const [newPriority, setNewPriority] = useState('MEDIUM');
+  const [newAssignee, setNewAssignee] = useState('');
+  const [newDueDate, setNewDueDate] = useState('');
   const [newDescription, setNewDescription] = useState('');
-  const [newParentId, setNewParentId]   = useState('');
-  const [showAddColumn, setShowAddColumn]   = useState(false);
-  const [newColName, setNewColName]         = useState('');
-  const [newColLimit, setNewColLimit]       = useState('');
-  const [editingCol, setEditingCol]         = useState<number | null>(null);
-  const [editColName, setEditColName]       = useState('');
-  const [editingLimit, setEditingLimit]     = useState<number | null>(null);
+  const [newParentId, setNewParentId] = useState('');
+  const [showAddColumn, setShowAddColumn] = useState(false);
+  const [newColName, setNewColName] = useState('');
+  const [newColLimit, setNewColLimit] = useState('');
+  const [editingCol, setEditingCol] = useState<number | null>(null);
+  const [editColName, setEditColName] = useState('');
+  const [editingLimit, setEditingLimit] = useState<number | null>(null);
   const [editLimitValue, setEditLimitValue] = useState('');
   const [openTaskId, setOpenTaskId] = useState<number | null>(null);
   const loadBoard = useCallback(async () => {
@@ -138,14 +140,12 @@ const ProjectBoard = () => {
     const task = tasks.find(t => t.id === taskId);
     if (!task || task.column_id === targetColId) return;
 
-    // Workflow Check
     const sourceIdx = columns.findIndex(c => c.id === task.column_id);
     const targetIdx = columns.findIndex(c => c.id === targetColId);
-    
+
     if (sourceIdx !== -1 && targetIdx !== -1) {
       const distance = Math.abs(targetIdx - sourceIdx);
       if (distance > 1) {
-        // Enforce custom transitions
         const isAllowed = allowedWorkflows.find(
           w => w.from_column_id === task.column_id && w.to_column_id === targetColId
         );
@@ -226,7 +226,8 @@ const ProjectBoard = () => {
     catch (err: any) { alert(err.message || 'reorder went sideways :/'); await loadBoard(); }
   };
   const filteredTasks = tasks.filter(t => {
-    if (filterType     !== 'ALL' && t.type     !== filterType)     return false;
+    if (t.type === 'Story') return false;
+    if (filterType !== 'ALL' && t.type !== filterType) return false;
     if (filterPriority !== 'ALL' && t.priority !== filterPriority) return false;
     if (filterAssignee !== 'ALL') {
       if (filterAssignee === 'UNASSIGNED' && t.assigned_to !== null) return false;
@@ -242,15 +243,15 @@ const ProjectBoard = () => {
   const dotColors: Record<number, string> = {};
   columns.forEach((col, i) => { dotColors[col.id] = COL_PALETTE[i % COL_PALETTE.length]; });
   const getPriorityClass = (p: string) => {
-    if (p === 'HIGH')     return styles.priorityHigh;
+    if (p === 'HIGH') return styles.priorityHigh;
     if (p === 'CRITICAL') return styles.priorityCritical;
-    if (p === 'MEDIUM')   return styles.priorityMedium;
-    if (p === 'LOW')      return styles.priorityLow;
+    if (p === 'MEDIUM') return styles.priorityMedium;
+    if (p === 'LOW') return styles.priorityLow;
     return '';
   };
   const getTypeClass = (t: string) => {
     if (t === 'Story') return styles.typeStory;
-    if (t === 'Bug')   return styles.typeBug;
+    if (t === 'Bug') return styles.typeBug;
     return styles.typeTask;
   };
   const effectiveProjectId = projectId ?? 0;
@@ -273,7 +274,6 @@ const ProjectBoard = () => {
           />
           <select className={styles.filterSelect} value={filterType} onChange={e => setFilterType(e.target.value)}>
             <option value="ALL">All Types</option>
-            <option value="Story">Story</option>
             <option value="Task">Task</option>
             <option value="Bug">Bug</option>
           </select>
@@ -295,27 +295,27 @@ const ProjectBoard = () => {
       </div>
       <div className={styles.contentArea}>
         <div className={styles.boardSidebar}>
-          <button 
-            className={styles.sidebarBtn} 
+          <button
+            className={styles.sidebarBtn}
             onClick={() => navigate(`/board/${boardId}/allowed-workflows`)}>
             Allowed Workflows
           </button>
-          <button 
-            className={styles.sidebarBtn} 
+          <button
+            className={styles.sidebarBtn}
             onClick={() => navigate(`/board/${boardId}/stories`)}>
             Stories
           </button>
-          <button 
-            className={styles.sidebarBtn} 
+          <button
+            className={styles.sidebarBtn}
             onClick={() => navigate(`/board/${boardId}/audit-history`)}>
             Audit History
           </button>
         </div>
         <div className={styles.boardContainer}>
           {columns.map(col => {
-            const colTasks    = filteredTasks.filter(t => t.column_id === col.id);
-            const allColTasks = tasks.filter(t => t.column_id === col.id);
-            const isOverLimit  = col.wip_limit !== null && allColTasks.length >= col.wip_limit;
+            const colTasks = filteredTasks.filter(t => t.column_id === col.id);
+            const allColTasks = tasks.filter(t => t.column_id === col.id && t.type !== 'Story');
+            const isOverLimit = col.wip_limit !== null && allColTasks.length >= col.wip_limit;
             const isDragTarget = dragOverCol === col.id;
             return (
               <div
@@ -387,11 +387,6 @@ const ProjectBoard = () => {
                       <span className={styles.priorityDot} style={{ backgroundColor: PRIORITY_DOT[task.priority] }} title={task.priority} />
                     </div>
                     <p className={styles.taskTitle}>{task.title}</p>
-                    {task.parent_id && task.parent_title && (
-                      <span className={styles.parentCrumb}>
-                        Story: {task.parent_title}
-                      </span>
-                    )}
                     <div className={styles.taskCardFooter}>
                       <div className={styles.taskMeta}>
                         <span className={`${styles.priorityBadge} ${getPriorityClass(task.priority)}`}>
@@ -415,17 +410,17 @@ const ProjectBoard = () => {
                       </div>
                     </div>
                     {columns.findIndex(c => c.id === col.id) === columns.length - 1 && (
-                      <button 
+                      <button
                         onClick={(e) => { e.stopPropagation(); handleCloseTask(task.id); }}
-                        style={{ 
-                          marginTop: '8px', 
-                          width: '100%', 
-                          padding: '6px', 
-                          fontSize: '0.8rem', 
-                          backgroundColor: '#fff', 
-                          color: '#cc0000', 
-                          border: '1px solid #cc0000', 
-                          borderRadius: '4px', 
+                        style={{
+                          marginTop: '8px',
+                          width: '100%',
+                          padding: '6px',
+                          fontSize: '0.8rem',
+                          backgroundColor: '#fff',
+                          color: '#cc0000',
+                          border: '1px solid #cc0000',
+                          borderRadius: '4px',
                           cursor: 'pointer',
                           fontWeight: '500'
                         }}
@@ -450,7 +445,6 @@ const ProjectBoard = () => {
                       onChange={e => setNewType(e.target.value as 'Story' | 'Task' | 'Bug')}
                       className={styles.addFormSelect}
                     >
-                      <option value="Story">Story</option>
                       <option value="Task">Task</option>
                       <option value="Bug">Bug</option>
                     </select>
