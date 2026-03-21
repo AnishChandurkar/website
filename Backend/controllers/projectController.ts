@@ -196,8 +196,8 @@ export const deleteProject = async (req: AuthRequest, res: Response) => {
     if (!project) {
       return res.status(404).json({ message: "project not found :(" });
     }
-    if (project.owner_id !== req.user.id) {
-      return res.status(403).json({ message: "only the project owner can delete this project :/" });
+    if (req.user.emailid !== 'admin@workspace.com') {
+      return res.status(403).json({ message: "only the global workspace admin can delete projects! project admins can only archive them :/" });
     }
 
     await pool.query("DELETE FROM projects WHERE id = ?", [req.params.id]);

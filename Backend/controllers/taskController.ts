@@ -180,10 +180,7 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
     const taskId = result.insertId;
     const taskTypeForEvent = (type || "Task").toUpperCase();
 
-    await pool.query(
-      "INSERT INTO audit_logs (task_id, user_id, event_type, new_value) VALUES (?, ?, ?, ?)",
-      [taskId, req.user!.id, `${taskTypeForEvent}_CREATED`, title]
-    );
+    await logAuditEvent(taskId, req.user!.id, `${taskTypeForEvent}_CREATED`, null, title);
 
     if (parent_id) {
       await updateParentStoryStatus(parent_id, req.params.boardId as string);
@@ -288,10 +285,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     );
 
     if (old_col !== column_id) {
-      await pool.query(
-        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'STATUS_CHANGE', ?, ?)",
-        [taskId, req.user!.id, old_name || "Unplaced", new_name],
-      );
+      await logAuditEvent(Number(taskId), req.user!.id, 'STATUS_CHANGE', old_name || "Unplaced", new_name);
     }
 
     if (parent_id) {
@@ -341,23 +335,14 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
       if (req.user?.projectRole === 'Project Member') {
         return res.status(403).json({ message: "Project Members are not allowed to assign or change task assignments! Ask a Project Admin instead :/" });
       }
-      await pool.query(
-        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'ASSIGNEE_CHANGE', ?, ?)",
-        [req.params.id, req.user!.id, old_assignee ? String(old_assignee) : "Unassigned", assigned_to ? String(assigned_to) : "Unassigned"]
-      );
+      await logAuditEvent(Number(req.params.id), req.user!.id, 'ASSIGNEE_CHANGE', old_assignee ? String(old_assignee) : "Unassigned", assigned_to ? String(assigned_to) : "Unassigned");
     }
 
     if (title !== undefined && title !== oldTask.title) {
-      await pool.query(
-        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, ?, ?, ?)",
-        [req.params.id, req.user!.id, `${taskTypeForEvent}_UPDATED`, oldTask.title, title]
-      );
+      await logAuditEvent(Number(req.params.id), req.user!.id, `${taskTypeForEvent}_UPDATED`, oldTask.title, title);
     }
     if (priority !== undefined && priority !== oldTask.priority) {
-      await pool.query(
-        "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, ?, ?, ?)",
-        [req.params.id, req.user!.id, `${taskTypeForEvent}_UPDATED`, oldTask.priority, priority]
-      );
+      await logAuditEvent(Number(req.params.id), req.user!.id, `${taskTypeForEvent}_UPDATED`, oldTask.priority, priority);
     }
 
     if (parent_id !== undefined && parent_id !== null) {
@@ -521,14 +506,22 @@ export const closeTask = async (req: AuthRequest, res: Response): Promise<any> =
     );
 
     const taskTypeForEvent = (task[0].type || "Task").toUpperCase();
-    await pool.query(
-      "INSERT INTO audit_logs (task_id, user_id, event_type) VALUES (?, ?, ?)",
-      [taskId, req.user.id, `${taskTypeForEvent}_CLOSED`]
-    );
+    await logAuditEvent(Number(taskId), req.user.id, `${taskTypeForEvent}_CLOSED`);
 
     res.json({ message: "Task closed successfully!" });
   } catch (error: any) {
     console.error("CLOSE TASK ERROR:", error);
     res.status(500).json({ message: error.message || "Failed to close task :(", error: error.message });
   }
+};
+
+const logAuditEvent = async (taskId: number, userId: number, eventType: string, oldValue: string | null = null, newValue: string | null = null) => {
+  const [task] = await pool.query<RowDataPacket[]>("SELECT closed_at, resolved_at FROM tasks WHERE id = ?", [taskId]);
+  const isClosed = task.length > 0 && task[0].closed_at !== null;
+  const isResolved = task.length > 0 && task[0].resolved_at !== null;
+
+  await pool.query(
+    "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value, is_closed, is_resolved) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [taskId, userId, eventType, oldValue, newValue, isClosed, isResolved]
+  );
 };

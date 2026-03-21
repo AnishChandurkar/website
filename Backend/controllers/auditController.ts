@@ -12,8 +12,8 @@ export const getBoardAuditLogs = async (req: AuthRequest, res: Response): Promis
 
     const [logs] = await pool.query<RowDataPacket[]>(
       `SELECT 
-          al.id, al.task_id, al.event_type, al.old_value, al.new_value, al.created_at,
-          t.title as task_title, t.closed_at,
+          al.id, al.task_id, al.event_type, al.old_value, al.new_value, al.created_at, al.is_closed, al.is_resolved,
+          t.title as task_title,
           u_creator.first_name as creator_first_name, u_creator.surname as creator_surname,
           u_editor.first_name as editor_first_name, u_editor.surname as editor_surname,
           (SELECT name FROM columns WHERE board_id = t.board_id ORDER BY position DESC LIMIT 1) as max_col_name
@@ -37,8 +37,8 @@ export const getTaskAuditLogs = async (req: AuthRequest, res: Response): Promise
 
     const [logs] = await pool.query<RowDataPacket[]>(
       `SELECT 
-          al.id, al.task_id, al.event_type, al.old_value, al.new_value, al.created_at,
-          t.title as task_title, t.closed_at,
+          al.id, al.task_id, al.event_type, al.old_value, al.new_value, al.created_at, al.is_closed, al.is_resolved,
+          t.title as task_title,
           u_creator.first_name as creator_first_name, u_creator.surname as creator_surname,
           u_editor.first_name as editor_first_name, u_editor.surname as editor_surname,
           (SELECT name FROM columns WHERE board_id = t.board_id ORDER BY position DESC LIMIT 1) as max_col_name
