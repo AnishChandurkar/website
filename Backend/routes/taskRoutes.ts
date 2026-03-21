@@ -1,7 +1,7 @@
 import express from "express";
 import auth from "../middleware/auth";
 import { requireTaskReadAccess, requireTaskWriteAccess } from "../middleware/taskAuthCheck";
-import { getTasks, getTaskById, getChildTasks, createTask, moveTask, updateTask, deleteTask, closeTask } from "../controllers/taskController";
+import { getTasks, getTaskById, getChildTasks, createTask, moveTask, updateTask, deleteTask, closeTask, reSyncStories } from "../controllers/taskController";
 import { getBoardProject } from "../controllers/boardController";
 
 const router = express.Router();
@@ -14,6 +14,7 @@ router.get('/tasks/:id/children', auth, requireTaskReadAccess, getChildTasks);
 router.put('/tasks/:id/move', auth, requireTaskWriteAccess, moveTask);
 router.put('/tasks/:id/close', auth, requireTaskWriteAccess, closeTask);
 router.put('/tasks/:id', auth, requireTaskWriteAccess, updateTask);
+router.put('/:boardId/sync-stories', auth, requireTaskWriteAccess, reSyncStories);
 router.delete('/tasks/:id', auth, requireTaskWriteAccess, deleteTask);
 
 export default router;

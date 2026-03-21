@@ -180,7 +180,7 @@ export const getChildTasks = (taskId: number) => {
 export const createTask = (
     boardId: number,
     title: string,
-    columnId: number,
+    columnId: number | null,
     priority?: string,
     type?: string,
     description?: string,
@@ -252,4 +252,8 @@ export const addWorkflow = (projectId: number, board_id: number, from_column_id:
 
 export const deleteWorkflow = (projectId: number, workflowId: number) => {
     return apiRequest(`/projects/${projectId}/workflows/${workflowId}`, 'DELETE');
+};
+
+export const reSyncStories = (boardId: number) => {
+    return apiRequest(`/boards/${boardId}/sync-stories`, 'PUT');
 };

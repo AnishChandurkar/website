@@ -1,87 +1,126 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import styles from '../CSS Files/Stories.module.css';
+import { fetchTasks, createTask, updateTask, reSyncStories } from '../services/api';
+
 interface Story {
   id: number;
   title: string;
   description: string;
+  column_name?: string;
 }
+
 interface ChildTask {
   id: number;
-  parent_id: number;
+  parent_id: number | null;
   title: string;
-  type: 'Task' | 'Bug';
+  type: string;
+  column_name?: string;
 }
+
 const Stories = () => {
   const { boardId } = useParams();
-  const [stories, setStories] = useState<Story[]>([
-    { id: 101, title: 'User Authentication Epic', description: ''},
-  ]);
-  const [childTasks, setChildTasks] = useState<ChildTask[]>([
-    { id: 1, parent_id: 101, title: 'Build Login UI', type: 'Task' }
-  ]);
-  const [availableBoardTasks, setAvailableBoardTasks] = useState([
-    { id: 1, title: 'Design Database Schema', type: 'Task' }
-  ]);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [childTasks, setChildTasks] = useState<ChildTask[]>([]);
+  const [availableBoardTasks, setAvailableBoardTasks] = useState<ChildTask[]>([]);
+  
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [newStoryTitle, setNewStoryTitle] = useState('');
   const [newStoryDesc, setNewStoryDesc] = useState('');
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState('');
-  const handleAddStory = () => {
-    if (!newStoryTitle.trim()) return;
-    const newStory: Story = {
-      id: Date.now(),
-      title: newStoryTitle,
-      description: newStoryDesc
-    };
-    setStories([...stories, newStory]);
-    setShowAddStoryModal(false);
-    setNewStoryTitle('');
-    setNewStoryDesc('');
-  };
-  const handleAddTaskToStory = () => {
-    if (!selectedTaskId || !selectedStory) return;
-    const taskToAdd = availableBoardTasks.find(t => t.id === Number(selectedTaskId));
-    if (!taskToAdd) return;
-    const newTask: ChildTask = {
-      id: taskToAdd.id,
-      parent_id: selectedStory.id,
-      title: taskToAdd.title,
-      type: taskToAdd.type as 'Task' | 'Bug'
-    };
-    setChildTasks([...childTasks, newTask]);
-    setAvailableBoardTasks(availableBoardTasks.filter(t => t.id !== taskToAdd.id));
-    setSelectedTaskId('');
-  };
-  const handleRemoveTask = (taskId: number) => {
-    if (window.confirm('Remove this task from the story?')) {
-      const taskToRemove = childTasks.find(t => t.id === taskId);  
-      if (taskToRemove) {
-        setAvailableBoardTasks([...availableBoardTasks, { 
-          id: taskToRemove.id, 
-          title: taskToRemove.title, 
-          type: taskToRemove.type as 'Task' | 'Bug'
-        }]);
+
+  const loadData = async () => {
+    try {
+      if (boardId) {
+        const fetchedTasks = await fetchTasks(Number(boardId));
+        const allStories = fetchedTasks.filter((t: any) => t.type === 'Story');
+        const allChildTasks = fetchedTasks.filter((t: any) => t.type !== 'Story' && t.parent_id !== null);
+        const allAvailableTasks = fetchedTasks.filter((t: any) => t.type !== 'Story' && t.parent_id === null);
+
+        setStories(allStories);
+        setChildTasks(allChildTasks);
+        setAvailableBoardTasks(allAvailableTasks);
+
+        if (selectedStory) {
+            const updated = allStories.find((s: any) => s.id === selectedStory.id);
+            if (updated) setSelectedStory(updated);
+        }
       }
-      setChildTasks(childTasks.filter(task => task.id !== taskId));
+    } catch (error) {
+      console.error("Failed to fetch stories and tasks", error);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, [boardId]);
+
+  const handleAddStory = async () => {
+    if (!newStoryTitle.trim()) return;
+    try {
+      if (boardId) {
+        await createTask(Number(boardId), newStoryTitle, null, 'MEDIUM', 'Story', newStoryDesc, null, null, null);
+        setShowAddStoryModal(false);
+        setNewStoryTitle('');
+        setNewStoryDesc('');
+        loadData();
+      }
+    } catch(err: any) {
+        alert(err.message || "Failed to create story");
+    }
+  };
+
+  const handleAddTaskToStory = async () => {
+    if (!selectedTaskId || !selectedStory) return;
+    try {
+      await updateTask(Number(selectedTaskId), { parent_id: selectedStory.id });
+      setSelectedTaskId('');
+      loadData();
+    } catch(err: any) {
+      alert(err.message || 'Failed to add task to story');
+    }
+  };
+
+  const handleRemoveTask = async (taskId: number) => {
+    if (window.confirm('Remove this task from the story?')) {
+      try {
+        await updateTask(taskId, { parent_id: null });
+        loadData();
+      } catch(err: any) {
+        alert(err.message || "Failed to remove task from story");
+      }
+    }
+  };
+
+  const handleSync = async () => {
+      try {
+          await reSyncStories(Number(boardId));
+          await loadData();
+          alert('Stories re-synced! All story statuses updated to reflect the minimum status of their child tasks.');
+      } catch (err: any) {
+          alert('Sync failed: ' + err.message);
+      }
+  };
+
   return (
     <div className={styles.pageContainer}>
-      <div className={styles.topBar}>
+      <header className={styles.topBar}>
         <div className={styles.topBarLeft}>
           <Link to={`/board/${boardId}`} className={styles.backLink}>← Back to Board</Link>
-          <h2 className={styles.boardTitle}>Stories</h2>
+          <h2 className={styles.boardTitle}>Story Management</h2>
         </div>
-      </div>
-      <div className={styles.contentArea}>
-        <button 
-          className={styles.addBtn}
-          onClick={() => setShowAddStoryModal(true)}
-        >
-          Add Story
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className={styles.syncBtn} onClick={handleSync} title="Refresh all story statuses from tasks">
+            🔄 Sync Statuses
+          </button>
+          <button className={styles.addBtn} style={{ marginBottom: 0 }} onClick={() => setShowAddStoryModal(true)}>
+            + Add Story
+          </button>
+        </div>
+      </header>
+
+      <main className={styles.contentArea}>
         <div className={styles.storiesGrid}>
           {stories.map(story => {
             const storyTasks = childTasks.filter(t => t.parent_id === story.id);
@@ -91,7 +130,12 @@ const Stories = () => {
                 className={styles.storyCard}
                 onClick={() => setSelectedStory(story)}
               >
-                <h3 className={styles.storyTitle}>{story.title}</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h3 className={styles.storyTitle}>{story.title}</h3>
+                  <span className={styles.statusBadgeGlobal}>
+                    {story.column_name || 'Unplaced'}
+                  </span>
+                </div>
                 <p className={styles.storyMeta}>
                   {storyTasks.length} items linked
                 </p>
@@ -99,7 +143,8 @@ const Stories = () => {
             );
           })}
         </div>
-      </div>
+      </main>
+
       {showAddStoryModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent} style={{ width: '400px' }}>
@@ -111,7 +156,6 @@ const Stories = () => {
                 className={styles.textInput}
                 value={newStoryTitle}
                 onChange={(e) => setNewStoryTitle(e.target.value)}
-                placeholder=""
                 autoFocus
               />
             </div>
@@ -121,9 +165,7 @@ const Stories = () => {
                 className={styles.textInput}
                 value={newStoryDesc}
                 onChange={(e) => setNewStoryDesc(e.target.value)}
-                placeholder=""
                 rows={3}
-                style={{ resize: 'vertical' }}
               />
             </div>
             <div className={styles.modalActions}>
@@ -133,16 +175,25 @@ const Stories = () => {
           </div>
         </div>
       )}
+
       {selectedStory && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-              <h3 className={styles.modalTitle} style={{ margin: 0 }}>Story: {selectedStory.title}</h3>
-              <button className={styles.cancelBtn} style={{ padding: '4px 8px' }} onClick={() => setSelectedStory(null)}>Close</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
+              <div>
+                <h3 className={styles.modalTitle} style={{ margin: 0 }}>{selectedStory.title}</h3>
+                <div style={{ marginTop: '8px' }}>
+                   <span style={{ fontSize: '0.85rem', color: '#666' }}>Current Story Status: </span>
+                   <span className={styles.statusBadgeDetail}>{selectedStory.column_name || 'Unplaced'}</span>
+                </div>
+              </div>
+              <button className={styles.cancelBtn} style={{ padding: '4px 12px' }} onClick={() => setSelectedStory(null)}>Close</button>
             </div>
+
             <div className={styles.taskList}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#333' }}>Linked Tasks (Vector)</h4>
               {childTasks.filter(t => t.parent_id === selectedStory.id).length === 0 ? (
-                <p style={{ color: '#999999', textAlign: 'center', padding: '20px 0' }}>task wagera nahi aaye.</p>
+                <p style={{ color: '#999', textAlign: 'center', padding: '20px 0' }}>No tasks linked to this story vector.</p>
               ) : (
                 childTasks
                   .filter(t => t.parent_id === selectedStory.id)
@@ -152,28 +203,37 @@ const Stories = () => {
                         <span className={`${styles.typeBadge} ${task.type === 'Task' ? styles.typeTask : styles.typeBug}`}>
                           {task.type}
                         </span>
-                        <span style={{ color: '#333333', fontSize: '0.9rem' }}>{task.title}</span>
+                        <span style={{ color: '#333', fontSize: '0.9rem', fontWeight: 500 }}>{task.title}</span>
+                        {task.column_name ? (
+                          <span className={styles.taskStatusTag}>
+                            {task.column_name}
+                          </span>
+                        ) : (
+                          <span className={styles.taskStatusTagEmpty}>No Status</span>
+                        )}
                       </div>
                       <button className={styles.removeBtn} onClick={() => handleRemoveTask(task.id)}>Remove</button>
                     </div>
                   ))
               )}
             </div>
+
             <div className={styles.addTaskRow}>
+              <label className={styles.formLabel} style={{ marginBottom: 0, alignSelf: 'center' }}>Link Task:</label>
               <select 
                 className={styles.textInput} 
                 style={{ flex: 1 }}
                 value={selectedTaskId}
                 onChange={(e) => setSelectedTaskId(e.target.value)}
               >
-                <option value="">Select an existing taskyy or bugggy...</option>
+                <option value="">Select an available task...</option>
                 {availableBoardTasks.map(task => (
                   <option key={task.id} value={task.id}>
-                    [{task.type}] {task.title}
+                    [{task.type}] {task.title} — {task.column_name || 'Unplaced'}
                   </option>
                 ))}
               </select>
-              <button className={styles.saveBtn} onClick={handleAddTaskToStory}>Add</button>
+              <button className={styles.saveBtn} onClick={handleAddTaskToStory}>Link</button>
             </div>
           </div>
         </div>
@@ -181,4 +241,5 @@ const Stories = () => {
     </div>
   );
 };
+
 export default Stories;
