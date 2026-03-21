@@ -14,7 +14,7 @@ const AddBoardModal = ({ onClose, onSave }: AddBoardModalProps) => {
   };
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-      <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '4px', width: '400px', border: '1px solid #cccccc' }}>
+      <div style={{ backgroundColor: 'powderblue', padding: '30px', borderRadius: '7px', width: '400px', border: '1px solid #cccccc' }}>
         <h2 style={{ marginTop: 0, color: '#000000' }}>Create New Board</h2>
         
         <form onSubmit={handleSubmit}>

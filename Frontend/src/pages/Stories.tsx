@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from '../CSS Files/Stories.module.css';
 import { fetchTasks, createTask, updateTask, reSyncStories } from '../services/api';
 
@@ -20,6 +20,11 @@ interface ChildTask {
 
 const Stories = () => {
   const { boardId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
+  
   const [stories, setStories] = useState<Story[]>([]);
   const [childTasks, setChildTasks] = useState<ChildTask[]>([]);
   const [availableBoardTasks, setAvailableBoardTasks] = useState<ChildTask[]>([]);
@@ -114,36 +119,61 @@ const Stories = () => {
           <button className={styles.syncBtn} onClick={handleSync} title="Refresh all story statuses from tasks">
             🔄 Sync Statuses
           </button>
-          <button className={styles.addBtn} style={{ marginBottom: 0 }} onClick={() => setShowAddStoryModal(true)}>
-            + Add Story
-          </button>
         </div>
       </header>
 
-      <main className={styles.contentArea}>
-        <div className={styles.storiesGrid}>
-          {stories.map(story => {
-            const storyTasks = childTasks.filter(t => t.parent_id === story.id);
-            return (
-              <div 
-                key={story.id} 
-                className={styles.storyCard}
-                onClick={() => setSelectedStory(story)}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <h3 className={styles.storyTitle}>{story.title}</h3>
-                  <span className={styles.statusBadgeGlobal}>
-                    {story.column_name || 'Unplaced'}
-                  </span>
-                </div>
-                <p className={styles.storyMeta}>
-                  {storyTasks.length} items linked
-                </p>
-              </div>
-            );
-          })}
+      <div className={styles.contentArea}>
+        <div className={styles.boardSidebar}>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/allowed-workflows`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/allowed-workflows`)}>
+            Allowed Workflows
+          </button>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/stories`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/stories`)}>
+            Stories
+          </button>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/audit-history`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/audit-history`)}>
+            Audit History
+          </button>
         </div>
-      </main>
+
+        <div className={styles.mainWorkArea}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+            <button 
+              className={styles.addBtn}
+              onClick={() => setShowAddStoryModal(true)}
+            >
+              + Add Story
+            </button>
+          </div>
+          <div className={styles.storiesGrid}>
+            {stories.map(story => {
+              const storyTasks = childTasks.filter(t => t.parent_id === story.id);
+              return (
+                <div 
+                  key={story.id} 
+                  className={styles.storyCard}
+                  onClick={() => setSelectedStory(story)}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <h3 className={styles.storyTitle}>{story.title}</h3>
+                    <span className={styles.statusBadgeGlobal}>
+                      {story.column_name || 'Unplaced'}
+                    </span>
+                  </div>
+                  <p className={styles.storyMeta}>
+                    {storyTasks.length} items linked
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       {showAddStoryModal && (
         <div className={styles.modalOverlay}>
@@ -178,7 +208,7 @@ const Stories = () => {
 
       {selectedStory && (
         <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
+          <div className={styles.modalContent} style={{ width: '600px', maxWidth: '90%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
               <div>
                 <h3 className={styles.modalTitle} style={{ margin: 0 }}>{selectedStory.title}</h3>

@@ -66,9 +66,9 @@ const Settings = () => {
     };
 
     const sectionStyle: CSSProperties = {
-        backgroundColor: '#ffffff',
+        backgroundColor: '#f0fff0', 
         border: '1px solid #cccccc',
-        borderRadius: '4px',
+        borderRadius: '7px',
         padding: '20px',
         marginBottom: '20px',
         maxWidth: '600px',

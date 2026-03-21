@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from '../CSS Files/AuditHistory.module.css';
 import { fetchAuditLogs } from '../services/api';
 
 const AuditHistory = () => {
   const { boardId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -35,7 +40,7 @@ const AuditHistory = () => {
           <Link to={`/board/${boardId}`} className={styles.backLink}>← Back to Board</Link>
           <h2 className={styles.boardTitle}>Audit History</h2>
         </div>
-      </div> 
+      </div>
       <div className={styles.contentArea}>
         <div className={styles.tableContainer}>
           <table className={styles.auditTable}>
@@ -72,10 +77,8 @@ const AuditHistory = () => {
                     <td className={styles.tableCell}>{log.new_value || '-'}</td>
                     <td className={styles.tableCell}>{log.creator_first_name} {log.creator_surname}</td>
                     <td className={styles.tableCell}>{log.editor_first_name} {log.editor_surname}</td>
-                    <td className={styles.tableCell}>{log.event_type === 'TASK_CLOSED' ? 'YES' : '-'}</td>
-                    <td className={styles.tableCell}>
-                      {log.event_type === 'STATUS_CHANGE' && log.new_value === log.max_col_name ? 'YES' : '-'}
-                    </td>
+                    <td className={styles.tableCell}>{log.closed_at ? 'YES' : '-'}</td>
+                    <td className={styles.tableCell}>{log.resolved_at ? 'YES' : '-'}</td>
                     <td className={styles.tableCell}>{formatDate(log.created_at)}</td>
                   </tr>
                 ))

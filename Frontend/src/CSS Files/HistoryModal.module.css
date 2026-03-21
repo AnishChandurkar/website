@@ -12,12 +12,12 @@
   font-family: Arial, sans-serif;
 }
 .modal {
-  background-color: #ffffff;
+  background-color: powderblue;
   border: 1px solid #cccccc;
   width: 90%;
   max-width: 1000px;
   max-height: 80vh;
-  border-radius: 4px;
+  border-radius: 7px;
   display: flex;
   flex-direction: column;
   overflow: hidden;

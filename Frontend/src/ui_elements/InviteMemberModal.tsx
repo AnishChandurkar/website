@@ -18,7 +18,7 @@ const InviteMemberModal = ({ onClose, onInvite }: InviteMemberModalProps) => {
       backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
     }}>
       <div style={{
-        backgroundColor: '#ffffff', padding: '30px', borderRadius: '8px', width: '420px',
+        backgroundColor: 'powderblue', padding: '30px', borderRadius: '7px', width: '420px',
         border: '1px solid #e0e0e0'
       }}>
         <h2 style={{ marginTop: 0, color: '#1a1a1a' }}>Invite to Project</h2>
