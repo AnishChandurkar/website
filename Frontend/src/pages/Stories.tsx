@@ -166,7 +166,7 @@ const Stories = () => {
                     </span>
                   </div>
                   <p className={styles.storyMeta}>
-                    {storyTasks.length} items linked
+                    {storyTasks.length} items present
                   </p>
                 </div>
               );
@@ -221,9 +221,9 @@ const Stories = () => {
             </div>
 
             <div className={styles.taskList}>
-              <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#333' }}>Linked Tasks (Vector)</h4>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#333' }}>Current Tasks </h4>
               {childTasks.filter(t => t.parent_id === selectedStory.id).length === 0 ? (
-                <p style={{ color: '#999', textAlign: 'center', padding: '20px 0' }}>No tasks linked to this story vector.</p>
+                <p style={{ color: '#999', textAlign: 'center', padding: '20px 0' }}>No tasks present in this story.</p>
               ) : (
                 childTasks
                   .filter(t => t.parent_id === selectedStory.id)
@@ -249,7 +249,7 @@ const Stories = () => {
             </div>
 
             <div className={styles.addTaskRow}>
-              <label className={styles.formLabel} style={{ marginBottom: 0, alignSelf: 'center' }}>Link Task:</label>
+              <label className={styles.formLabel} style={{ marginBottom: 0, alignSelf: 'center' }}>Choose Task:</label>
               <select 
                 className={styles.textInput} 
                 style={{ flex: 1 }}
@@ -263,7 +263,7 @@ const Stories = () => {
                   </option>
                 ))}
               </select>
-              <button className={styles.saveBtn} onClick={handleAddTaskToStory}>Link</button>
+              <button className={styles.saveBtn} onClick={handleAddTaskToStory}>Add</button>
             </div>
           </div>
         </div>
