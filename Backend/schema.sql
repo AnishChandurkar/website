@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS projects (
     status ENUM('In Progress', 'Completed', 'Planning', 'On Hold', 'Review') DEFAULT 'Planning',
     progress INT DEFAULT 0,
     is_archived BOOLEAN DEFAULT FALSE,
+    is_starred BOOLEAN DEFAULT FALSE,
     owner_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
