@@ -44,7 +44,7 @@ const Sidebar = () => {
                     
                     <li>
                         <Link to="/notifications" className={isActive('/notifications') ? 'active' : ''}>
-                            <span className="nav-icon">🔔</span> The Big Leagues
+                            <span className="nav-icon">🔔</span> Notifications
                             {hasUnread && <span style={{
                                 display: 'inline-block',
                                 width: '8px',
