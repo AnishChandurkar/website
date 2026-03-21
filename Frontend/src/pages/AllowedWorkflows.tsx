@@ -27,21 +27,19 @@ const AllowedWorkflows = () => {
       try {
         if (!boardId) return;
         
-        // 1. Fetch Board Info (gives project_id)
+        // fetch board info
         const boardInfo = await fetchBoardProject(Number(boardId));
         setProjectId(boardInfo.project_id);
 
-        // 2. Fetch Columns and Workflows in parallel
-        const [cols, wfs] = await Promise.all([
-          fetchColumns(Number(boardId)),
-          fetchProjectWorkflows(boardInfo.project_id)
-        ]);
+        // fetch columns and workflows
+        const cols = await fetchColumns(Number(boardId));
+        const wfs = await fetchProjectWorkflows(boardInfo.project_id);
         
         setColumns(Array.isArray(cols) ? cols : []);
         setWorkflows(Array.isArray(wfs) ? wfs : []);
       } catch (err: any) {
-        console.error("Failed to init AllowedWorkflows:", err);
-        // Even if workflows fail, we want columns for the dropdowns
+        console.error("failed to init allowed workflows:", err);
+        // even if workflows fail, fetch columns for dropdowns
         try {
            const cols = await fetchColumns(Number(boardId));
            setColumns(Array.isArray(cols) ? cols : []);
@@ -58,14 +56,18 @@ const AllowedWorkflows = () => {
     }
     if (!projectId) return;
     try {
+      // find column ids
       const fromCol = columns.find(c => String(c.id) === sourceColumn);
       const toCol = columns.find(c => String(c.id) === targetColumn);
       if (!fromCol || !toCol) {
-        alert("Column not found!");
+        alert("column not found!");
         return;
       }
 
+      // call api to add workflow
       const res = await addWorkflow(projectId, Number(boardId), fromCol.id, toCol.id);
+      
+      // format new workflow and add to state
       const newWorkflow: Workflow = {
         id: res.id,
         source: fromCol.name,

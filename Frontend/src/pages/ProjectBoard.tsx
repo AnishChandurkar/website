@@ -80,10 +80,10 @@ const ProjectBoard = () => {
   const [openTaskId, setOpenTaskId] = useState<number | null>(null);
   const loadBoard = useCallback(async () => {
     try {
-      const [colsData, tasksData] = await Promise.all([
-        fetchColumns(Number(boardId)),
-        fetchTasks(Number(boardId)),
-      ]);
+      // fetch both columns and tasks from the backend
+      const colsData = await fetchColumns(Number(boardId));
+      const tasksData = await fetchTasks(Number(boardId));
+      
       setColumns(colsData);
       setTasks(tasksData);
     } catch (err) {
@@ -102,10 +102,10 @@ const ProjectBoard = () => {
           const data = await res.json();
           setProjectId(data.project_id);
           setCurrentUserRole(data.currentUserRole);
-          const [membersData, workflowsData] = await Promise.all([
-            fetchTeamMembers(data.project_id),
-            fetchProjectWorkflows(data.project_id)
-          ]);
+          // fetch team members and workflows separately
+          const membersData = await fetchTeamMembers(data.project_id);
+          const workflowsData = await fetchProjectWorkflows(data.project_id);
+          
           setMembers(membersData);
           setAllowedWorkflows(workflowsData);
         }
@@ -138,28 +138,39 @@ const ProjectBoard = () => {
   const handleDrop = async (e: DragEvent<HTMLDivElement>, targetColId: number) => {
     e.preventDefault();
     setDragOverCol(null);
+    
+    // get the task that was dragged
     const taskId = parseInt(e.dataTransfer.getData('text/plain'));
     const task = tasks.find(t => t.id === taskId);
+    
+    // if task is not found or already in the target column, do nothing
     if (!task || task.column_id === targetColId) return;
 
+    // find indices to see if we are skipping columns
     const sourceIdx = columns.findIndex(c => c.id === task.column_id);
     const targetIdx = columns.findIndex(c => c.id === targetColId);
 
+    // check if it's skipping stages
     if (sourceIdx !== -1 && targetIdx !== -1) {
       const distance = Math.abs(targetIdx - sourceIdx);
       if (distance > 1) {
+        
+        // check if this jump is allowed
         const isAllowed = allowedWorkflows.find(
           w => w.from_column_id === task.column_id && w.to_column_id === targetColId
         );
         if (!isAllowed) {
-          alert('Invalid transition: You cannot skip stages unless permitted in Allowed Workflows!');
+          alert('invalid transition: you cannot skip stages unless permitted in allowed workflows!');
           return;
         }
       }
     }
 
+    // save previous state in case api fails
     const prev = [...tasks];
     setTasks(ts => ts.map(t => t.id === taskId ? { ...t, column_id: targetColId } : t));
+    
+    // call the backend api
     try {
       await moveTask(taskId, targetColId);
     } catch (err: any) {
