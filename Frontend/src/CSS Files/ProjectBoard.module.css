@@ -100,19 +100,21 @@
 }
 
 .sidebarBtn {
-  background-color: transparent;
-  border: 1px solid transparent;
+  background-color: #f8fafc;
+  border: 1px solid #cccccc;
   text-align: left;
-  padding: 10px 12px;
+  padding: 13px 15px;
   font-size: 0.9rem;
   color: #333333;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
   font-family: Arial, sans-serif;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 .sidebarBtn:hover {
-  background-color: #eeeeee;
-  border-color: #cccccc;
+  background-color: #f8f9fa;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border-color: #bbbbbb;
 }
 .boardContainer {
   display: flex;

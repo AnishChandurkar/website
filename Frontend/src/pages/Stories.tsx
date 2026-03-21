@@ -1,19 +1,27 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from '../CSS Files/Stories.module.css';
+
 interface Story {
   id: number;
   title: string;
   description: string;
 }
+
 interface ChildTask {
   id: number;
   parent_id: number;
   title: string;
   type: 'Task' | 'Bug';
 }
+
 const Stories = () => {
   const { boardId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
+  
   const [stories, setStories] = useState<Story[]>([
     { id: 101, title: 'User Authentication Epic', description: ''},
   ]);
@@ -76,28 +84,47 @@ const Stories = () => {
         </div>
       </div>
       <div className={styles.contentArea}>
-        <button 
-          className={styles.addBtn}
-          onClick={() => setShowAddStoryModal(true)}
-        >
-          Add Story
-        </button>
-        <div className={styles.storiesGrid}>
-          {stories.map(story => {
-            const storyTasks = childTasks.filter(t => t.parent_id === story.id);
-            return (
-              <div 
-                key={story.id} 
-                className={styles.storyCard}
-                onClick={() => setSelectedStory(story)}
-              >
-                <h3 className={styles.storyTitle}>{story.title}</h3>
-                <p className={styles.storyMeta}>
-                  {storyTasks.length} items linked
-                </p>
-              </div>
-            );
-          })}
+        <div className={styles.boardSidebar}>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/allowed-workflows`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/allowed-workflows`)}>
+            Allowed Workflows
+          </button>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/stories`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/stories`)}>
+            Stories
+          </button>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/audit-history`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/audit-history`)}>
+            Audit History
+          </button>
+        </div>
+        <div className={styles.mainWorkArea}>
+          <button 
+            className={styles.addBtn}
+            onClick={() => setShowAddStoryModal(true)}
+          >
+            Add Story
+          </button>
+          <div className={styles.storiesGrid}>
+            {stories.map(story => {
+              const storyTasks = childTasks.filter(t => t.parent_id === story.id);
+              return (
+                <div 
+                  key={story.id} 
+                  className={styles.storyCard}
+                  onClick={() => setSelectedStory(story)}
+                >
+                  <h3 className={styles.storyTitle}>{story.title}</h3>
+                  <p className={styles.storyMeta}>
+                    {storyTasks.length} items linked
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
       {showAddStoryModal && (

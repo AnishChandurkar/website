@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { fetchColumns, fetchProjectWorkflows, addWorkflow, deleteWorkflow, fetchBoardProject } from '../services/api';
 import styles from '../CSS Files/AllowedWorkflows.module.css';
+
 interface Workflow {
   id: number;
   source: string;
   target: string;
 }
+
 const AllowedWorkflows = () => {
   const { boardId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [showModal, setShowModal] = useState(false);
   const [sourceColumn, setSourceColumn] = useState<string>('');
   const [targetColumn, setTargetColumn] = useState<string>('');
   const [projectId, setProjectId] = useState<number | null>(null);
   const [columns, setColumns] = useState<any[]>([]);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
+
+  const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
     const initData = async () => {
@@ -92,46 +98,65 @@ const AllowedWorkflows = () => {
         </div>
       </div>
       <div className={styles.contentArea}>
-        <button 
-          className={styles.addBtn} 
-          onClick={() => setShowModal(true)}
-        >
-          Add customised Workflow
-        </button>
-        <div className={styles.tableContainer}>
-          <table className={styles.workflowTable}>
-            <thead>
-              <tr>
-                <th className={styles.tableHeader}>From Column</th>
-                <th className={styles.tableHeader}>To Column</th>
-                <th className={styles.tableHeader}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {workflows.length === 0 ? (
+        <div className={styles.boardSidebar}>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/allowed-workflows`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/allowed-workflows`)}>
+            Allowed Workflows
+          </button>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/stories`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/stories`)}>
+            Stories
+          </button>
+          <button 
+            className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/audit-history`) ? styles.active : ''}`}
+            onClick={() => navigate(`/board/${boardId}/audit-history`)}>
+            Audit History
+          </button>
+        </div>
+        <div className={styles.mainWorkArea}>
+          <button 
+            className={styles.addBtn} 
+            onClick={() => setShowModal(true)}
+          >
+            Add customised Workflow
+          </button>
+          <div className={styles.tableContainer}>
+            <table className={styles.workflowTable}>
+              <thead>
                 <tr>
-                  <td colSpan={3} className={styles.tableCell} style={{ textAlign: 'center', color: '#999999' }}>
-                    No custom workflows defined yet.
-                  </td>
+                  <th className={styles.tableHeader}>From Column</th>
+                  <th className={styles.tableHeader}>To Column</th>
+                  <th className={styles.tableHeader}>Action</th>
                 </tr>
-              ) : (
-                workflows.map(wf => (
-                  <tr key={wf.id} className={styles.tableRow}>
-                    <td className={styles.tableCell}>{wf.source}</td>
-                    <td className={styles.tableCell}>{wf.target}</td>
-                    <td className={styles.tableCell}>
-                      <button 
-                        onClick={() => handleDelete(wf.id)}
-                        style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
-                      >
-                        Delete
-                      </button>
+              </thead>
+              <tbody>
+                {workflows.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className={styles.tableCell} style={{ textAlign: 'center', color: '#999999' }}>
+                      No custom workflows defined yet.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  workflows.map(wf => (
+                    <tr key={wf.id} className={styles.tableRow}>
+                      <td className={styles.tableCell}>{wf.source}</td>
+                      <td className={styles.tableCell}>{wf.target}</td>
+                      <td className={styles.tableCell}>
+                        <button 
+                          onClick={() => handleDelete(wf.id)}
+                          style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       {showModal && (

@@ -33,8 +33,53 @@
   text-decoration: underline;
 }
 .contentArea {
-  padding: 20px;
+  display: flex;
   flex: 1;
+  overflow: hidden;
+}
+
+.boardSidebar {
+  width: 220px;
+  background-color: #87CEEB;
+  border-right: 1px solid #cccccc;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.sidebarBtn {
+  background-color: #f8fafc;
+  border: 1px solid #cccccc;
+  text-align: left;
+  padding: 13px 15px;
+  font-size: 0.9rem;
+  color: #333333;
+  cursor: pointer;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.sidebarBtn:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border-color: #bbbbbb;
+}
+
+.sidebarBtn.active {
+  background-color: #007bff;
+  color: #ffffff;
+  border-color: #0056b3;
+}
+
+.mainWorkArea {
+  flex: 1;
+  padding: 20px;
   overflow-y: auto;
 }
 .tableContainer {
