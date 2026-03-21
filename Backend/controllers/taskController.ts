@@ -131,10 +131,13 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
     }
 
     if (column_id) {
+      // get the wip limit of the target column
       const [col] = await pool.query<RowDataPacket[]>(
         "SELECT wip_limit FROM columns WHERE id = ?",
         [column_id],
       );
+      
+      // if column has a limit, check if target column is full
       if (col.length > 0 && col[0].wip_limit !== null) {
         const [count] = await pool.query<RowDataPacket[]>(
           "SELECT COUNT(*) AS c FROM tasks WHERE column_id = ?",
@@ -244,6 +247,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     const new_name = col[0].name;
     const new_pos = col[0].position;
 
+    // verify allowed workflows if moving across multiple columns
     if (old_pos !== null && Math.abs(new_pos - old_pos) > 1) {
       const [allowed] = await pool.query<RowDataPacket[]>(
         "SELECT id FROM allowed_workflows WHERE from_column_id = ? AND to_column_id = ?",
@@ -256,6 +260,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
       }
     }
 
+    // enforce wip limits for target column
     if (col[0].wip_limit !== null) {
       const [count] = await pool.query<RowDataPacket[]>(
         "SELECT COUNT(*) AS c FROM tasks WHERE column_id = ? AND id != ?",
@@ -272,6 +277,8 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
       "SELECT MAX(position) AS max_pos FROM columns WHERE board_id = ?",
       [board_id],
     );
+    
+    // auto-resolve task if moved to the final column
     let extraUpdate = "";
     if (maxCol.length > 0 && new_pos === maxCol[0].max_pos) {
       extraUpdate = ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP)";
