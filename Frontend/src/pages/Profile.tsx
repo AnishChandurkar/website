@@ -107,7 +107,7 @@ const Profile = () => {
           <div className={styles.avatarSection}>
             {displayProfile.profile_url ? (
               <img
-                src={`http://localhost:3001${displayProfile.profile_url}`}
+                src={displayProfile.profile_url.startsWith('data:') ? displayProfile.profile_url : `http://localhost:3001${displayProfile.profile_url}`}
                 alt="Profile"
                 className={styles.avatar}
               />

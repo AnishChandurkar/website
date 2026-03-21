@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
 
-// --- Types & Interfaces ---
-
 interface BoardRow extends RowDataPacket {
   id: number;
   name: string;
@@ -17,8 +15,6 @@ interface DefaultColumn {
   position: number;
   wip_limit: number | null;
 }
-
-// --- Controllers ---
 
 export const getBoards = async (req: Request, res: Response) => {
   try {
@@ -43,8 +39,8 @@ export const createBoard = async (req: Request, res: Response) => {
     const boardId = result.insertId;
     const defaultColumns: DefaultColumn[] = [
       { name: 'To Do', position: 1, wip_limit: null },
-      { name: 'In Progress', position: 2, wip_limit: 5 },
-      { name: 'In Review', position: 3, wip_limit: 3 },
+      { name: 'In Progress', position: 2, wip_limit: 3 },
+      { name: 'In Review', position: 3, wip_limit: 1 },
       { name: 'Done', position: 4, wip_limit: null }
     ];
 
@@ -74,17 +70,17 @@ export const deleteBoard = async (req: Request, res: Response) => {
 };
 
 export const getBoardProject = async (req: Request, res: Response): Promise<any> => {
-    try {
-        const [rows] = await pool.query<RowDataPacket[]>(
-            `SELECT b.project_id, pm.role 
+  try {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `SELECT b.project_id, pm.role 
              FROM boards b 
              JOIN project_members pm ON b.project_id = pm.project_id 
              WHERE b.id = ? AND pm.user_id = ?`,
-            [req.params.boardId, (req as any).user?.id]
-        );
-        if (rows.length === 0) return res.status(404).json({ message: 'board not found or access denied :/' });
-        res.json({ project_id: rows[0].project_id, currentUserRole: rows[0].role });
-    } catch (error: any) {
-        res.status(500).json({ message: 'something went wrong :(', error: error.message });
-    }
+      [req.params.boardId, (req as any).user?.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: 'board not found or access denied :/' });
+    res.json({ project_id: rows[0].project_id, currentUserRole: rows[0].role });
+  } catch (error: any) {
+    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  }
 };

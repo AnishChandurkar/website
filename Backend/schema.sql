@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     surname VARCHAR(100) NOT NULL,
     emailid VARCHAR(670) NOT NULL UNIQUE,
     password_hash VARCHAR(300) NOT NULL,
-    profile_url VARCHAR(500) DEFAULT NULL,
+    profile_url LONGTEXT DEFAULT NULL,
     global_role ENUM('Global Admin', 'User') DEFAULT 'User',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS projects (
     status ENUM('In Progress', 'Completed', 'Planning', 'On Hold', 'Review') DEFAULT 'Planning',
     progress INT DEFAULT 0,
     is_archived BOOLEAN DEFAULT FALSE,
+    is_starred BOOLEAN DEFAULT FALSE,
     owner_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
