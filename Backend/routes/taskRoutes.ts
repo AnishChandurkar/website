@@ -3,6 +3,7 @@ import auth from "../middleware/auth";
 import { requireTaskReadAccess, requireTaskWriteAccess } from "../middleware/taskAuthCheck";
 import { getTasks, getTaskById, getChildTasks, createTask, moveTask, updateTask, deleteTask, closeTask, reSyncStories } from "../controllers/taskController";
 import { getBoardProject } from "../controllers/boardController";
+import { getTaskAuditLogs } from "../controllers/auditController";
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.put('/tasks/:id/close', auth, requireTaskWriteAccess, closeTask);
 router.put('/tasks/:id', auth, requireTaskWriteAccess, updateTask);
 router.put('/:boardId/sync-stories', auth, requireTaskWriteAccess, reSyncStories);
 router.delete('/tasks/:id', auth, requireTaskWriteAccess, deleteTask);
+router.get('/tasks/:id/audit', auth, requireTaskReadAccess, getTaskAuditLogs);
 
 export default router;

@@ -246,6 +246,10 @@ export const fetchAuditLogs = (boardId: number | string) => {
     return apiRequest(`/boards/${boardId}/audit`);
 };
 
+export const fetchTaskAuditLogs = (taskId: number) => {
+    return apiRequest(`/boards/tasks/${taskId}/audit`);
+};
+
 export const addWorkflow = (projectId: number, board_id: number, from_column_id: number, to_column_id: number) => {
     return apiRequest(`/projects/${projectId}/workflows`, 'POST', { board_id, from_column_id, to_column_id });
 };

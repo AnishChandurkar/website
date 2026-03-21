@@ -1,7 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import styles from '../CSS Files/TaskDetailModal.module.css';
-import { getTask, getChildTasks, updateTask, deleteTask, closeTask, fetchTeamMembers, getComments, addComment, deleteComment } from '../services/api';
+import { getTask, getChildTasks, updateTask, deleteTask, closeTask, fetchTeamMembers, getComments, addComment, deleteComment, fetchTaskAuditLogs } from '../services/api';
 import { formatText } from '../services/formatText';
+
+interface AuditLog {
+  id: number;
+  task_id: number;
+  event_type: string;
+  old_value: string | null;
+  new_value: string | null;
+  created_at: string;
+  creator_first_name: string | null;
+  creator_surname: string | null;
+  editor_first_name: string | null;
+  editor_surname: string | null;
+  task_title: string;
+  closed_at: string | null;
+  max_col_name: string | null;
+}
 interface Comment {
   id: number;
   task_id: number;
@@ -92,6 +108,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
   const [dirty, setDirty] = useState(false);
   const [editDesc, setEditDesc] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [activeTab, setActiveTab] = useState<'details' | 'timeline'>('details');
   const [newComment, setNewComment] = useState('');
 
   const [title, setTitle] = useState('');
@@ -104,16 +122,18 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [taskData, childrenData, membersData, commentsData] = await Promise.all([
+      const [taskData, childrenData, membersData, commentsData, logsData] = await Promise.all([
         getTask(taskId),
         getChildTasks(taskId),
         fetchTeamMembers(projectId),
         getComments(taskId),
+        fetchTaskAuditLogs(taskId),
       ]);
       setTask(taskData);
       setChildren(childrenData);
       setMembers(membersData);
       setComments(commentsData);
+      setAuditLogs(logsData);
 
       setTitle(taskData.title ?? '');
       setDescription(taskData.description ?? '');
@@ -274,6 +294,10 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
               onChange={e => { setTitle(e.target.value); markDirty(); }}
               placeholder="Task title…"
             />
+            <div className={styles.tabContainer} style={{ marginTop: '10px', marginBottom: '0' }}>
+              <button className={activeTab === 'details' ? styles.tabActive : styles.tab} onClick={() => setActiveTab('details')}>Details</button>
+              <button className={activeTab === 'timeline' ? styles.tabActive : styles.tab} onClick={() => setActiveTab('timeline')}>Activity Timeline</button>
+            </div>
           </div>
           <div className={styles.headerActions}>
             <button className={styles.deleteBtn} onClick={handleDelete}>Delete</button>
@@ -283,7 +307,9 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
 
         <div className={styles.body}>
 
-          <div className={styles.mainContent}>
+          {activeTab === 'details' ? (
+            <>
+              <div className={styles.mainContent}>
 
             {task.parent_id && (
               <div className={styles.section}>
@@ -520,6 +546,46 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
               </span>
             </div>
           </div>
+            </>
+          ) : (
+            <div className={styles.mainContent} style={{ flex: 1, borderRight: 'none' }}>
+              <div className={styles.timelineContainer}>
+                {auditLogs.length === 0 ? (
+                  <div style={{ color: '#999', padding: '20px', textAlign: 'center' }}>No activity timeline yet.</div>
+                ) : (
+                  auditLogs.map((log) => (
+                    <div key={log.id} className={styles.timelineItem}>
+                      <div className={styles.timelineIcon}>
+                        {log.editor_first_name?.charAt(0) || 'S'}
+                      </div>
+                      <div className={styles.timelineContent}>
+                        <div className={styles.timelineHeader}>
+                          <span>
+                            <strong>{log.editor_first_name || 'System'} {log.editor_surname || ''}</strong> {' '}
+                            {log.event_type}
+                          </span>
+                          <span className={styles.timelineDate}>{formatDate(log.created_at)}</span>
+                        </div>
+                        {(log.old_value || log.new_value) && (
+                          <div style={{ marginTop: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                            {log.old_value && (
+                              <span className={styles.timelineValueOld}>{log.old_value}</span>
+                            )}
+                            {log.old_value && log.new_value && (
+                              <span className={styles.timelineArrow}>→</span>
+                            )}
+                            {log.new_value && (
+                              <span className={styles.timelineValueNew}>{log.new_value}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={styles.footer}>
