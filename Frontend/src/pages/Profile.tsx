@@ -50,8 +50,8 @@ const Profile = () => {
         if (profile) {
           setProfile({ ...profile, avatar_data: data.avatar_data });
         }
-      } catch (err: any) {
-        alert(err.message || 'Failed to upload avatar');
+      } catch (err) {
+        alert((err as Error).message || 'Failed to upload avatar');
       }
     }
   };

@@ -9,8 +9,8 @@ interface NewProjectModalProps {
   initialData?: {
     id: number;
     name: string;
-    description: string;
-    status: ProjectStatus;
+    description: string | null;
+    status: string;
     progress: number;
   };
 }
@@ -18,7 +18,7 @@ interface NewProjectModalProps {
 const NewProjectModal = ({ onClose, onSave, onUpdate, initialData }: NewProjectModalProps) => {
   const [name, setName] = useState(initialData?.name || '');
   const [description, setDescription] = useState(initialData?.description || '');
-  const [status, setStatus] = useState<ProjectStatus>(initialData?.status || 'Planning');
+  const [status, setStatus] = useState(initialData?.status || 'Planning');
   const [progress, setProgress] = useState(initialData?.progress || 0);
 
   const handleSubmit = (e: React.FormEvent) => {

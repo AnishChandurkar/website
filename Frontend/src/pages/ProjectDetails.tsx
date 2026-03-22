@@ -42,8 +42,8 @@ const ProjectDetails = () => {
     try {
       const resp = await fetchProjectById(Number(projectId));
       setProject(resp);
-    } catch (e: any) {
-      setError(e.message || 'error loading project');
+    } catch (e) {
+      setError((e as Error).message || 'error loading project');
     } finally {
       setLoading(false);
     }
@@ -59,8 +59,8 @@ const ProjectDetails = () => {
       await createBoard(Number(projectId), boardName);
       await fetchProjectData();
       setPopup({ type: 'SWITCH_BOARD', payload: false });
-    } catch (err: any) {
-      alert(err.message || 'Failed to create board');
+    } catch (err) {
+      alert((err as Error).message || 'Failed to create board');
     }
   };
 
@@ -70,8 +70,8 @@ const ProjectDetails = () => {
       await inviteMember(Number(projectId), email, role);
       await fetchProjectData();
       setPopup({ type: 'SWITCH_INVITE', payload: false });
-    } catch (err: any) {
-      alert(err.message || 'Failed to invite member');
+    } catch (err) {
+      alert((err as Error).message || 'Failed to invite member');
     }
   };
 
@@ -85,8 +85,8 @@ const ProjectDetails = () => {
           members: prev.members.map((m) => m.id === userId ? { ...m, role: newRole } : m)
         };
       });
-    } catch (err: any) {
-      alert(err.message || 'Failed to update member role');
+    } catch (err) {
+      alert((err as Error).message || 'Failed to update member role');
     }
   };
 

@@ -27,8 +27,8 @@ export const getColumns = async (req: Request, res: Response) => {
       [req.params.boardId]
     );
     res.json(rows);
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -53,8 +53,8 @@ export const createColumn = async (req: Request, res: Response) => {
       message: 'column added!',
       column: { id: result.insertId, name, position: nextPosition, wip_limit: wip_limit || null }
     });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -70,12 +70,12 @@ export const renameColumn = async (req: Request, res: Response) => {
 
     const [cols] = await pool.query<RowDataPacket[]>('SELECT board_id FROM columns WHERE id = ?', [req.params.columnId]);
     if (cols.length > 0) {
-      await syncAllBoardStories(cols[0].board_id);
+      await syncAllBoardStories(cols[0]!.board_id);
     }
 
     res.json({ message: 'column renamed!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -98,8 +98,8 @@ export const updateColumnLimit = async (req: Request, res: Response) => {
 
     await pool.query('UPDATE columns SET wip_limit = ? WHERE id = ?', [newLimit, req.params.columnId]);
     res.json({ message: 'wip limit updated!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -110,7 +110,7 @@ export const reorderColumns = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'order must be an array of column ids :/' });
     }
 
-    const queries: Promise<any>[] = [];
+    const queries: Promise<[unknown, unknown]>[] = [];
 
     for (let i = 0; i < order.length; i++) {
       const columnId = order[i];
@@ -126,8 +126,8 @@ export const reorderColumns = async (req: Request, res: Response) => {
     await syncAllBoardStories(req.params.boardId as string);
 
     res.json({ message: 'columns reordered!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -146,7 +146,7 @@ export const deleteColumn = async (req: Request, res: Response) => {
 
 
     const [cols] = await pool.query<RowDataPacket[]>('SELECT board_id FROM columns WHERE id = ?', [req.params.columnId]);
-    const boardId = cols.length > 0 ? cols[0].board_id : null;
+    const boardId = cols.length > 0 ? cols[0]!.board_id : null;
 
     await pool.query('DELETE FROM columns WHERE id = ?', [req.params.columnId]);
 
@@ -154,7 +154,7 @@ export const deleteColumn = async (req: Request, res: Response) => {
     if (boardId) await syncAllBoardStories(boardId);
 
     res.json({ message: 'column deleted!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };

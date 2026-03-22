@@ -54,8 +54,8 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
       [req.user.id, req.user.id, req.user.id],
     );
     res.json(rows);
-  } catch (error: any) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
@@ -93,8 +93,8 @@ export const getProjectById = async (req: AuthRequest, res: Response) => {
       members,
       currentUserRole
     });
-  } catch (error: any) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
@@ -109,8 +109,8 @@ export const getArchivedProjects = async (req: AuthRequest, res: Response) => {
       [req.user.id, req.user.id],
     );
     res.json(rows);
-  } catch (error: any) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
@@ -144,8 +144,8 @@ export const createProject = async (req: AuthRequest, res: Response) => {
         status: status || "Planning",
       },
     });
-  } catch (error: any) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
@@ -157,8 +157,8 @@ export const updateProject = async (req: AuthRequest, res: Response) => {
       [name, description, status, progress, req.params.id],
     );
     res.json({ message: "project updated!!" });
-  } catch (error: any) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
@@ -185,8 +185,8 @@ export const archiveProject = async (req: AuthRequest, res: Response) => {
     res.json({
       message: is_archived ? "Project archived" : "Project restored",
     });
-  } catch (error: any) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
@@ -213,8 +213,8 @@ export const toggleStar = async (req: AuthRequest, res: Response) => {
       );
     }
     res.json({ message: is_starred ? "Project starred" : "Project unstarred" });
-  } catch (error: any) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
@@ -238,7 +238,7 @@ export const deleteProject = async (req: AuthRequest, res: Response) => {
 
     await pool.query("DELETE FROM projects WHERE id = ?", [req.params.id]);
     res.json({ message: "project deleted successfully!!" });
-  } catch (error: any) {
-    res.status(500).json({ message: "something went wrong :(", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };

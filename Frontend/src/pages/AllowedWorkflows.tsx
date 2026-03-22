@@ -42,7 +42,7 @@ const AllowedWorkflows = () => {
 
         setColumns(Array.isArray(cols) ? cols as Column[] : []);
         setWorkflows(Array.isArray(wfs) ? wfs as Workflow[] : []);
-      } catch (err: unknown) {
+      } catch (err) {
         console.error("failed to init allowed workflows:", err);
         // even if workflows fail, fetch columns for dropdowns
         try {
@@ -82,12 +82,8 @@ const AllowedWorkflows = () => {
       setShowModal(false);
       setSourceColumn('');
       setTargetColumn('');
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        alert(err.message || "Failed to add workflow.");
-      } else {
-        alert("Failed to add workflow.");
-      }
+    } catch (err) {
+      alert((err as Error).message || "Failed to add workflow.");
     }
   };
 
@@ -96,7 +92,7 @@ const AllowedWorkflows = () => {
     try {
       await deleteWorkflow(projectId, wfId);
       setWorkflows(workflows.filter(w => w.id !== wfId));
-    } catch (err: unknown) {
+    } catch (err) {
       alert("Failed to delete workflow");
     }
   };

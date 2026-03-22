@@ -20,8 +20,8 @@ const Login = () => {
       const data = await loginUser(email, password);
       saveAuth(data.user);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError((err as Error).message);
     }
   };
 

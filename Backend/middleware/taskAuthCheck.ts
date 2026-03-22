@@ -4,14 +4,14 @@ import pool from "../config/db";
 import { AuthRequest } from "../controllers/authController";
 
 // check if user has read access for tasks
-export const requireTaskReadAccess = async (req: AuthRequest, res: Response, next: NextFunction): Promise<any> => {
+export const requireTaskReadAccess = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         let boardId = req.params.boardId;
         
         if (!boardId && req.params.id) {
             const [tasks] = await pool.query<RowDataPacket[]>('SELECT board_id FROM tasks WHERE id = ?', [req.params.id]);
             if (tasks.length === 0) return res.status(404).json({ message: 'task not found :/' });
-            boardId = tasks[0].board_id;
+            boardId = tasks[0]!.board_id;
         }
 
         if (!boardId) return res.status(400).json({ message: 'board or task id required :(' });
@@ -19,7 +19,7 @@ export const requireTaskReadAccess = async (req: AuthRequest, res: Response, nex
         const [boards] = await pool.query<RowDataPacket[]>('SELECT project_id FROM boards WHERE id = ?', [boardId]);
         if (boards.length === 0) return res.status(404).json({ message: 'board not found :/' });
         
-        const projectId = boards[0].project_id;
+        const projectId = boards[0]!.project_id;
         
         const [role] = await pool.query<RowDataPacket[]>(
             'SELECT role FROM project_members WHERE project_id = ? AND user_id = ?',
@@ -31,20 +31,20 @@ export const requireTaskReadAccess = async (req: AuthRequest, res: Response, nex
         }
         
         next();
-    } catch (error: any) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: (error as Error).message });
     }
 };
 
 // check if user has write access for tasks
-export const requireTaskWriteAccess = async (req: AuthRequest, res: Response, next: NextFunction): Promise<any> => {
+export const requireTaskWriteAccess = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         let boardId = req.params.boardId;
         
         if (!boardId && req.params.id) {
             const [tasks] = await pool.query<RowDataPacket[]>('SELECT board_id FROM tasks WHERE id = ?', [req.params.id]);
             if (tasks.length === 0) return res.status(404).json({ message: 'task not found :/' });
-            boardId = tasks[0].board_id;
+            boardId = tasks[0]!.board_id;
         }
 
         if (!boardId) return res.status(400).json({ message: 'board or task id required :(' });
@@ -52,7 +52,7 @@ export const requireTaskWriteAccess = async (req: AuthRequest, res: Response, ne
         const [boards] = await pool.query<RowDataPacket[]>('SELECT project_id FROM boards WHERE id = ?', [boardId]);
         if (boards.length === 0) return res.status(404).json({ message: 'board not found :/' });
         
-        const projectId = boards[0].project_id;
+        const projectId = boards[0]!.project_id;
         
         const [role] = await pool.query<RowDataPacket[]>(
             'SELECT role FROM project_members WHERE project_id = ? AND user_id = ?',
@@ -63,7 +63,7 @@ export const requireTaskWriteAccess = async (req: AuthRequest, res: Response, ne
             return res.status(403).json({ message: 'you are not a member of this project :/' });
         }
         
-        const projectRole = role[0].role;
+        const projectRole = role[0]!.role;
         if (req.user) {
             req.user.projectRole = projectRole;
         }
@@ -73,7 +73,7 @@ export const requireTaskWriteAccess = async (req: AuthRequest, res: Response, ne
         }
         
         next();
-    } catch (error: any) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: (error as Error).message });
     }
 };

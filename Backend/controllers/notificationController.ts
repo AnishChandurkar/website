@@ -40,8 +40,8 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
       [req.user.id]
     );
     res.json(rows);
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -53,8 +53,8 @@ export const createNotification = async (req: AuthRequest, res: Response) => {
       message: 'notification created!!',
       notification: { id: insertId, user_id, type, message }
     });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -68,8 +68,8 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
       [req.params.id, req.user.id]
     );
     res.json({ message: 'notification marked as read!!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -83,8 +83,8 @@ export const markAllAsRead = async (req: AuthRequest, res: Response) => {
       [req.user.id]
     );
     res.json({ message: 'all notifications marked as read!!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -98,7 +98,7 @@ export const deleteNotification = async (req: AuthRequest, res: Response) => {
       [req.params.id, req.user.id]
     );
     res.json({ message: 'notification deleted!!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };

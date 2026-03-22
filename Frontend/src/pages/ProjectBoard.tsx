@@ -6,7 +6,7 @@ import {
   createColumn, renameColumn, deleteColumn, updateColumnLimit,
   reorderColumns, fetchTeamMembers, fetchProjectWorkflows, closeTask
 } from '../services/api';
-import type { Task, Column, Member, Workflow } from '../services/api';
+import type { Task, Column, Member } from '../services/api';
 import TaskDetailModal from '../ui_elements/TaskDetailModal';
 
 const PRIORITY_DOT: Record<string, string> = {
@@ -128,8 +128,8 @@ const ProjectBoard = () => {
     try {
       await closeTask(taskId);
       loadBoard();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert((err as Error).message);
     }
   };
 
@@ -180,9 +180,9 @@ const ProjectBoard = () => {
     // call the backend api
     try {
       await moveTask(taskId, targetColId);
-    } catch (err: any) {
+    } catch (err) {
       setTasks(prev);
-      alert(err.message || 'couldnt move that task :/');
+      alert((err as Error).message || 'couldnt move that task :/');
     }
   };
   const resetAddForm = () => {
@@ -202,8 +202,8 @@ const ProjectBoard = () => {
       );
       resetAddForm();
       await loadBoard();
-    } catch (err: any) {
-      alert(err.message || 'task creation failed :o');
+    } catch (err) {
+      alert((err as Error).message || 'task creation failed :o');
     }
   };
   const handleAddColumn = async () => {
@@ -212,7 +212,7 @@ const ProjectBoard = () => {
       await createColumn(Number(boardId), newColName, newColLimit ? parseInt(newColLimit) : undefined);
       setNewColName(''); setNewColLimit(''); setShowAddColumn(false);
       await loadBoard();
-    } catch (err: any) { alert(err.message || 'couldnt add the column'); }
+    } catch (err) { alert((err as Error).message || 'couldnt add the column'); }
   };
   const handleRenameColumn = async (colId: number) => {
     if (!editColName.trim()) return;
@@ -220,19 +220,19 @@ const ProjectBoard = () => {
       await renameColumn(colId, editColName);
       setEditingCol(null);
       await loadBoard();
-    } catch (err: any) { alert(err.message || 'rename failed'); }
+    } catch (err) { alert((err as Error).message || 'rename failed'); }
   };
   const handleDeleteColumn = async (colId: number) => {
     if (!window.confirm('delete this column and all its tasks?')) return;
     try { await deleteColumn(colId); await loadBoard(); }
-    catch (err: any) { alert(err.message || 'delete column failed'); }
+    catch (err) { alert((err as Error).message || 'delete column failed'); }
   };
   const handleUpdateLimit = async (colId: number) => {
     try {
       const limit = editLimitValue.trim() === '' ? null : parseInt(editLimitValue);
       await updateColumnLimit(colId, limit);
       setEditingLimit(null); await loadBoard();
-    } catch (err: any) { alert(err.message || 'wip limit update failed :('); }
+    } catch (err) { alert((err as Error).message || 'wip limit update failed :('); }
   };
   const handleReorderColumn = async (colId: number, dir: 'left' | 'right') => {
     const idx = columns.findIndex(c => c.id === colId);
@@ -243,7 +243,7 @@ const ProjectBoard = () => {
     [next[idx], next[ti]] = [next[ti], next[idx]];
     setColumns(next);
     try { await reorderColumns(Number(boardId), next.map(c => c.id)); }
-    catch (err: any) { alert(err.message || 'reorder went sideways :/'); await loadBoard(); }
+    catch (err) { alert((err as Error).message || 'reorder went sideways :/'); await loadBoard(); }
   };
   const filteredTasks = tasks.filter(t => {
     if (t.type === 'Story') return false;

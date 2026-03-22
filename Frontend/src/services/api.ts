@@ -1,7 +1,5 @@
 // base url for our backend server
-const BACKEND_URL = 'http://localhost:3001/api';
-
-// --- Shared Types ---
+const BASE_URL = 'http://localhost:3001/api';
 
 export interface Project {
     id: number;
@@ -15,7 +13,16 @@ export interface Project {
     updated_at: string;
 }
 
-export interface ProjectFull extends Project {
+export interface ProjectFull {
+    id: number;
+    name: string;
+    description: string | null;
+    status: string;
+    progress: number;
+    is_starred: boolean;
+    is_archived: boolean;
+    created_at: string;
+    updated_at: string;
     boards: Board[];
     members: Member[];
 }
@@ -45,16 +52,20 @@ export interface Task {
     column_name: string | null;
     title: string;
     description: string | null;
-    priority: 'HIGH' | 'CRITICAL' | 'MEDIUM' | 'LOW' | string;
-    type: 'Story' | 'Task' | 'Bug' | string;
+    priority: string;
+    type: string;
     parent_id: number | null;
     parent_title: string | null;
     parent_column_name: string | null;
+    parent_type: string | null;
     assigned_to: number | null;
     assigned_first_name: string | null;
     assigned_surname: string | null;
+    reporter_first_name: string | null;
+    reporter_surname: string | null;
     due_date: string | null;
     created_at: string;
+    updated_at: string;
 }
 
 export interface Member {
@@ -102,68 +113,112 @@ export interface AuditLog {
     id: number;
     board_id: number;
     task_id: number | null;
-    user_id: number;
-    action: string;
-    details: string;
+    task_title: string;
+    event_type: string;
+    old_value: string | null;
+    new_value: string | null;
     created_at: string;
-    first_name: string;
-    surname: string;
+    creator_first_name: string | null;
+    creator_surname: string | null;
+    editor_first_name: string | null;
+    editor_surname: string | null;
+    is_closed: boolean;
+    is_resolved: boolean;
+    max_col_name: string | null;
 }
 
-/**
- * Helper to handle fetch calls, auth refresh, and error parsing
- */
-const callApi = async <T>(url: string, method: string = 'GET', payload?: any): Promise<T> => {
-    const options: RequestInit = {
+// user profile shape returned by the server
+interface UserProfile {
+    id: number;
+    emailid: string;
+    first_name: string;
+    surname: string;
+    avatar_data: string | null;
+    global_role: string;
+    created_at: string;
+}
+
+// login response shape
+interface LoginResponse {
+    message: string;
+    user: { id: number; first_name: string; surname: string; emailid: string; global_role: string };
+}
+
+// teammate shape from the api
+interface TeammateInfo {
+    id: number;
+    emailid: string;
+    first_name: string;
+    surname: string;
+    avatar_data: string | null;
+}
+
+// helper function to make api requests with auto token refresh
+const apiRequest = async (endpoint: string, method: string = 'GET', body?: object): Promise<unknown> => {
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+    };
+
+    const config: RequestInit = {
         method,
-        headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache',
-        },
+        headers,
         credentials: 'include',
     };
 
-    if (payload) options.body = JSON.stringify(payload);
+    if (body) {
+        config.body = JSON.stringify(body);
+    }
 
-    let res = await fetch(`${BACKEND_URL}${url}`, options);
+    let response = await fetch(`${BASE_URL}${endpoint}`, config);
 
     // if we get a 401, try to refresh the token and retry once
-    if (res.status === 401 && !url.includes('/auth/login')) {
-        const refresh = await fetch(`${BACKEND_URL}/auth/refresh`, { method: 'POST', credentials: 'include' });
-        if (refresh.ok) res = await fetch(`${BACKEND_URL}${url}`, options);
+    if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/register') {
+        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (refreshRes.ok) {
+            response = await fetch(`${BASE_URL}${endpoint}`, config);
+        }
     }
 
-    const raw = await res.text();
-    let json: any = null;
+    const text = await response.text();
+    let data: Record<string, unknown> | null = null;
     try {
-        json = JSON.parse(raw);
-    } catch { 
-        /* ignore parsing errors for non-json responses */ 
+        data = JSON.parse(text);
+    } catch {
+        // not a json response
     }
 
-    if (!res.ok) {
-        const msg = json?.message || `Request failed with status ${res.status}`;
-        throw new Error(msg);
+    if (!response.ok) {
+        const errorMsg = (data?.message as string) || `Request failed with status ${response.status}`;
+        throw new Error(errorMsg);
     }
 
-    return json as T;
+    return data;
 };
 
-// auth checks 
-export const loginUser = (emailid: string, password: string) => {
-    return callApi<{ message: string; user: { id: number, emailid: string, global_role: string } }>('/auth/login', 'POST', { emailid, password });
+// auth
+export const loginUser = async (emailid: string, password: string) => {
+    const data = await apiRequest('/auth/login', 'POST', { emailid, password });
+    return data as LoginResponse;
 };
 
-export const registerUser = (first_name: string, surname: string, emailid: string, password: string) => {
-    return callApi<{ message: string }>('/auth/register', 'POST', { first_name, surname, emailid, password });
+export const registerUser = async (first_name: string, surname: string, emailid: string, password: string) => {
+    const data = await apiRequest('/auth/register', 'POST', { first_name, surname, emailid, password });
+    return data as { message: string; user: { id: number; first_name: string; surname: string; emailid: string } };
 };
 
-export const getProfile = () => {
-    return callApi<{ id: number, emailid: string, first_name: string, surname: string, avatar_data: string | null, global_role: string, created_at: string }>('/auth/profile');
-}
+export const getProfile = async () => {
+    const data = await apiRequest('/auth/profile');
+    return data as UserProfile;
+};
 
-export const logoutUser = () => {
-    return callApi<{ message: string }>('/auth/logout', 'POST');
+export const logoutUser = async () => {
+    const data = await apiRequest('/auth/logout', 'POST');
+    return data as { message: string };
 };
 
 export const uploadAvatar = async (file: File) => {
@@ -174,7 +229,7 @@ export const uploadAvatar = async (file: File) => {
         reader.readAsDataURL(file);
     });
 
-    const response = await fetch(`${BACKEND_URL}/auth/profile/avatar`, {
+    const response = await fetch(`${BASE_URL}/auth/profile/avatar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -185,106 +240,131 @@ export const uploadAvatar = async (file: File) => {
     if (!response.ok) {
         throw new Error(data.message || 'Upload failed');
     }
-    return data as { message: string, avatar_data: string };
+    return data as { message: string; avatar_data: string };
 };
 
-export const fetchProjects = () => {
-    return callApi<Project[]>('/projects');
+// projects
+export const fetchProjects = async () => {
+    const data = await apiRequest('/projects');
+    return data as Project[];
 };
 
-export const fetchProjectById = (projectId: number) => {
-    return callApi<ProjectFull>(`/projects/${projectId}`);
+export const fetchProjectById = async (projectId: number) => {
+    const data = await apiRequest(`/projects/${projectId}`);
+    return data as ProjectFull;
 };
 
-export const createProject = (name: string, description?: string, status?: string) => {
-    return callApi<{ project: Project }>('/projects', 'POST', { name, description, status });
+export const createProject = async (name: string, description?: string, status?: string) => {
+    const data = await apiRequest('/projects', 'POST', { name, description, status });
+    return data as { project: Project };
 };
 
-export const updateProject = (projectId: number, name: string, description: string, status: string, progress: number) => {
-    return callApi<void>(`/projects/${projectId}`, 'PUT', { name, description, status, progress });
+export const updateProject = async (projectId: number, name: string, description: string, status: string, progress: number) => {
+    await apiRequest(`/projects/${projectId}`, 'PUT', { name, description, status, progress });
 };
 
+// comments
 export const getComments = async (taskId: number) => {
-    return callApi<Comment[]>(`/tasks/${taskId}/comments`);
+    const data = await apiRequest(`/tasks/${taskId}/comments`);
+    return data as Comment[];
 };
 
 export const addComment = async (taskId: number, content: string) => {
-    return callApi<{ message: string; comment: Comment }>(`/tasks/${taskId}/comments`, 'POST', { content });
+    const data = await apiRequest(`/tasks/${taskId}/comments`, 'POST', { content });
+    return data as { message: string; comment: Comment };
 };
 
 export const editComment = async (taskId: number, commentId: number, content: string) => {
-    return callApi<{ message: string }>(`/tasks/${taskId}/comments/${commentId}`, 'PUT', { content });
+    const data = await apiRequest(`/tasks/${taskId}/comments/${commentId}`, 'PUT', { content });
+    return data as { message: string };
 };
 
 export const deleteComment = async (taskId: number, commentId: number) => {
-    return callApi<{ message: string }>(`/tasks/${taskId}/comments/${commentId}`, 'DELETE');
+    const data = await apiRequest(`/tasks/${taskId}/comments/${commentId}`, 'DELETE');
+    return data as { message: string };
 };
 
-export const archiveProject = (projectId: number) => {
-    return callApi<void>(`/projects/${projectId}/archive`, 'PUT', { is_archived: true });
+// archive and star
+export const archiveProject = async (projectId: number) => {
+    await apiRequest(`/projects/${projectId}/archive`, 'PUT', { is_archived: true });
 };
 
-export const restoreProject = (projectId: number) => {
-    return callApi<void>(`/projects/${projectId}/archive`, 'PUT', { is_archived: false });
+export const restoreProject = async (projectId: number) => {
+    await apiRequest(`/projects/${projectId}/archive`, 'PUT', { is_archived: false });
 };
 
-export const deleteProject = (projectId: number) => {
-    return callApi<void>(`/projects/${projectId}`, 'DELETE');
+export const deleteProject = async (projectId: number) => {
+    await apiRequest(`/projects/${projectId}`, 'DELETE');
 };
 
-export const toggleStarProject = (projectId: number, isStarred: boolean) => {
-    return callApi<void>(`/projects/${projectId}/star`, 'PUT', { is_starred: isStarred });
+export const toggleStarProject = async (projectId: number, isStarred: boolean) => {
+    await apiRequest(`/projects/${projectId}/star`, 'PUT', { is_starred: isStarred });
 };
 
-export const fetchBoards = (projectId: number) => {
-    return callApi<Board[]>(`/projects/${projectId}/boards`);
+// boards
+export const fetchBoards = async (projectId: number) => {
+    const data = await apiRequest(`/projects/${projectId}/boards`);
+    return data as Board[];
 };
 
-export const createBoard = (projectId: number, name: string) => {
-    return callApi<{ board: Board }>(`/projects/${projectId}/boards`, 'POST', { name });
+export const createBoard = async (projectId: number, name: string) => {
+    const data = await apiRequest(`/projects/${projectId}/boards`, 'POST', { name });
+    return data as { board: Board };
 };
 
-export const fetchBoardProject = (boardId: number) => {
-    return callApi<{ project_id: number; currentUserRole: string }>(`/boards/${boardId}/project`);
+export const fetchBoardProject = async (boardId: number) => {
+    const data = await apiRequest(`/boards/${boardId}/project`);
+    return data as { project_id: number; currentUserRole: string };
 };
 
-export const fetchColumns = (boardId: number) => {
-    return callApi<Column[]>(`/boards/${boardId}/columns`);
+// columns
+export const fetchColumns = async (boardId: number) => {
+    const data = await apiRequest(`/boards/${boardId}/columns`);
+    return data as Column[];
 };
 
-export const createColumn = (boardId: number, name: string, wipLimit?: number) => {
-    return callApi<{ message: string }>(`/boards/${boardId}/columns`, 'POST', { name, wip_limit: wipLimit });
+export const createColumn = async (boardId: number, name: string, wipLimit?: number) => {
+    const data = await apiRequest(`/boards/${boardId}/columns`, 'POST', { name, wip_limit: wipLimit });
+    return data as { message: string };
 };
 
-export const renameColumn = (columnId: number, name: string) => {
-    return callApi<{ message: string }>(`/boards/columns/${columnId}/rename`, 'PUT', { name });
+export const renameColumn = async (columnId: number, name: string) => {
+    const data = await apiRequest(`/boards/columns/${columnId}/rename`, 'PUT', { name });
+    return data as { message: string };
 };
 
-export const updateColumnLimit = (columnId: number, wipLimit: number | null) => {
-    return callApi<{ message: string }>(`/boards/columns/${columnId}/limit`, 'PUT', { wip_limit: wipLimit });
+export const updateColumnLimit = async (columnId: number, wipLimit: number | null) => {
+    const data = await apiRequest(`/boards/columns/${columnId}/limit`, 'PUT', { wip_limit: wipLimit });
+    return data as { message: string };
 };
 
-export const reorderColumns = (boardId: number, order: number[]) => {
-    return callApi<{ message: string }>(`/boards/${boardId}/columns/reorder`, 'PUT', { order });
+export const reorderColumns = async (boardId: number, order: number[]) => {
+    const data = await apiRequest(`/boards/${boardId}/columns/reorder`, 'PUT', { order });
+    return data as { message: string };
 };
 
-export const deleteColumn = (columnId: number) => {
-    return callApi<{ message: string }>(`/boards/columns/${columnId}`, 'DELETE');
+export const deleteColumn = async (columnId: number) => {
+    const data = await apiRequest(`/boards/columns/${columnId}`, 'DELETE');
+    return data as { message: string };
 };
 
-export const fetchTasks = (boardId: number) => {
-    return callApi<Task[]>(`/boards/${boardId}/tasks`);
+// tasks
+export const fetchTasks = async (boardId: number) => {
+    const data = await apiRequest(`/boards/${boardId}/tasks`);
+    return data as Task[];
 };
 
-export const getTask = (taskId: number) => {
-    return callApi<Task>(`/boards/tasks/${taskId}`);
+export const getTask = async (taskId: number) => {
+    const data = await apiRequest(`/boards/tasks/${taskId}`);
+    return data as Task;
 };
 
-export const getChildTasks = (taskId: number) => {
-    return callApi<Task[]>(`/boards/tasks/${taskId}/children`);
+export const getChildTasks = async (taskId: number) => {
+    const data = await apiRequest(`/boards/tasks/${taskId}/children`);
+    return data as Task[];
 };
 
-export const createTask = (
+export const createTask = async (
     boardId: number,
     title: string,
     columnId: number | null,
@@ -295,7 +375,7 @@ export const createTask = (
     dueDate?: string | null,
     parentId?: number | null
 ) => {
-    return callApi<{ message: string; task: Task }>(`/boards/${boardId}/tasks`, 'POST', {
+    const data = await apiRequest(`/boards/${boardId}/tasks`, 'POST', {
         title,
         column_id: columnId,
         priority,
@@ -305,82 +385,111 @@ export const createTask = (
         due_date: dueDate,
         parent_id: parentId,
     });
+    return data as { message: string; task: Task };
 };
 
-export const moveTask = (taskId: number, columnId: number) => {
-    return callApi<{ message: string }>(`/boards/tasks/${taskId}/move`, 'PUT', { column_id: columnId });
+export const moveTask = async (taskId: number, columnId: number) => {
+    const data = await apiRequest(`/boards/tasks/${taskId}/move`, 'PUT', { column_id: columnId });
+    return data as { message: string };
 };
 
-export const closeTask = (taskId: number) => {
-    return callApi<{ message: string }>(`/boards/tasks/${taskId}/close`, 'PUT');
+export const closeTask = async (taskId: number) => {
+    const data = await apiRequest(`/boards/tasks/${taskId}/close`, 'PUT');
+    return data as { message: string };
 };
 
-export const updateTask = (taskId: number, updates: object) => {
-    return callApi<{ message: string }>(`/boards/tasks/${taskId}`, 'PUT', updates);
+export const updateTask = async (taskId: number, updates: object) => {
+    const data = await apiRequest(`/boards/tasks/${taskId}`, 'PUT', updates);
+    return data as { message: string };
 };
 
-export const deleteTask = (taskId: number) => {
-    return callApi<{ message: string }>(`/boards/tasks/${taskId}`, 'DELETE');
+export const deleteTask = async (taskId: number) => {
+    const data = await apiRequest(`/boards/tasks/${taskId}`, 'DELETE');
+    return data as { message: string };
 };
 
-export const fetchTeamMembers = (projectId: number) => {
-    return callApi<Member[]>(`/projects/${projectId}/members`);
-};
-export const inviteMember = (projectId: number, emailid: string, role?: string) => {
-    return callApi<{ message: string }>('/projects/' + projectId + '/members', 'POST', { emailid, role });
-};
-export const removeMember = (projectId: number, userId: number) => {
-    return callApi<{ message: string }>(`/projects/${projectId}/members/${userId}`, 'DELETE');
+// team members
+export const fetchTeamMembers = async (projectId: number) => {
+    const data = await apiRequest(`/projects/${projectId}/members`);
+    return data as Member[];
 };
 
-export const fetchNotifications = () => {
-    return callApi<Notification[]>('/notifications');
+export const inviteMember = async (projectId: number, emailid: string, role?: string) => {
+    const data = await apiRequest(`/projects/${projectId}/members`, 'POST', { emailid, role });
+    return data as { message: string };
 };
 
-export const markNotificationAsRead = (id: number) => {
-    return callApi<{ message: string }>(`/notifications/${id}/read`, 'PUT');
+export const removeMember = async (projectId: number, userId: number) => {
+    const data = await apiRequest(`/projects/${projectId}/members/${userId}`, 'DELETE');
+    return data as { message: string };
 };
 
-export const deleteNotification = (id: number) => {
-    return callApi<{ message: string }>(`/notifications/${id}`, 'DELETE');
+// notifications
+export const fetchNotifications = async () => {
+    const data = await apiRequest('/notifications');
+    return data as Notification[];
 };
 
-export const fetchProjectWorkflows = (projectId: number) => {
-    return callApi<Workflow[]>(`/projects/${projectId}/workflows`);
+export const markNotificationAsRead = async (id: number) => {
+    const data = await apiRequest(`/notifications/${id}/read`, 'PUT');
+    return data as { message: string };
 };
 
-export const fetchAuditLogs = (boardId: number | string) => {
-    return callApi<AuditLog[]>(`/boards/${boardId}/audit`);
+export const deleteNotification = async (id: number) => {
+    const data = await apiRequest(`/notifications/${id}`, 'DELETE');
+    return data as { message: string };
 };
 
-export const fetchTaskAuditLogs = (taskId: number) => {
-    return callApi<AuditLog[]>(`/boards/tasks/${taskId}/audit`);
+// workflows
+export const fetchProjectWorkflows = async (projectId: number) => {
+    const data = await apiRequest(`/projects/${projectId}/workflows`);
+    return data as Workflow[];
 };
 
-export const addWorkflow = (projectId: number, board_id: number, from_column_id: number, to_column_id: number) => {
-    return callApi<{ id: number }>('/projects/' + projectId + '/workflows', 'POST', { board_id, from_column_id, to_column_id });
+export const addWorkflow = async (projectId: number, board_id: number, from_column_id: number, to_column_id: number) => {
+    const data = await apiRequest(`/projects/${projectId}/workflows`, 'POST', { board_id, from_column_id, to_column_id });
+    return data as { id: number };
 };
 
-export const deleteWorkflow = (projectId: number, workflowId: number) => {
-    return callApi<{ message: string }>(`/projects/${projectId}/workflows/${workflowId}`, 'DELETE');
+export const deleteWorkflow = async (projectId: number, workflowId: number) => {
+    const data = await apiRequest(`/projects/${projectId}/workflows/${workflowId}`, 'DELETE');
+    return data as { message: string };
 };
 
-export const reSyncStories = (boardId: number) => {
-    return callApi<{ message: string }>(`/boards/${boardId}/sync-stories`, 'PUT');
+// audit
+export const fetchAuditLogs = async (boardId: number | string) => {
+    const data = await apiRequest(`/boards/${boardId}/audit`);
+    return data as AuditLog[];
 };
 
-export const updateUserProfile = (data: { first_name?: string; surname?: string; emailid?: string }) => {
-    return callApi<{ message: string }>('/auth/profile', 'PUT', data);
+export const fetchTaskAuditLogs = async (taskId: number) => {
+    const data = await apiRequest(`/boards/tasks/${taskId}/audit`);
+    return data as AuditLog[];
 };
 
-export const changePassword = (currentPassword: string, newPassword: string, confirmPassword: string) => {
-    return callApi<{ message: string }>('/auth/profile/password', 'POST', { currentPassword, newPassword, confirmPassword });
+// sync
+export const reSyncStories = async (boardId: number) => {
+    const data = await apiRequest(`/boards/${boardId}/sync-stories`, 'PUT');
+    return data as { message: string };
 };
 
-export const fetchMyTeammates = () => {
-    return callApi<{ id: number, emailid: string, first_name: string, surname: string, avatar_data: string | null }[]>('/auth/teammates', 'GET');
+// profile
+export const updateUserProfile = async (data: { first_name?: string; surname?: string; emailid?: string }) => {
+    const result = await apiRequest('/auth/profile', 'PUT', data);
+    return result as { message: string; user?: UserProfile };
 };
 
-export const updateMemberRole = (projectId: number, userId: number, role: string) => {
-    return callApi<{ message: string }>(`/projects/${projectId}/members/${userId}`, 'PUT', { role });
+export const changePassword = async (currentPassword: string, newPassword: string, confirmPassword: string) => {
+    const data = await apiRequest('/auth/profile/password', 'POST', { currentPassword, newPassword, confirmPassword });
+    return data as { message: string };
+};
+
+export const fetchMyTeammates = async () => {
+    const data = await apiRequest('/auth/teammates');
+    return data as TeammateInfo[];
+};
+
+export const updateMemberRole = async (projectId: number, userId: number, role: string) => {
+    const data = await apiRequest(`/projects/${projectId}/members/${userId}`, 'PUT', { role });
+    return data as { message: string };
 };

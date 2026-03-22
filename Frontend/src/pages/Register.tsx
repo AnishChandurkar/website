@@ -27,11 +27,11 @@ const Register = () => {
       // handle user registration
       const data = await registerUser(firstName, lastName, email, password);
       if (data.user) {
-        saveAuth(data.user);
+        saveAuth({ ...data.user, global_role: 'Team Member' });
       }
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError((err as Error).message);
     }
   };
 

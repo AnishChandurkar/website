@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from '../CSS Files/Stories.module.css';
 import { fetchTasks, createTask, updateTask, deleteTask } from '../services/api';
-import type { Story, Task as ChildTask, Task } from '../services/api';
+import type { Story, Task as ChildTask } from '../services/api';
 
 
 interface TaskItem {
@@ -85,7 +85,7 @@ const Stories = () => {
         setNewStoryDesc('');
         refreshStories(); // Changed loadData to refreshStories
       }
-    } catch (err: unknown) {
+    } catch (err) {
       console.error("Failed to create story:", err);
       alert("Failed to create story.");
     }
@@ -97,12 +97,8 @@ const Stories = () => {
       await updateTask(Number(selectedTaskId), { parent_id: selectedStory.id });
       setSelectedTaskId('');
       refreshStories();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        alert(err.message || 'Failed to add task to story');
-      } else {
-        alert("Failed to add task to story");
-      }
+    } catch (err) {
+      alert((err as Error).message || 'Failed to add task to story');
     }
   };
 
@@ -112,12 +108,8 @@ const Stories = () => {
         // unlink task from story
         await updateTask(taskId, { parent_id: null });
         refreshStories();
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          alert(err.message || "Failed to remove task from story");
-        } else {
-          alert("Failed to remove task from story");
-        }
+      } catch (err) {
+        alert((err as Error).message || "Failed to remove task from story");
       }
     }
   };
@@ -131,12 +123,8 @@ const Stories = () => {
         }
         setStories(prev => prev.filter(s => s.id !== storyId));
         refreshStories();
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          alert(err.message || 'Failed to delete story');
-        } else {
-          alert("Failed to delete story");
-        }
+      } catch (err) {
+        alert((err as Error).message || 'Failed to delete story');
       }
     }
   };

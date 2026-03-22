@@ -43,8 +43,8 @@ export const requireAdminBoard = async (req: AuthRequest, res: Response, next: N
     }
 
     next();
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -79,7 +79,7 @@ export const requireAdminColumn = async (req: AuthRequest, res: Response, next: 
     }
 
     next();
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };

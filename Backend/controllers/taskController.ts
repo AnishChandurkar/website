@@ -7,7 +7,7 @@ import { AuthRequest } from "./authController";
 
 
 // fetch tasks for a board
-export const getTasks = async (req: AuthRequest, res: Response): Promise<any> => {
+export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT t.*,
@@ -24,10 +24,10 @@ export const getTasks = async (req: AuthRequest, res: Response): Promise<any> =>
       [req.params.boardId],
     );
     res.json(rows);
-  } catch (error: any) {
+  } catch (error) {
     res
       .status(500)
-      .json({ message: "something went wrong :(", error: error.message });
+      .json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
@@ -42,19 +42,19 @@ export const syncAllBoardStories = async (boardId: string | number) => {
   }
 };
 
-export const reSyncStories = async (req: AuthRequest, res: Response): Promise<any> => {
+export const reSyncStories = async (req: AuthRequest, res: Response) => {
   const boardId = req.params.boardId as string;
   try {
     await syncAllBoardStories(boardId);
 
     res.json({ message: "All stories re-synced successfully!" });
-  } catch (error: any) {
-    res.status(500).json({ message: "re-sync failed", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "re-sync failed", error: (error as Error).message });
   }
 };
 
 // get a specific task by id
-export const getTaskById = async (req: AuthRequest, res: Response): Promise<any> => {
+export const getTaskById = async (req: AuthRequest, res: Response) => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT t.*,
@@ -73,15 +73,15 @@ export const getTaskById = async (req: AuthRequest, res: Response): Promise<any>
     if (rows.length === 0)
       return res.status(404).json({ message: "task not found :/" });
     res.json(rows[0]);
-  } catch (error: any) {
+  } catch (error) {
     res
       .status(500)
-      .json({ message: "something went wrong :(", error: error.message });
+      .json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
 // get child tasks of a story
-export const getChildTasks = async (req: AuthRequest, res: Response): Promise<any> => {
+export const getChildTasks = async (req: AuthRequest, res: Response) => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT t.*,
@@ -94,15 +94,15 @@ export const getChildTasks = async (req: AuthRequest, res: Response): Promise<an
       [req.params.id],
     );
     res.json(rows);
-  } catch (error: any) {
+  } catch (error) {
     res
       .status(500)
-      .json({ message: "something went wrong :(", error: error.message });
+      .json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
 // create a new task
-export const createTask = async (req: AuthRequest, res: Response): Promise<any> => {
+export const createTask = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     const {
@@ -125,7 +125,7 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
         "SELECT pm.role FROM project_members pm JOIN boards b ON pm.project_id = b.project_id WHERE pm.user_id = ? AND b.id = ?",
         [assigned_to, req.params.boardId]
       );
-      if (members.length === 0 || members[0].role === 'Project Viewer') {
+      if (members.length === 0 || members[0]!.role === 'Project Viewer') {
         return res.status(403).json({ message: "Cannot assign tasks to Project Viewers or non-members!" });
       }
     }
@@ -136,7 +136,7 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
       ]);
       if (parent.length === 0)
         return res.status(404).json({ message: "parent story not found :/" });
-      if (parent[0].type !== "Story")
+      if (parent[0]!.type !== "Story")
         return res
           .status(400)
           .json({ message: "parent must be a Story type task" });
@@ -156,12 +156,12 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
       );
 
       // if column has a limit, check if target column is full
-      if (col.length > 0 && col[0].wip_limit !== null) {
+      if (col.length > 0 && col[0]!.wip_limit !== null) {
         const [count] = await pool.query<RowDataPacket[]>(
           "SELECT COUNT(*) AS c FROM tasks WHERE column_id = ? AND closed_at IS NULL AND type != 'Story'",
           [column_id],
         );
-        if (count[0].c >= col[0].wip_limit) {
+        if (count[0]!.c >= col[0]!.wip_limit) {
           return res.status(400).json({
             message:
               "this column is full! move some tasks out before adding new ones",
@@ -173,10 +173,10 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
     const [targetCol] = await pool.query<RowDataPacket[]>("SELECT name, position FROM columns WHERE id = ?", [column_id]);
     const [maxCol] = await pool.query<RowDataPacket[]>("SELECT MAX(position) AS max_pos FROM columns WHERE board_id = ?", [req.params.boardId]);
 
-    const colName = targetCol.length > 0 ? targetCol[0].name : "Unplaced";
+    const colName = targetCol.length > 0 ? targetCol[0]!.name : "Unplaced";
 
     let resolved_at = null;
-    if (targetCol.length > 0 && maxCol.length > 0 && targetCol[0].position === maxCol[0].max_pos) {
+    if (targetCol.length > 0 && maxCol.length > 0 && targetCol[0]!.position === maxCol[0]!.max_pos) {
       resolved_at = new Date();
     }
 
@@ -225,15 +225,15 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
         type: type || "Task",
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     res
       .status(500)
-      .json({ message: "something went wrong :(", error: error.message });
+      .json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
 // move task to another column
-export const moveTask = async (req: AuthRequest, res: Response): Promise<any> => {
+export const moveTask = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     const { column_id } = req.body;
@@ -249,11 +249,11 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     if (task.length === 0)
       return res.status(404).json({ message: "task not found :/" });
 
-    if (task[0].type === "Story") {
+    if (task[0]!.type === "Story") {
       return res.status(400).json({ message: "Stories cannot be directly moved across workflow columns!" });
     }
 
-    const { title, assigned_to, old_col, board_id, old_pos, old_name, parent_id } = task[0];
+    const { title, assigned_to, old_col, board_id, old_pos, old_name, parent_id } = task[0]!;
 
     const [col] = await pool.query<RowDataPacket[]>(
       "SELECT wip_limit, name, position FROM columns WHERE id = ? AND board_id = ?",
@@ -263,8 +263,8 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
       return res.status(404).json({ message: "that column doesnt exist :/" });
     }
 
-    const new_name = col[0].name;
-    const new_pos = col[0].position;
+    const new_name = col[0]!.name;
+    const new_pos = col[0]!.position;
 
     const [allCols] = await pool.query<RowDataPacket[]>(
       "SELECT id FROM columns WHERE board_id = ? ORDER BY position ASC",
@@ -286,14 +286,14 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     }
 
     // enforce wip limits for target column
-    if (col[0].wip_limit !== null) {
+    if (col[0]!.wip_limit !== null) {
       const [count] = await pool.query<RowDataPacket[]>(
         "SELECT COUNT(*) AS c FROM tasks WHERE column_id = ? AND id != ? AND closed_at IS NULL AND type != 'Story'",
         [column_id, taskId],
       );
-      if (count[0].c >= col[0].wip_limit) {
+      if (count[0]!.c >= col[0]!.wip_limit) {
         return res.status(400).json({
-          message: `nope! "${col[0].name}" is at its limit of ${col[0].wip_limit} tasks`,
+          message: `nope! "${col[0]!.name}" is at its limit of ${col[0]!.wip_limit} tasks`,
         });
       }
     }
@@ -305,7 +305,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
 
     // auto-resolve task if moved to the final column
     let extraUpdate = "";
-    if (maxCol.length > 0 && new_pos === maxCol[0].max_pos) {
+    if (maxCol.length > 0 && new_pos === maxCol[0]!.max_pos) {
       extraUpdate = ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP)";
     } else {
       extraUpdate = ", resolved_at = NULL";
@@ -333,15 +333,15 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     }
 
     res.json({ message: "task moved!" });
-  } catch (error: any) {
+  } catch (error) {
     res
       .status(500)
-      .json({ message: "something went wrong :(", error: error.message });
+      .json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
 // update task details
-export const updateTask = async (req: AuthRequest, res: Response): Promise<any> => {
+export const updateTask = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     const {
@@ -360,7 +360,7 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
     );
     if (oldRows.length === 0)
       return res.status(404).json({ message: "task not found :/" });
-    const oldTask = oldRows[0];
+    const oldTask = oldRows[0]!;
     const old_assignee = oldTask.assigned_to;
     const taskTypeForEvent = (oldTask.type || "Task").toUpperCase();
 
@@ -374,7 +374,7 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
           "SELECT pm.role FROM project_members pm JOIN boards b ON pm.project_id = b.project_id WHERE pm.user_id = ? AND b.id = ?",
           [assigned_to, oldTask.board_id]
         );
-        if (members.length === 0 || members[0].role === 'Project Viewer') {
+        if (members.length === 0 || members[0]!.role === 'Project Viewer') {
           return res.status(403).json({ message: "Cannot assign tasks to Project Viewers or non-members!" });
         }
       }
@@ -395,7 +395,7 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
       ]);
       if (parent.length === 0)
         return res.status(404).json({ message: "parent story not found :/" });
-      if (parent[0].type !== "Story")
+      if (parent[0]!.type !== "Story")
         return res
           .status(400)
           .json({ message: "parent must be a Story type task" });
@@ -467,29 +467,29 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
     }
 
     res.json({ message: "task updated!" });
-  } catch (error: any) {
+  } catch (error) {
     res
       .status(500)
-      .json({ message: "something went wrong :(", error: error.message });
+      .json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
 // delete a task
-export const deleteTask = async (req: AuthRequest, res: Response): Promise<any> => {
+export const deleteTask = async (req: AuthRequest, res: Response) => {
   try {
     const [task] = await pool.query<RowDataPacket[]>("SELECT parent_id, board_id FROM tasks WHERE id = ?", [req.params.id]);
 
     await pool.query("DELETE FROM tasks WHERE id = ?", [req.params.id]);
 
-    if (task.length > 0 && task[0].parent_id) {
-      await updateParentStoryStatus(task[0].parent_id, task[0].board_id);
+    if (task.length > 0 && task[0]!.parent_id) {
+      await updateParentStoryStatus(task[0]!.parent_id, task[0]!.board_id);
     }
 
     res.json({ message: "task deleted!" });
-  } catch (error: any) {
+  } catch (error) {
     res
       .status(500)
-      .json({ message: "something went wrong :(", error: error.message });
+      .json({ message: "something went wrong :(", error: (error as Error).message });
   }
 };
 
@@ -509,7 +509,7 @@ export async function updateParentStoryStatus(parentId: string | number, boardId
     return;
   }
 
-  let minCol = children[0];
+  let minCol = children[0]!;
   for (const child of children) {
     if (child.position < minCol.position) {
       minCol = child;
@@ -518,7 +518,7 @@ export async function updateParentStoryStatus(parentId: string | number, boardId
 
   const [maxCol] = await pool.query<RowDataPacket[]>("SELECT MAX(position) AS max_pos FROM columns WHERE board_id = ?", [boardId]);
   let extraUpdate = ", resolved_at = NULL";
-  if (maxCol.length > 0 && minCol.position === maxCol[0].max_pos) {
+  if (maxCol.length > 0 && minCol.position === maxCol[0]!.max_pos) {
     extraUpdate = ", resolved_at = IFNULL(resolved_at, CURRENT_TIMESTAMP)";
   }
 
@@ -527,7 +527,7 @@ export async function updateParentStoryStatus(parentId: string | number, boardId
 
 
 // close a task
-export const closeTask = async (req: AuthRequest, res: Response): Promise<any> => {
+export const closeTask = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     const taskId = req.params.id;
@@ -542,7 +542,7 @@ export const closeTask = async (req: AuthRequest, res: Response): Promise<any> =
 
     if (task.length === 0) return res.status(404).json({ message: "Task not found" });
 
-    if (task[0].position !== task[0].max_pos) {
+    if (task[0]!.position !== task[0]!.max_pos) {
       return res.status(400).json({ message: "Only tasks in the final status progress can be closed!" });
     }
 
@@ -551,25 +551,25 @@ export const closeTask = async (req: AuthRequest, res: Response): Promise<any> =
       [taskId]
     );
 
-    const taskTypeForEvent = (task[0].type || "Task").toUpperCase();
+    const taskTypeForEvent = (task[0]!.type || "Task").toUpperCase();
     await logAuditEvent(Number(taskId), req.user.id, `${taskTypeForEvent}_CLOSED`);
 
     res.json({ message: "Task closed successfully!" });
-  } catch (error: any) {
+  } catch (error) {
     console.error("CLOSE TASK ERROR:", error);
-    res.status(500).json({ message: error.message || "Failed to close task :(", error: error.message });
+    res.status(500).json({ message: (error as Error).message || "Failed to close task :(", error: (error as Error).message });
   }
 };
 
 const logAuditEvent = async (taskId: number, userId: number, eventType: string, oldValue: string | null = null, newValue: string | null = null) => {
   const [task] = await pool.query<RowDataPacket[]>("SELECT title, board_id, closed_at, resolved_at FROM tasks WHERE id = ?", [taskId]);
-  const isClosed = task.length > 0 && task[0].closed_at !== null;
-  const isResolved = task.length > 0 && task[0].resolved_at !== null;
-  const taskTitle = task.length > 0 ? task[0].title : null;
-  const boardId = task.length > 0 ? task[0].board_id : null;
+  const isClosed = task.length > 0 && task[0]!.closed_at !== null;
+  const isResolved = task.length > 0 && task[0]!.resolved_at !== null;
+  const taskTitle = task.length > 0 ? task[0]!.title : null;
+  const boardId = task.length > 0 ? task[0]!.board_id : null;
 
   const [user] = await pool.query<RowDataPacket[]>("SELECT first_name, surname FROM users WHERE id = ?", [userId]);
-  const userName = user.length > 0 ? `${user[0].first_name} ${user[0].surname}` : null;
+  const userName = user.length > 0 ? `${user[0]!.first_name} ${user[0]!.surname}` : null;
 
   await pool.query(
     "INSERT INTO audit_logs (task_id, task_title, board_id, user_id, user_name, event_type, old_value, new_value, is_closed, is_resolved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",

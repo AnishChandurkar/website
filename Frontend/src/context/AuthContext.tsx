@@ -9,29 +9,27 @@ interface User {
     global_role: string;
 }
 
+// state shape for auth
 interface AuthState {
     user: User | null;
     loading: boolean;
 }
 
+// possible actions
 type AuthAction =
-    | { type: 'SET_USER'; payload: User | null }
+    | { type: 'SET_USER'; user: User | null }
     | { type: 'LOGOUT' }
-    | { type: 'SET_LOADING'; payload: boolean };
+    | { type: 'DONE_LOADING' };
 
-const initialState: AuthState = {
-    user: null,
-    loading: true,
-};
-
+// handles state changes based on actions
 function authReducer(state: AuthState, action: AuthAction): AuthState {
     switch (action.type) {
         case 'SET_USER':
-            return { ...state, user: action.payload, loading: false };
+            return { user: action.user, loading: false };
         case 'LOGOUT':
-            return { ...state, user: null, loading: false };
-        case 'SET_LOADING':
-            return { ...state, loading: action.payload };
+            return { user: null, loading: false };
+        case 'DONE_LOADING':
+            return { ...state, loading: false };
         default:
             return state;
     }
@@ -47,23 +45,24 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [state, dispatch] = useReducer(authReducer, initialState);
+    const [state, dispatch] = useReducer(authReducer, { user: null, loading: true });
 
     useEffect(() => {
+        // check if user is already logged in
         const loadUser = async () => {
             try {
                 const userData = await getProfile();
-                dispatch({ type: 'SET_USER', payload: userData });
-            } catch (error) {
+                dispatch({ type: 'SET_USER', user: userData });
+            } catch {
                 // session expired or not logged in
-                dispatch({ type: 'SET_USER', payload: null });
+                dispatch({ type: 'SET_USER', user: null });
             }
         };
         loadUser();
     }, []);
 
     const saveAuth = (userData: User) => {
-        dispatch({ type: 'SET_USER', payload: userData });
+        dispatch({ type: 'SET_USER', user: userData });
     };
 
     const logout = async () => {

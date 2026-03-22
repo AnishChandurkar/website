@@ -3,11 +3,11 @@ import { RowDataPacket } from "mysql2";
 import pool from "../config/db";
 
 export interface AuthRequest extends Request {
-  user?: any;
+  user?: { id: number; emailid?: string; projectRole?: string };
 }
 
 // fetch audit logs for the board
-export const getBoardAuditLogs = async (req: AuthRequest, res: Response): Promise<any> => {
+export const getBoardAuditLogs = async (req: AuthRequest, res: Response) => {
   try {
     const { boardId } = req.params;
 
@@ -29,12 +29,12 @@ export const getBoardAuditLogs = async (req: AuthRequest, res: Response): Promis
       [boardId]
     );
     res.json(logs);
-  } catch (error: any) {
-    res.status(500).json({ message: "Failed to fetch audit logs", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch audit logs", error: (error as Error).message });
   }
 };
 
-export const getTaskAuditLogs = async (req: AuthRequest, res: Response): Promise<any> => {
+export const getTaskAuditLogs = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -56,7 +56,7 @@ export const getTaskAuditLogs = async (req: AuthRequest, res: Response): Promise
       [id]
     );
     res.json(logs);
-  } catch (error: any) {
-    res.status(500).json({ message: "Failed to fetch task activity timeline", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch task activity timeline", error: (error as Error).message });
   }
 };

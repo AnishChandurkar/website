@@ -3,7 +3,7 @@ import '../CSS Files/ProjectCard.css';
 interface ProjectCardProps {
     id: number;
     name: string;
-    status: 'In Progress' | 'Completed' | 'Planning' | 'On Hold' | 'Review';
+    status: string;
     timeAgo: string;
     progressPercentage: number;
     avatars: string[];

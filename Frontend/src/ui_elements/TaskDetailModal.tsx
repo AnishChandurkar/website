@@ -6,7 +6,7 @@ import { formatText } from '../services/formatText';
 
 interface AuditLog {
   id: number;
-  task_id: number;
+  task_id: number | null;
   event_type: string;
   old_value: string | null;
   new_value: string | null;
@@ -33,8 +33,8 @@ interface Task {
   id: number;
   title: string;
   description: string | null;
-  priority: 'HIGH' | 'CRITICAL' | 'MEDIUM' | 'LOW';
-  type: 'Story' | 'Task' | 'Bug';
+  priority: string;
+  type: string;
   assigned_to: number | null;
   due_date: string | null;
   column_id: number | null;
@@ -118,8 +118,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<'Story' | 'Task' | 'Bug'>('Task');
-  const [priority, setPriority] = useState<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'>('MEDIUM');
+  const [type, setType] = useState('Task');
+  const [priority, setPriority] = useState('MEDIUM');
   const [assignedTo, setAssignedTo] = useState<number | null>(null);
   const [dueDate, setDueDate] = useState('');
 
@@ -173,8 +173,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
       setDirty(false);
       onUpdated();
       await load();
-    } catch (err: any) {
-      alert(err.message || 'save went sideways :/');
+    } catch (err) {
+      alert((err as Error).message || 'save went sideways :/');
     } finally {
       setSaving(false);
     }
@@ -188,8 +188,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
       await deleteTask(taskId);
       onUpdated();
       onClose();
-    } catch (err: any) {
-      alert(err.message || 'couldnt delete that task :/');
+    } catch (err) {
+      alert((err as Error).message || 'couldnt delete that task :/');
     }
   };
 
@@ -200,8 +200,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
       await closeTask(taskId);
       onUpdated();
       onClose();
-    } catch (err: any) {
-      alert(err.message || 'couldnt close task :/');
+    } catch (err) {
+      alert((err as Error).message || 'couldnt close task :/');
     } finally {
       setSaving(false);
     }
@@ -214,8 +214,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
       setNewComment('');
       const commentsData = await getComments(taskId);
       setComments(commentsData);
-    } catch (err: any) {
-      alert(err.message || 'couldnt add comment :/');
+    } catch (err) {
+      alert((err as Error).message || 'couldnt add comment :/');
     }
   };
 
@@ -224,8 +224,8 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
     try {
       await deleteComment(taskId, commentId);
       setComments(comments.filter(c => c.id !== commentId));
-    } catch (err: any) {
-      alert(err.message || 'couldnt delete comment :/');
+    } catch (err) {
+      alert((err as Error).message || 'couldnt delete comment :/');
     }
   };
 

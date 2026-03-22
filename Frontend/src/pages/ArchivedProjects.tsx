@@ -57,8 +57,8 @@ const ArchivedProjects = () => {
       await restoreProject(id);
       // remove from local state
       setArchived(archived.filter(p => p.id !== id));
-    } catch (err: any) {
-      alert(err.message || 'Failed to restore');
+    } catch (err) {
+      alert((err as Error).message || 'Failed to restore');
     }
   };
 
@@ -69,8 +69,8 @@ const ArchivedProjects = () => {
         await deleteProject(id);
         // remove from local state after delete
         setArchived(archived.filter(p => p.id !== id));
-      } catch (err: any) {
-        alert(err.message || 'Failed to delete');
+      } catch (err) {
+        alert((err as Error).message || 'Failed to delete');
       }
     }
   };

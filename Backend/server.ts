@@ -58,7 +58,7 @@ const seedAdmin = async () => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>('SELECT id FROM users WHERE emailid = ?', ['admin@workspace.com']);
     if (rows.length === 0) {
-      const bcrypt = require('bcryptjs');
+      const bcrypt = await import('bcryptjs');
       const hash = await bcrypt.hash('12345678', 10);
       await pool.query(
         'INSERT INTO users (first_name, surname, emailid, password_hash, global_role) VALUES (?, ?, ?, ?, ?)',
@@ -78,9 +78,9 @@ app.use((req, res) => {
 });
 
 // app-wide error handling
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.log('--- SERVER ERROR ---', err);
-  const status = err.status || 500;
+  const status = (err as Error & { status?: number }).status || 500;
   res.status(status).json({
     message: err.message || 'unexpected server error',
     error: process.env.NODE_ENV === 'dev' ? err : {}

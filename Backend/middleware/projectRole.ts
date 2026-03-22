@@ -49,8 +49,8 @@ const projectRole = (...allowedRoles: string[]) => {
 
       req.projectRole = userRole;
       next();
-    } catch (error: any) {
-      res.status(500).json({ message: 'Server error', error: error.message });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error: (error as Error).message });
     }
   };
 };

@@ -1,30 +1,83 @@
-import { useState, useEffect, type FormEvent, type CSSProperties } from 'react';
+import { useReducer, useEffect, type FormEvent, type CSSProperties } from 'react';
 import Sidebar from '../ui_elements/SideBar';
 import '../CSS Files/DashBoard.css';
 import { getProfile, updateUserProfile, changePassword } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+// all the form fields and messages in one state
+interface SettingsState {
+    name: string;
+    surname: string;
+    email: string;
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+    profileMsg: string;
+    passwordMsg: string;
+    profileError: string;
+    passwordError: string;
+}
+
+// actions for the reducer
+type SettingsAction =
+    | { type: 'SET_FIELD'; field: string; value: string }
+    | { type: 'LOAD_PROFILE'; name: string; surname: string; email: string }
+    | { type: 'PROFILE_SUCCESS'; message: string }
+    | { type: 'PROFILE_ERROR'; error: string }
+    | { type: 'PASSWORD_SUCCESS'; message: string }
+    | { type: 'PASSWORD_ERROR'; error: string }
+    | { type: 'CLEAR_PROFILE_MSG' }
+    | { type: 'CLEAR_PASSWORD_MSG' }
+    | { type: 'RESET_PASSWORD_FIELDS' };
+
+function settingsReducer(state: SettingsState, action: SettingsAction): SettingsState {
+    switch (action.type) {
+        case 'SET_FIELD':
+            return { ...state, [action.field]: action.value };
+        case 'LOAD_PROFILE':
+            return { ...state, name: action.name, surname: action.surname, email: action.email };
+        case 'PROFILE_SUCCESS':
+            return { ...state, profileMsg: action.message, profileError: '' };
+        case 'PROFILE_ERROR':
+            return { ...state, profileError: action.error, profileMsg: '' };
+        case 'PASSWORD_SUCCESS':
+            return { ...state, passwordMsg: action.message, passwordError: '', currentPassword: '', newPassword: '', confirmPassword: '' };
+        case 'PASSWORD_ERROR':
+            return { ...state, passwordError: action.error, passwordMsg: '' };
+        case 'CLEAR_PROFILE_MSG':
+            return { ...state, profileMsg: '', profileError: '' };
+        case 'CLEAR_PASSWORD_MSG':
+            return { ...state, passwordMsg: '', passwordError: '' };
+        case 'RESET_PASSWORD_FIELDS':
+            return { ...state, currentPassword: '', newPassword: '', confirmPassword: '' };
+        default:
+            return state;
+    }
+}
+
+const initialState: SettingsState = {
+    name: '',
+    surname: '',
+    email: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    profileMsg: '',
+    passwordMsg: '',
+    profileError: '',
+    passwordError: '',
+};
+
 const Settings = () => {
     const { saveAuth } = useAuth();
-    const [name, setName] = useState('');
-    const [surname, setSurname] = useState('');
-    const [email, setEmail] = useState('');
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [profileMsg, setProfileMsg] = useState('');
-    const [passwordMsg, setPasswordMsg] = useState('');
-    const [profileError, setProfileError] = useState('');
-    const [passwordError, setPasswordError] = useState('');
+    const [state, dispatch] = useReducer(settingsReducer, initialState);
 
     useEffect(() => {
         const load = async () => {
             try {
                 // load current profile
                 const data = await getProfile();
-                setName(data.first_name || '');
-                setSurname(data.surname || '');
-                setEmail(data.emailid || '');
+                dispatch({ type: 'LOAD_PROFILE', name: data.first_name || '', surname: data.surname || '', email: data.emailid || '' });
             } catch {}
         };
         load();
@@ -32,40 +85,35 @@ const Settings = () => {
 
     const handleProfileSave = async (e: FormEvent) => {
         e.preventDefault();
-        setProfileMsg('');
-        setProfileError('');
+        dispatch({ type: 'CLEAR_PROFILE_MSG' });
         try {
             // update profile details
-            const res = await updateUserProfile({ first_name: name, surname, emailid: email });
-            setProfileMsg(res.message || 'Profile updated!');
+            const res = await updateUserProfile({ first_name: state.name, surname: state.surname, emailid: state.email });
+            dispatch({ type: 'PROFILE_SUCCESS', message: res.message || 'Profile updated!' });
             if (res.user) {
                 saveAuth(res.user);
             }
-        } catch (err: any) {
-            setProfileError(err.message || 'Failed to update profile');
+        } catch (err) {
+            dispatch({ type: 'PROFILE_ERROR', error: (err as Error).message || 'Failed to update profile' });
         }
     };
 
     const handlePasswordChange = async (e: FormEvent) => {
         e.preventDefault();
-        setPasswordMsg('');
-        setPasswordError('');
+        dispatch({ type: 'CLEAR_PASSWORD_MSG' });
 
         // check if subbed passwords match
-        if (newPassword !== confirmPassword) {
-            setPasswordError("New passwords do not match!");
+        if (state.newPassword !== state.confirmPassword) {
+            dispatch({ type: 'PASSWORD_ERROR', error: "New passwords do not match!" });
             return;
         }
 
         try {
             // change user password
-            const res = await changePassword(currentPassword, newPassword, confirmPassword);
-            setPasswordMsg(res.message || 'Password changed!');
-            setCurrentPassword('');
-            setNewPassword('');
-            setConfirmPassword('');
-        } catch (err: any) {
-            setPasswordError(err.message || 'Failed to change password');
+            const res = await changePassword(state.currentPassword, state.newPassword, state.confirmPassword);
+            dispatch({ type: 'PASSWORD_SUCCESS', message: res.message || 'Password changed!' });
+        } catch (err) {
+            dispatch({ type: 'PASSWORD_ERROR', error: (err as Error).message || 'Failed to change password' });
         }
     };
 
@@ -134,8 +182,8 @@ const Settings = () => {
                                 <input
                                     type="text"
                                     style={inputStyle}
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
+                                    value={state.name}
+                                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'name', value: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -143,8 +191,8 @@ const Settings = () => {
                                 <input
                                     type="text"
                                     style={inputStyle}
-                                    value={surname}
-                                    onChange={(e) => setSurname(e.target.value)}
+                                    value={state.surname}
+                                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'surname', value: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -152,13 +200,13 @@ const Settings = () => {
                                 <input
                                     type="email"
                                     style={inputStyle}
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    value={state.email}
+                                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'email', value: e.target.value })}
                                 />
                             </div>
                             <button type="submit" style={buttonStyle}>Update Profile</button>
-                            {profileMsg && <p style={successStyle}>{profileMsg}</p>}
-                            {profileError && <p style={errorStyle}>{profileError}</p>}
+                            {state.profileMsg && <p style={successStyle}>{state.profileMsg}</p>}
+                            {state.profileError && <p style={errorStyle}>{state.profileError}</p>}
                         </form>
                     </div>
                     <div style={sectionStyle}>
@@ -169,8 +217,8 @@ const Settings = () => {
                                 <input
                                     type="password"
                                     style={inputStyle}
-                                    value={currentPassword}
-                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    value={state.currentPassword}
+                                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'currentPassword', value: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -178,8 +226,8 @@ const Settings = () => {
                                 <input
                                     type="password"
                                     style={inputStyle}
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    value={state.newPassword}
+                                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'newPassword', value: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -187,13 +235,13 @@ const Settings = () => {
                                 <input
                                     type="password"
                                     style={inputStyle}
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    value={state.confirmPassword}
+                                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'confirmPassword', value: e.target.value })}
                                 />
                             </div>
                             <button type="submit" style={buttonStyle}>Change Password</button>
-                            {passwordMsg && <p style={successStyle}>{passwordMsg}</p>}
-                            {passwordError && <p style={errorStyle}>{passwordError}</p>}
+                            {state.passwordMsg && <p style={successStyle}>{state.passwordMsg}</p>}
+                            {state.passwordError && <p style={errorStyle}>{state.passwordError}</p>}
                         </form>
                     </div>
                 </div>

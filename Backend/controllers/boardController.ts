@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "./authController";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
 
@@ -24,8 +25,8 @@ export const getBoards = async (req: Request, res: Response) => {
       [req.params.projectId]
     );
     res.json(rows);
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -57,8 +58,8 @@ export const createBoard = async (req: Request, res: Response) => {
       message: 'board created with default columns!',
       board: { id: boardId, name, color: color || '#3498db' }
     });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -67,23 +68,23 @@ export const deleteBoard = async (req: Request, res: Response) => {
   try {
     await pool.query('DELETE FROM boards WHERE id = ?', [req.params.boardId]);
     res.json({ message: 'board deleted!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
-export const getBoardProject = async (req: Request, res: Response): Promise<any> => {
+export const getBoardProject = async (req: AuthRequest, res: Response) => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT b.project_id, pm.role 
              FROM boards b 
              JOIN project_members pm ON b.project_id = pm.project_id 
              WHERE b.id = ? AND pm.user_id = ?`,
-      [req.params.boardId, (req as any).user?.id]
+      [req.params.boardId, req.user?.id]
     );
     if (rows.length === 0) return res.status(404).json({ message: 'board not found or access denied :/' });
-    res.json({ project_id: rows[0].project_id, currentUserRole: rows[0].role });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+    res.json({ project_id: rows[0]!.project_id, currentUserRole: rows[0]!.role });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };

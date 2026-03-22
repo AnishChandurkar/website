@@ -6,7 +6,7 @@ import { fetchAuditLogs } from '../services/api';
 interface AuditLog {
   id: number;
   task_title: string;
-  task_id: number;
+  task_id: number | null;
   event_type: string;
   old_value: string | null;
   new_value: string | null;

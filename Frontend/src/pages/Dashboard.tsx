@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useReducer, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../ui_elements/SideBar';
 import '../CSS Files/DashBoard.css';
@@ -10,33 +10,70 @@ import { useAuth } from '../context/AuthContext';
 interface ProjectData {
   id: number;
   name: string;
-  description: string;
-  status: 'In Progress' | 'Completed' | 'Planning' | 'On Hold' | 'Review';
+  description: string | null;
+  status: string;
   progress: number;
   is_starred: boolean;
   created_at: string;
   updated_at: string;
 }
 
+// state for all dashboard data
+interface DashboardState {
+  projects: ProjectData[];
+  loading: boolean;
+  error: string | null;
+  showModal: boolean;
+  editingProject: ProjectData | null;
+}
+
+// actions that can change the state
+type DashboardAction =
+  | { type: 'SET_PROJECTS'; projects: ProjectData[] }
+  | { type: 'SET_LOADING'; loading: boolean }
+  | { type: 'SET_ERROR'; error: string }
+  | { type: 'SHOW_MODAL'; show: boolean }
+  | { type: 'SET_EDITING'; project: ProjectData | null };
+
+function dashboardReducer(state: DashboardState, action: DashboardAction): DashboardState {
+  switch (action.type) {
+    case 'SET_PROJECTS':
+      return { ...state, projects: action.projects, loading: false };
+    case 'SET_LOADING':
+      return { ...state, loading: action.loading };
+    case 'SET_ERROR':
+      return { ...state, error: action.error, loading: false };
+    case 'SHOW_MODAL':
+      return { ...state, showModal: action.show };
+    case 'SET_EDITING':
+      return { ...state, editingProject: action.project };
+    default:
+      return state;
+  }
+}
+
+const initialState: DashboardState = {
+  projects: [],
+  loading: true,
+  error: null,
+  showModal: false,
+  editingProject: null,
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [projects, setProjects] = useState<ProjectData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [editingProject, setEditingProject] = useState<ProjectData | null>(null);
+  const [state, dispatch] = useReducer(dashboardReducer, initialState);
+  const { projects, loading, error, showModal, editingProject } = state;
 
   useEffect(() => {
     // fetch all projects from api on load
     const getProjects = async () => {
       try {
         const data = await fetchProjects();
-        setProjects(data);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch projects');
-      } finally {
-        setLoading(false);
+        dispatch({ type: 'SET_PROJECTS', projects: data });
+      } catch (err) {
+        dispatch({ type: 'SET_ERROR', error: (err as Error).message || 'Failed to fetch projects' });
       }
     };
     getProjects();
@@ -46,9 +83,9 @@ const Dashboard = () => {
     try {
       // archive selected project
       await archiveProject(id);
-      setProjects(projects.filter(p => p.id !== id));
-    } catch (err: any) {
-      alert(err.message);
+      dispatch({ type: 'SET_PROJECTS', projects: projects.filter(p => p.id !== id) });
+    } catch (err) {
+      alert((err as Error).message);
     }
   };
 
@@ -57,9 +94,9 @@ const Dashboard = () => {
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
         await deleteProject(id);
-        setProjects(projects.filter(p => p.id !== id));
-      } catch (err: any) {
-        alert(err.message);
+        dispatch({ type: 'SET_PROJECTS', projects: projects.filter(p => p.id !== id) });
+      } catch (err) {
+        alert((err as Error).message);
       }
     }
   };
@@ -67,9 +104,9 @@ const Dashboard = () => {
   const handleStarToggle = async (id: number, isStarred: boolean) => {
     try {
       await toggleStarProject(id, isStarred);
-      setProjects(projects.map(p => p.id === id ? { ...p, is_starred: isStarred } : p));
-    } catch (err: any) {
-      alert(err.message);
+      dispatch({ type: 'SET_PROJECTS', projects: projects.map(p => p.id === id ? { ...p, is_starred: isStarred } : p) });
+    } catch (err) {
+      alert((err as Error).message);
     }
   };
 
@@ -79,39 +116,38 @@ const Dashboard = () => {
 
   const handleUpdateProject = async (id: number, name: string, description: string, status: string, progress: number) => {
     try {
-      setLoading(true);
+      dispatch({ type: 'SET_LOADING', loading: true });
       await updateProject(id, name, description, status, progress);
       const updatedProjects = await fetchProjects();
-      setProjects(updatedProjects);
-      setEditingProject(null);
-    } catch (err: any) {
-      alert(err.message || "Something went wrong while updating project.");
-    } finally {
-      setLoading(false);
+      dispatch({ type: 'SET_PROJECTS', projects: updatedProjects });
+      dispatch({ type: 'SET_EDITING', project: null });
+    } catch (err) {
+      alert((err as Error).message || "Something went wrong while updating project.");
+      dispatch({ type: 'SET_LOADING', loading: false });
     }
   };
 
   const handleEdit = (id: number) => {
     const project = projects.find(p => p.id === id);
     if (project) {
-      setEditingProject(project);
+      dispatch({ type: 'SET_EDITING', project: project });
     }
   };
 
   const handleCreateProject = async (name: string, description: string, status: string) => {
     try {
-      setLoading(true);
+      dispatch({ type: 'SET_LOADING', loading: true });
       // create new project and refresh list
       await createProject(name, description, status);
       const updatedProjects = await fetchProjects();
-      setProjects(updatedProjects);
-      setShowModal(false);
-    } catch (err: any) {
-      alert(err.message || "Something went wrong while creating project.");
-    } finally {
-      setLoading(false);
+      dispatch({ type: 'SET_PROJECTS', projects: updatedProjects });
+      dispatch({ type: 'SHOW_MODAL', show: false });
+    } catch (err) {
+      alert((err as Error).message || "Something went wrong while creating project.");
+      dispatch({ type: 'SET_LOADING', loading: false });
     }
   };
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -203,7 +239,7 @@ const Dashboard = () => {
           <div className="action-area">
             {user?.emailid === 'admin@workspace.com' && (
               <button 
-                onClick={() => setShowModal(true)}
+                onClick={() => dispatch({ type: 'SHOW_MODAL', show: true })}
                 style={{ padding: '10px 15px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem' }}>
                 New Project
               </button>
@@ -242,13 +278,13 @@ const Dashboard = () => {
       </div>
       {showModal && (
         <NewProjectModal 
-          onClose={() => setShowModal(false)}
+          onClose={() => dispatch({ type: 'SHOW_MODAL', show: false })}
           onSave={handleCreateProject}
         />
       )}
       {editingProject && (
         <NewProjectModal 
-          onClose={() => setEditingProject(null)}
+          onClose={() => dispatch({ type: 'SET_EDITING', project: null })}
           onUpdate={handleUpdateProject}
           initialData={editingProject}
         />

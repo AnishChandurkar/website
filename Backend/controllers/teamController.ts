@@ -39,8 +39,8 @@ export const getMembers = async (req: Request, res: Response) => {
       [req.params.projectId]
     );
     res.json(rows);
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
@@ -76,7 +76,7 @@ export const addMember = async (req: AuthRequest, res: Response) => {
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'user is already a member of this project :/' });
     }
-    res.status(500).json({ message: 'something went wrong :(', error: err.message });
+    res.status(500).json({ message: 'something went wrong :(', error: (err as Error).message });
   }
 };
 
@@ -88,13 +88,13 @@ export const removeMember = async (req: Request, res: Response) => {
       [req.params.projectId, req.params.userId]
     );
     res.json({ message: 'member removed!!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
 // update a member's role in the project
-export const updateMemberRole = async (req: AuthRequest, res: Response): Promise<any> => {
+export const updateMemberRole = async (req: AuthRequest, res: Response) => {
   try {
     const { role } = req.body;
     const validRoles = ['Project Admin', 'Project Member', 'Project Viewer'];
@@ -132,8 +132,8 @@ export const updateMemberRole = async (req: AuthRequest, res: Response): Promise
       return res.status(404).json({ message: 'user is not a member of this project :(' });
     }
 
-    const requester = requesterRows[0];
-    const target = targetRows[0];
+    const requester = requesterRows[0]!;
+    const target = targetRows[0]!;
 
     // global admins are completely untouchable by anyone
     if (target.global_role === 'Global Admin') {
@@ -153,13 +153,13 @@ export const updateMemberRole = async (req: AuthRequest, res: Response): Promise
     );
 
     res.json({ message: 'role updated!!' });
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };
 
 // fetch all unique teammates across all projects for the user
-export const getMyTeammates = async (req: AuthRequest, res: Response): Promise<any> => {
+export const getMyTeammates = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "unauthorized" });
 
@@ -174,7 +174,7 @@ export const getMyTeammates = async (req: AuthRequest, res: Response): Promise<a
     );
 
     res.json(rows);
-  } catch (error: any) {
-    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: 'something went wrong :(', error: (error as Error).message });
   }
 };

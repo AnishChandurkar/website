@@ -28,8 +28,8 @@ export const getProjectWorkflows = async (req: Request, res: Response) => {
         }));
 
         res.json(formatted);
-    } catch (error: any) {
-        res.status(500).json({ message: "failed to get workflows", error: error.message });
+    } catch (error) {
+        res.status(500).json({ message: "failed to get workflows", error: (error as Error).message });
     }
 };
 
@@ -48,11 +48,11 @@ export const addWorkflow = async (req: Request, res: Response) => {
         );
 
         res.status(201).json({ message: "workflow added", id: result.insertId });
-    } catch (error: any) {
-        if (error.code === 'ER_DUP_ENTRY') {
+    } catch (error) {
+        if ((error as { code?: string }).code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ message: "this workflow transition already exists :/" });
         }
-        res.status(500).json({ message: "failed to add workflow", error: error.message });
+        res.status(500).json({ message: "failed to add workflow", error: (error as Error).message });
     }
 };
 
@@ -61,7 +61,7 @@ export const deleteWorkflow = async (req: Request, res: Response) => {
         const { workflowId } = req.params;
         await pool.query("DELETE FROM allowed_workflows WHERE id = ?", [workflowId]);
         res.json({ message: "workflow deleted!" });
-    } catch (error: any) {
-        res.status(500).json({ message: "failed to delete workflow", error: error.message });
+    } catch (error) {
+        res.status(500).json({ message: "failed to delete workflow", error: (error as Error).message });
     }
 };

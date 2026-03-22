@@ -88,8 +88,8 @@ export const register = async (req: Request, res: Response) => {
       message: "User registered successfully",
       user: { id: userId, first_name, surname, emailid },
     });
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: (error as Error).message });
   }
 };
 
@@ -135,8 +135,8 @@ export const login = async (req: Request, res: Response) => {
         emailid: user.emailid,
       },
     });
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: (error as Error).message });
   }
 };
 
@@ -207,8 +207,8 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
     }
 
     res.json(users[0]);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: (error as Error).message });
   }
 };
 
@@ -229,12 +229,12 @@ export const updateProfilePicture = async (req: AuthRequest, res: Response) => {
     );
 
     res.json({ message: "Profile picture updated", avatar_data: avatar });
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: (error as Error).message });
   }
 };
 
-export const updateProfile = async (req: AuthRequest, res: Response): Promise<any> => {
+export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Not authorized to do this" });
 
@@ -251,7 +251,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<an
     }
 
     const sets: string[] = [];
-    const values: any[] = [];
+    const values: (string | number)[] = [];
 
     if (first_name !== undefined) { sets.push("first_name = ?"); values.push(first_name); }
     if (surname !== undefined) { sets.push("surname = ?"); values.push(surname); }
@@ -268,12 +268,12 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<an
     );
 
     res.json({ message: "Profile updated", user: updated[0] });
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: (error as Error).message });
   }
 };
 
-export const changePassword = async (req: AuthRequest, res: Response): Promise<any> => {
+export const changePassword = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
@@ -298,7 +298,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<a
 
     if (users.length === 0) return res.status(404).json({ message: "User not found" });
 
-    const isMatch = await bcrypt.compare(currentPassword, users[0].password_hash);
+    const isMatch = await bcrypt.compare(currentPassword, users[0]!.password_hash);
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
@@ -309,7 +309,7 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<a
     await pool.query("UPDATE users SET password_hash = ? WHERE id = ?", [newHash, req.user.id]);
 
     res.json({ message: "Password changed successfully" });
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error", error: error.message });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: (error as Error).message });
   }
 };

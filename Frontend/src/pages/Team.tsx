@@ -1,4 +1,4 @@
-import { useState, useReducer, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../ui_elements/SideBar';
 import '../CSS Files/DashBoard.css';
 import MemberModal from '../ui_elements/MemberModal';
@@ -13,27 +13,9 @@ interface TeamMember {
   avatar_data?: string;
 }
 
-// state for the search bar
-interface LookUpData {
-  query: string;
-}
-
-// actions for the search bar
-type LookUpActions = { type: 'SET_QUERY'; payload: string };
-
-// handle search state changes
-function lookUpReducer(state: LookUpData, action: LookUpActions): LookUpData {
-  switch (action.type) {
-    case 'SET_QUERY': return { ...state, query: action.payload };
-    default: return state;
-  }
-}
-
 const Team = () => {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  // using a reducer here just to keep things organized
-  const [searchState, runSearch] = useReducer(lookUpReducer, { query: '' });
-  const search = searchState.query;
+  const [search, setSearch] = useState('');
 
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +78,7 @@ const Team = () => {
             type="text"
             placeholder="Search team members by name or email"
             value={search}
-            onChange={(e) => runSearch({ type: 'SET_QUERY', payload: e.target.value })}
+            onChange={(e) => setSearch(e.target.value)}
             style={{
               flex: 1,
               padding: '10px 14px',
