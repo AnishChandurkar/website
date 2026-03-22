@@ -18,6 +18,15 @@ interface ChildTask {
   column_name?: string;
 }
 
+interface TaskItem {
+  id: number;
+  title: string;
+  type: string;
+  parent_id: number | null;
+  column_name?: string;
+  description?: string;
+}
+
 const Stories = () => {
   const { boardId } = useParams();
   const navigate = useNavigate();
@@ -39,17 +48,34 @@ const Stories = () => {
     try {
       if (boardId) {
         // load board tasks and stories
-        const fetchedTasks = await fetchTasks(Number(boardId));
-        const allStories = fetchedTasks.filter((t: any) => t.type === 'Story');
-        const allChildTasks = fetchedTasks.filter((t: any) => t.type !== 'Story' && t.parent_id !== null);
-        const allAvailableTasks = fetchedTasks.filter((t: any) => t.type !== 'Story' && t.parent_id === null);
+        const fetchedTasks = await fetchTasks(Number(boardId)) as TaskItem[];
+        const allStories = fetchedTasks.filter((t: TaskItem) => t.type === 'Story').map((t: TaskItem) => ({
+          id: t.id,
+          title: t.title,
+          description: t.description || '',
+          column_name: t.column_name
+        } as Story));
+        const allChildTasks = fetchedTasks.filter((t: TaskItem) => t.type !== 'Story' && t.parent_id !== null).map((t: TaskItem) => ({
+          id: t.id,
+          parent_id: t.parent_id,
+          title: t.title,
+          type: t.type,
+          column_name: t.column_name
+        } as ChildTask));
+        const allAvailableTasks = fetchedTasks.filter((t: TaskItem) => t.type !== 'Story' && t.parent_id === null).map((t: TaskItem) => ({
+          id: t.id,
+          parent_id: t.parent_id,
+          title: t.title,
+          type: t.type,
+          column_name: t.column_name
+        } as ChildTask));
 
         setStories(allStories);
         setChildTasks(allChildTasks);
         setAvailableBoardTasks(allAvailableTasks);
 
         if (selectedStory) {
-          const updated = allStories.find((s: any) => s.id === selectedStory.id);
+          const updated = allStories.find((s) => s.id === selectedStory.id);
           if (updated) setSelectedStory(updated);
         }
       }

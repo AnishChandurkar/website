@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const userData = await getProfile();
                 dispatch({ type: 'SET_USER', payload: userData });
             } catch (error) {
-                console.log('user not logged in!?!?! or session expired');
+                // session expired or not logged in
                 dispatch({ type: 'SET_USER', payload: null });
             }
         };

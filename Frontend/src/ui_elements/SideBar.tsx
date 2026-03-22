@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { fetchNotifications } from '../services/api';
 
+ interface Notification {
+    id: number;
+    is_read: boolean;
+}
+
 const Sidebar = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -10,8 +15,8 @@ const Sidebar = () => {
     const checkUnread = async () => {
         try {
             // check for unread notifications
-            const data = await fetchNotifications();
-            setHasUnread(data.some((n: any) => !n.is_read));
+            const data = await fetchNotifications() as Notification[];
+            setHasUnread(data.some((n) => !n.is_read));
         } catch {}
     };
 

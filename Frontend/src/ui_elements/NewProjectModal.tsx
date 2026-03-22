@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+type ProjectStatus = 'In Progress' | 'Completed' | 'Planning' | 'On Hold' | 'Review';
+
 interface NewProjectModalProps {
   onClose: () => void;
   onSave?: (name: string, description: string, status: string) => void;
@@ -8,7 +10,7 @@ interface NewProjectModalProps {
     id: number;
     name: string;
     description: string;
-    status: 'In Progress' | 'Completed' | 'Planning' | 'On Hold' | 'Review';
+    status: ProjectStatus;
     progress: number;
   };
 }
@@ -16,7 +18,7 @@ interface NewProjectModalProps {
 const NewProjectModal = ({ onClose, onSave, onUpdate, initialData }: NewProjectModalProps) => {
   const [name, setName] = useState(initialData?.name || '');
   const [description, setDescription] = useState(initialData?.description || '');
-  const [status, setStatus] = useState<'In Progress' | 'Completed' | 'Planning' | 'On Hold' | 'Review'>(initialData?.status || 'Planning');
+  const [status, setStatus] = useState<ProjectStatus>(initialData?.status || 'Planning');
   const [progress, setProgress] = useState(initialData?.progress || 0);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -65,7 +67,7 @@ const NewProjectModal = ({ onClose, onSave, onUpdate, initialData }: NewProjectM
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#333333' }}>Status</label>
             <select 
               value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
+              onChange={(e) => setStatus(e.target.value as ProjectStatus)}
               style={{ width: '100%', padding: '15px', borderRadius: '7px', border: '1px solid #cccccc', color: '#000000', boxSizing: 'border-box', fontSize: '1.2rem' }}
             >
               <option value="Planning">Planning</option>

@@ -9,6 +9,11 @@ interface Workflow {
   target: string;
 }
 
+interface Column {
+  id: number;
+  name: string;
+}
+
 const AllowedWorkflows = () => {
   const { boardId } = useParams();
   const navigate = useNavigate();
@@ -17,7 +22,7 @@ const AllowedWorkflows = () => {
   const [sourceColumn, setSourceColumn] = useState<string>('');
   const [targetColumn, setTargetColumn] = useState<string>('');
   const [projectId, setProjectId] = useState<number | null>(null);
-  const [columns, setColumns] = useState<any[]>([]);
+  const [columns, setColumns] = useState<Column[]>([]);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
 
   const isActive = (path: string) => location.pathname === path;
@@ -35,14 +40,14 @@ const AllowedWorkflows = () => {
         const cols = await fetchColumns(Number(boardId));
         const wfs = await fetchProjectWorkflows(boardInfo.project_id);
 
-        setColumns(Array.isArray(cols) ? cols : []);
-        setWorkflows(Array.isArray(wfs) ? wfs : []);
-      } catch (err: any) {
+        setColumns(Array.isArray(cols) ? cols as Column[] : []);
+        setWorkflows(Array.isArray(wfs) ? wfs as Workflow[] : []);
+      } catch (err: unknown) {
         console.error("failed to init allowed workflows:", err);
         // even if workflows fail, fetch columns for dropdowns
         try {
           const cols = await fetchColumns(Number(boardId));
-          setColumns(Array.isArray(cols) ? cols : []);
+          setColumns(Array.isArray(cols) ? cols as Column[] : []);
         } catch { }
       }
     };
