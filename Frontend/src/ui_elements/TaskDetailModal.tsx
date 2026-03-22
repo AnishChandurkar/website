@@ -470,9 +470,9 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
               <select
                 className={styles.fieldSelect}
                 value={type}
-                onChange={e => { setType(e.target.value as 'Story' | 'Task' | 'Bug'); markDirty(); }}
+                onChange={e => { setType(e.target.value as 'Task' | 'Bug'); markDirty(); }}
               >
-                <option value="Story">Story</option>
+                {type === 'Story' && <option value="Story">Story</option>}
                 <option value="Task">Task</option>
                 <option value="Bug">Bug</option>
               </select>

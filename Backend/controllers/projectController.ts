@@ -12,7 +12,6 @@ interface ProjectRow extends RowDataPacket {
   status: string;
   progress: number;
   owner_id: number;
-  is_archived: boolean;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -48,8 +47,9 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
        FROM projects p 
        JOIN project_members pm ON p.id = pm.project_id 
        LEFT JOIN user_starred_projects usp ON p.id = usp.project_id AND usp.user_id = ?
-       WHERE pm.user_id = ? AND p.is_archived = FALSE`,
-      [req.user.id, req.user.id],
+       LEFT JOIN user_archived_projects uap ON p.id = uap.project_id AND uap.user_id = ?
+       WHERE pm.user_id = ? AND uap.user_id IS NULL`,
+      [req.user.id, req.user.id, req.user.id],
     );
     res.json(rows);
   } catch (error: any) {
@@ -69,7 +69,7 @@ export const getProjectById = async (req: AuthRequest, res: Response) => {
     }
 
     const [boards] = await pool.query<BoardRow[]>(
-      `SELECT b.*, (SELECT COUNT(*) FROM tasks t WHERE t.board_id = b.id) AS task_count
+      `SELECT b.*, (SELECT COUNT(*) FROM tasks t WHERE t.board_id = b.id AND t.closed_at IS NULL) AS task_count
        FROM boards b WHERE b.project_id = ?`,
       [req.params.id]
     );
@@ -102,8 +102,8 @@ export const getArchivedProjects = async (req: AuthRequest, res: Response) => {
     }
 
     const [rows] = await pool.query<ProjectRow[]>(
-      "SELECT p.* FROM projects p JOIN project_members pm ON p.id = pm.project_id WHERE pm.user_id = ? AND p.is_archived = TRUE",
-      [req.user.id],
+      "SELECT p.* FROM projects p JOIN project_members pm ON p.id = pm.project_id JOIN user_archived_projects uap ON p.id = uap.project_id WHERE pm.user_id = ? AND uap.user_id = ?",
+      [req.user.id, req.user.id],
     );
     res.json(rows);
   } catch (error: any) {
@@ -160,11 +160,24 @@ export const updateProject = async (req: AuthRequest, res: Response) => {
 
 export const archiveProject = async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const { is_archived } = req.body;
-    await pool.query("UPDATE projects SET is_archived = ? WHERE id = ?", [
-      is_archived,
-      req.params.id,
-    ]);
+    const projectId = req.params.id;
+    const userId = req.user.id;
+
+    if (is_archived) {
+      await pool.query(
+        "INSERT IGNORE INTO user_archived_projects (user_id, project_id) VALUES (?, ?)",
+        [userId, projectId]
+      );
+    } else {
+      await pool.query(
+        "DELETE FROM user_archived_projects WHERE user_id = ? AND project_id = ?",
+        [userId, projectId]
+      );
+    }
     res.json({
       message: is_archived ? "Project archived" : "Project restored",
     });

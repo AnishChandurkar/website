@@ -19,7 +19,7 @@ interface DefaultColumn {
 export const getBoards = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query<BoardRow[]>(
-      'SELECT b.*, (SELECT COUNT(*) FROM tasks t WHERE t.board_id = b.id) AS task_count FROM boards b WHERE b.project_id = ?',
+      'SELECT b.*, (SELECT COUNT(*) FROM tasks t WHERE t.board_id = b.id AND t.closed_at IS NULL) AS task_count FROM boards b WHERE b.project_id = ?',
       [req.params.projectId]
     );
     res.json(rows);

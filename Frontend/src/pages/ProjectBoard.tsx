@@ -455,7 +455,7 @@ const ProjectBoard = () => {
                     />
                     <select
                       value={newType}
-                      onChange={e => setNewType(e.target.value as 'Story' | 'Task' | 'Bug')}
+                      onChange={e => setNewType(e.target.value as 'Task' | 'Bug')}
                       className={styles.addFormSelect}
                     >
                       <option value="Task">Task</option>

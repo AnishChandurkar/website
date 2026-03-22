@@ -131,7 +131,7 @@ export const reorderColumns = async (req: Request, res: Response) => {
 export const deleteColumn = async (req: Request, res: Response) => {
   try {
     const [tasks] = await pool.query<TaskCountRow[]>(
-      'SELECT COUNT(*) AS count FROM tasks WHERE column_id = ?',
+      "SELECT COUNT(*) AS count FROM tasks WHERE column_id = ? AND closed_at IS NULL AND type != 'Story'",
       [req.params.columnId]
     );
     const firstTask = tasks[0];

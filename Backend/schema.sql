@@ -31,7 +31,6 @@ CREATE TABLE IF NOT EXISTS projects (
     description TEXT,
     status ENUM('In Progress', 'Completed', 'Planning', 'On Hold', 'Review') DEFAULT 'Planning',
     progress INT DEFAULT 0,
-    is_archived BOOLEAN DEFAULT FALSE,
     owner_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -46,6 +45,16 @@ CREATE TABLE IF NOT EXISTS project_members (
     PRIMARY KEY (project_id, user_id),
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- User Archived Projects Table 
+CREATE TABLE IF NOT EXISTS user_archived_projects (
+    user_id INT NOT NULL,
+    project_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, project_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
 
 -- Boards Table (References Projects)
