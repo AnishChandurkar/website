@@ -10,7 +10,7 @@
     "moduleResolution": "node",
     "target": "esnext",
     "allowJs": true,
-    "types": [],
+    "types": ["jest", "node"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
