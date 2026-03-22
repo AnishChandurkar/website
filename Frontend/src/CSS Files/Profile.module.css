@@ -10,7 +10,7 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  font-family: 'Segoe UI', "Monaco", "Courier New", monospace;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .card {

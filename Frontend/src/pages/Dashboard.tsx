@@ -204,7 +204,7 @@ const Dashboard = () => {
             {user?.emailid === 'admin@workspace.com' && (
               <button 
                 onClick={() => setShowModal(true)}
-                style={{ padding: '10px 15px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                style={{ padding: '10px 15px', backgroundColor: '#007bff', color: '#ffffff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem' }}>
                 New Project
               </button>
             )}
