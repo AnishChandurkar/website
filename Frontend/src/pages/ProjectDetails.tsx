@@ -194,9 +194,14 @@ const ProjectDetails = () => {
               const isTargetGlobalAdmin = member.global_role === 'Global Admin';
               const isTargetProjectAdmin = member.role === 'Project Admin';
 
-              const canEditRole =
-                isProjectAdmin &&
-                !isSelf &&
+              // ui permission checks
+              // project admins can see the edit dropdown
+              // cannot edit self
+              // cannot edit a global admin
+              // project admins cannot demote other project admins (only global admins can)
+              const canEditRole = 
+                isProjectAdmin && 
+                !isSelf && 
                 !isTargetGlobalAdmin &&
                 (!isTargetProjectAdmin || isGlobalAdmin);
 

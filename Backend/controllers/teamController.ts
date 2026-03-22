@@ -98,15 +98,19 @@ export const updateMemberRole = async (req: AuthRequest, res: Response): Promise
   try {
     const { role } = req.body;
     const validRoles = ['Project Admin', 'Project Member', 'Project Viewer'];
+    
     if (!validRoles.includes(role)) {
       return res.status(400).json({ message: 'invalid role' });
     }
 
-    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    if (!req.user) return res.status(401).json({ message: 'unauthorized' });
+
+    // preventing users from messing with their own permissions
     if (req.user.id.toString() === req.params.userId) {
-      return res.status(403).json({ message: 'You cannot change your own role' });
+      return res.status(403).json({ message: 'you cannot change your own role :/' });
     }
 
+    // pull whatever roles the person making the request has internally and globally
     const [requesterRows] = await pool.query<RoleCheckRow[]>(
       `SELECT u.global_role, pm.role as project_role 
        FROM users u 
@@ -115,6 +119,7 @@ export const updateMemberRole = async (req: AuthRequest, res: Response): Promise
       [req.user.id, req.params.projectId]
     );
 
+    // do the same thing for the person receiving the role change
     const [targetRows] = await pool.query<RoleCheckRow[]>(
       `SELECT u.global_role, pm.role as project_role 
        FROM users u 
@@ -124,19 +129,24 @@ export const updateMemberRole = async (req: AuthRequest, res: Response): Promise
     );
 
     if (targetRows.length === 0) {
-      return res.status(404).json({ message: 'User is not a member of this project' });
+      return res.status(404).json({ message: 'user is not a member of this project :(' });
     }
 
     const requester = requesterRows[0];
     const target = targetRows[0];
 
+    // global admins are completely untouchable by anyone
     if (target.global_role === 'Global Admin') {
-      return res.status(403).json({ message: 'You cannot change the role of a Global Admin' });
+      return res.status(403).json({ message: 'you cannot change the role of a global admin :/' });
     }
+    
+    // a regular project admin is not allowed to change the role of another project admin
+    // they can only be changed by global admins 
     if (target.project_role === 'Project Admin' && requester.global_role !== 'Global Admin') {
-      return res.status(403).json({ message: 'Project Admins cannot change the role of other Project Admins' });
+      return res.status(403).json({ message: 'project admins cannot change the role of other project admins :/' });
     }
 
+    // all checks passed, fire off the update query
     await pool.query(
       'UPDATE project_members SET role = ? WHERE project_id = ? AND user_id = ?',
       [role, req.params.projectId, req.params.userId]
@@ -148,9 +158,10 @@ export const updateMemberRole = async (req: AuthRequest, res: Response): Promise
   }
 };
 
+// fetch all unique teammates across all projects for the user
 export const getMyTeammates = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
-    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    if (!req.user) return res.status(401).json({ message: "unauthorized" });
 
     const [rows] = await pool.query<MemberRow[]>(
       `SELECT DISTINCT u.id, u.first_name, u.surname, u.emailid, u.profile_url
