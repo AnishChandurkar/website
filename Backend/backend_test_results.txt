@@ -1,0 +1,105 @@
+
+> backend@1.0.0 test
+> jest --runInBand --detectOpenHandles
+
+  console.log
+    [dotenv@17.3.1] injecting env (7) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+  console.log
+    [dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+
+      at _log (node_modules/dotenv/lib/main.js:139:11)
+
+PASS tests/api.test.ts
+  Auth Endpoints
+    ✓ should register the admin user (110 ms)
+    ✓ should register a normal user (57 ms)
+    ✓ should register a viewer user (56 ms)
+    ✓ should reject duplicate email registration (7 ms)
+    ✓ should login admin and set cookies (55 ms)
+    ✓ should login normal user (55 ms)
+    ✓ should login viewer user (58 ms)
+    ✓ should reject login with wrong password (66 ms)
+    ✓ should reject login with non-existent email (4 ms)
+    ✓ should get profile when authenticated (4 ms)
+    ✓ should reject profile without auth (2 ms)
+    ✓ should logout successfully (131 ms)
+  Project Endpoints
+    ✓ should allow Global Admin to create a project (9 ms)
+    ✓ should reject project creation by normal user (4 ms)
+    ✓ should get all projects for the admin (4 ms)
+    ✓ should get project by ID with boards and members (6 ms)
+    ✓ should update a project (7 ms)
+    ✓ should toggle star (per-user) (5 ms)
+    ✓ should archive project (per-user) (3 ms)
+    ✓ should show archived project in archived list (4 ms)
+    ✓ should restore (unarchive) project (6 ms)
+    ✓ should reject delete by non-global-admin (9 ms)
+  Team Endpoints
+    ✓ should get project members (4 ms)
+    ✓ should add a viewer member to the project (5 ms)
+    ✓ should reject adding non-existent user (3 ms)
+    ✓ should reject duplicate member (3 ms)
+    ✓ should remove a member from the project (3 ms)
+  Board Endpoints
+    ✓ should create a board (admin only) (8 ms)
+    ✓ should get all boards for the project (6 ms)
+    ✓ should reject board creation by non-admin (3 ms)
+  Column Endpoints
+    ✓ should get columns for the board (default 4) (3 ms)
+    ✓ should create a new column (admin only) (5 ms)
+    ✓ should rename a column (8 ms)
+    ✓ should update WIP limit (4 ms)
+    ✓ should reorder columns (6 ms)
+    ✓ should delete an empty column (10 ms)
+  Task Endpoints
+    ✓ should create a task (7 ms)
+    ✓ should get all tasks for the board (4 ms)
+    ✓ should get a single task by ID (4 ms)
+    ✓ should update task fields (7 ms)
+    ✓ should move a task to adjacent column (6 ms)
+    ✓ should block moving task that skips columns without workflow (5 ms)
+    ✓ should prevent assigning task to Project Viewer on create (4 ms)
+    ✓ should prevent Project Viewer from creating tasks (3 ms)
+    ✓ should create a Story (5 ms)
+    ✓ should reject Story with parent_id (3 ms)
+    ✓ should prevent moving a Story directly (3 ms)
+    ✓ should get child tasks of a story (3 ms)
+    ✓ should re-sync all board stories (5 ms)
+    ✓ should prevent closing a task not in final column (4 ms)
+    ✓ should allow closing a task in final column (6 ms)
+    ✓ should delete a task (9 ms)
+  WIP Limit Enforcement
+    ✓ should enforce WIP limit on task creation (12 ms)
+    ✓ should NOT count Stories toward WIP limit (10 ms)
+    ✓ should reject lowering WIP below current active task count (12 ms)
+    ✓ should reject deleting column with active tasks (2 ms)
+  Comment Endpoints
+    ✓ should add a comment to a task (5 ms)
+    ✓ should get comments for a task (3 ms)
+    ✓ should edit own comment (4 ms)
+    ✓ should reject editing comment by another user (6 ms)
+    ✓ should delete own comment (4 ms)
+  Notification Endpoints
+    ✓ should create a notification (3 ms)
+    ✓ should get notifications for the user (3 ms)
+    ✓ should mark a notification as read (3 ms)
+    ✓ should mark all notifications as read (2 ms)
+    ✓ should delete a notification (2 ms)
+  Workflow Endpoints
+    ✓ should get allowed workflows for project (3 ms)
+    ✓ should add an allowed workflow (admin only) (3 ms)
+    ✓ should reject adding duplicate workflow (3 ms)
+    ✓ should retrieve workflow and delete it (5 ms)
+  Audit and Profile Endpoints
+    ✓ should get audit logs for the board (4 ms)
+    ✓ should update profile avatar (3 ms)
+    ✓ should update profile password (211 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       73 passed, 73 total
+Snapshots:   0 total
+Time:        1.482 s, estimated 2 s
+Ran all test suites.
