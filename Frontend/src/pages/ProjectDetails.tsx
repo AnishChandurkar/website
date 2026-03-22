@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useReducer, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Sidebar from '../ui_elements/SideBar';
 import styles from '../CSS Files/ProjectDetails.module.css';
@@ -43,8 +43,27 @@ const ProjectDetails = () => {
   const [project, setProject] = useState<ProjectFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAddBoard, setShowAddBoard] = useState(false);
-  const [showInvite, setShowInvite] = useState(false);
+
+  // keep track of which popup is open
+  interface ViewStates {
+    addBoard: boolean;
+    invite: boolean;
+  }
+  // just simple open/close actions
+  type PopupActions = { type: 'SWITCH_BOARD'; payload: boolean } | { type: 'SWITCH_INVITE'; payload: boolean };
+
+  // using a reducer to manage visibility of different modals
+  function viewReducer(state: ViewStates, action: PopupActions): ViewStates {
+    switch (action.type) {
+      case 'SWITCH_BOARD': return { ...state, addBoard: action.payload };
+      case 'SWITCH_INVITE': return { ...state, invite: action.payload };
+      default: return state;
+    }
+  }
+
+  const [popups, setPopup] = useReducer(viewReducer, { addBoard: false, invite: false });
+  const { addBoard: showAddBoard, invite: showInvite } = popups;
+
 
   const loadProject = async () => {
     try {
@@ -67,7 +86,7 @@ const ProjectDetails = () => {
       // create new board in project
       await createBoard(Number(projectId), boardName);
       await loadProject();
-      setShowAddBoard(false);
+      setPopup({ type: 'SWITCH_BOARD', payload: false });
     } catch (err: any) {
       alert(err.message || 'Failed to create board');
     }
@@ -78,7 +97,7 @@ const ProjectDetails = () => {
       // invite member to project
       await inviteMember(Number(projectId), email, role);
       await loadProject();
-      setShowInvite(false);
+      setPopup({ type: 'SWITCH_INVITE', payload: false });
     } catch (err: any) {
       alert(err.message || 'Failed to invite member');
     }
@@ -170,13 +189,13 @@ const ProjectDetails = () => {
           <div className={styles.actionButtons}>
             <button
               className={styles.inviteBtn}
-              onClick={() => setShowInvite(true)}
+              onClick={() => setPopup({ type: 'SWITCH_INVITE', payload: true })}
             >
               + Invite People
             </button>
             <button
               className={styles.newBoardBtn}
-              onClick={() => setShowAddBoard(true)}
+              onClick={() => setPopup({ type: 'SWITCH_BOARD', payload: true })}
             >
               + New Board
             </button>
@@ -199,9 +218,9 @@ const ProjectDetails = () => {
               // cannot edit self
               // cannot edit a global admin
               // project admins cannot demote other project admins (only global admins can)
-              const canEditRole = 
-                isProjectAdmin && 
-                !isSelf && 
+              const canEditRole =
+                isProjectAdmin &&
+                !isSelf &&
                 !isTargetGlobalAdmin &&
                 (!isTargetProjectAdmin || isGlobalAdmin);
 
@@ -240,7 +259,7 @@ const ProjectDetails = () => {
         <div className={styles.grid}>
           <div
             className={`${styles.card} ${styles.createCard}`}
-            onClick={() => setShowAddBoard(true)}
+            onClick={() => setPopup({ type: 'SWITCH_BOARD', payload: true })}
           >
             <div className={styles.plusIcon}>+</div>
             <span>Create New Board</span>
@@ -270,13 +289,13 @@ const ProjectDetails = () => {
 
         {showAddBoard && (
           <AddBoardModal
-            onClose={() => setShowAddBoard(false)}
+            onClose={() => setPopup({ type: 'SWITCH_BOARD', payload: false })}
             onSave={handleAddBoard}
           />
         )}
         {showInvite && (
           <InviteMemberModal
-            onClose={() => setShowInvite(false)}
+            onClose={() => setPopup({ type: 'SWITCH_INVITE', payload: false })}
             onInvite={handleInvite}
           />
         )}

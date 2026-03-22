@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type DragEvent } from 'react';
+import { useState, useReducer, useEffect, useCallback, type DragEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import styles from '../CSS Files/ProjectBoard.module.css';
 import {
@@ -57,11 +57,44 @@ const ProjectBoard = () => {
   const [projectId, setProjectId] = useState<number | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [allowedWorkflows, setAllowedWorkflows] = useState<{ from_column_id: number, to_column_id: number }[]>([]);
+  // used to highlight which column to drop task into
   const [dragOverCol, setDragOverCol] = useState<number | null>(null);
-  const [filterType, setFilterType] = useState<string>('ALL');
-  const [filterPriority, setFilterPriority] = useState<string>('ALL');
-  const [filterAssignee, setFilterAssignee] = useState<string>('ALL');
-  const [searchQuery, setSearchQuery] = useState('');
+  
+  // handle searching and filtering logic here
+  interface TaskFilters {
+    type: string;
+    priority: string;
+    assignee: string;
+    search: string;
+  }
+
+  type BoardActions =
+    | { type: 'SET_TYPE', payload: string }
+    | { type: 'SET_PRIORITY', payload: string }
+    | { type: 'SET_ASSIGNEE', payload: string }
+    | { type: 'SET_SEARCH', payload: string };
+
+  const initialFilterState: TaskFilters = {
+    type: 'ALL',
+    priority: 'ALL',
+    assignee: 'ALL',
+    search: ''
+  };
+
+  // better to use reducer for multiple filter inputs
+  function filterReducer(state: TaskFilters, action: BoardActions): TaskFilters {
+    switch (action.type) {
+      case 'SET_TYPE': return { ...state, type: action.payload };
+      case 'SET_PRIORITY': return { ...state, priority: action.payload };
+      case 'SET_ASSIGNEE': return { ...state, assignee: action.payload };
+      case 'SET_SEARCH': return { ...state, search: action.payload };
+      default: return state;
+    }
+  }
+
+  const [filters, updateFilters] = useReducer(filterReducer, initialFilterState);
+  const { type: filterType, priority: filterPriority, assignee: filterAssignee, search: searchQuery } = filters;
+
   const [showAddTask, setShowAddTask] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const [newType, setNewType] = useState<'Story' | 'Task' | 'Bug'>('Task');
@@ -83,7 +116,7 @@ const ProjectBoard = () => {
       // fetch both columns and tasks from the backend
       const colsData = await fetchColumns(Number(boardId));
       const tasksData = await fetchTasks(Number(boardId));
-      
+
       setColumns(colsData);
       setTasks(tasksData);
     } catch (err) {
@@ -105,7 +138,7 @@ const ProjectBoard = () => {
           // fetch team members and workflows separately
           const membersData = await fetchTeamMembers(data.project_id);
           const workflowsData = await fetchProjectWorkflows(data.project_id);
-          
+
           setMembers(membersData);
           setAllowedWorkflows(workflowsData);
         }
@@ -138,11 +171,11 @@ const ProjectBoard = () => {
   const handleDrop = async (e: DragEvent<HTMLDivElement>, targetColId: number) => {
     e.preventDefault();
     setDragOverCol(null);
-    
+
     // get the task that was dragged
     const taskId = parseInt(e.dataTransfer.getData('text/plain'));
     const task = tasks.find(t => t.id === taskId);
-    
+
     // if task is not found or already in the target column, do nothing
     if (!task || task.column_id === targetColId) return;
 
@@ -154,7 +187,7 @@ const ProjectBoard = () => {
     if (sourceIdx !== -1 && targetIdx !== -1) {
       const distance = Math.abs(targetIdx - sourceIdx);
       if (distance > 1) {
-        
+
         // check if this jump is allowed
         const isAllowed = allowedWorkflows.find(
           w => w.from_column_id === task.column_id && w.to_column_id === targetColId
@@ -169,7 +202,7 @@ const ProjectBoard = () => {
     // save previous state in case api fails
     const prev = [...tasks];
     setTasks(ts => ts.map(t => t.id === taskId ? { ...t, column_id: targetColId } : t));
-    
+
     // call the backend api
     try {
       await moveTask(taskId, targetColId);
@@ -283,21 +316,21 @@ const ProjectBoard = () => {
             className={styles.searchInput}
             placeholder="Search tasks..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={e => updateFilters({ type: 'SET_SEARCH', payload: e.target.value })}
           />
-          <select className={styles.filterSelect} value={filterType} onChange={e => setFilterType(e.target.value)}>
+          <select className={styles.filterSelect} value={filterType} onChange={e => updateFilters({ type: 'SET_TYPE', payload: e.target.value })}>
             <option value="ALL">All Types</option>
             <option value="Task">Task</option>
             <option value="Bug">Bug</option>
           </select>
-          <select className={styles.filterSelect} value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
+          <select className={styles.filterSelect} value={filterPriority} onChange={e => updateFilters({ type: 'SET_PRIORITY', payload: e.target.value })}>
             <option value="ALL">All Priorities</option>
             <option value="CRITICAL">Critical</option>
             <option value="HIGH">High</option>
             <option value="MEDIUM">Medium</option>
             <option value="LOW">Low</option>
           </select>
-          <select className={styles.filterSelect} value={filterAssignee} onChange={e => setFilterAssignee(e.target.value)}>
+          <select className={styles.filterSelect} value={filterAssignee} onChange={e => updateFilters({ type: 'SET_ASSIGNEE', payload: e.target.value })}>
             <option value="ALL">All Assignees</option>
             <option value="UNASSIGNED">Unassigned</option>
             {members.map(m => (

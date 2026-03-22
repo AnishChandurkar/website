@@ -26,7 +26,7 @@ const AllowedWorkflows = () => {
     const initData = async () => {
       try {
         if (!boardId) return;
-        
+
         // fetch board info
         const boardInfo = await fetchBoardProject(Number(boardId));
         setProjectId(boardInfo.project_id);
@@ -34,16 +34,16 @@ const AllowedWorkflows = () => {
         // fetch columns and workflows
         const cols = await fetchColumns(Number(boardId));
         const wfs = await fetchProjectWorkflows(boardInfo.project_id);
-        
+
         setColumns(Array.isArray(cols) ? cols : []);
         setWorkflows(Array.isArray(wfs) ? wfs : []);
       } catch (err: any) {
         console.error("failed to init allowed workflows:", err);
         // even if workflows fail, fetch columns for dropdowns
         try {
-           const cols = await fetchColumns(Number(boardId));
-           setColumns(Array.isArray(cols) ? cols : []);
-        } catch {}
+          const cols = await fetchColumns(Number(boardId));
+          setColumns(Array.isArray(cols) ? cols : []);
+        } catch { }
       }
     };
     initData();
@@ -66,13 +66,13 @@ const AllowedWorkflows = () => {
 
       // call api to add workflow
       const res = await addWorkflow(projectId, Number(boardId), fromCol.id, toCol.id);
-      
+
       // format new workflow and add to state
       const newWorkflow: Workflow = {
         id: res.id,
         source: fromCol.name,
         target: toCol.name
-      };    
+      };
       setWorkflows([...workflows, newWorkflow]);
       setShowModal(false);
       setSourceColumn('');
@@ -101,25 +101,25 @@ const AllowedWorkflows = () => {
       </div>
       <div className={styles.contentArea}>
         <div className={styles.boardSidebar}>
-          <button 
+          <button
             className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/allowed-workflows`) ? styles.active : ''}`}
             onClick={() => navigate(`/board/${boardId}/allowed-workflows`)}>
             Allowed Workflows
           </button>
-          <button 
+          <button
             className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/stories`) ? styles.active : ''}`}
             onClick={() => navigate(`/board/${boardId}/stories`)}>
             Stories
           </button>
-          <button 
+          <button
             className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/audit-history`) ? styles.active : ''}`}
             onClick={() => navigate(`/board/${boardId}/audit-history`)}>
             Audit History
           </button>
         </div>
         <div className={styles.mainWorkArea}>
-          <button 
-            className={styles.addBtn} 
+          <button
+            className={styles.addBtn}
             onClick={() => setShowModal(true)}
           >
             Add customised Workflow
@@ -146,7 +146,7 @@ const AllowedWorkflows = () => {
                       <td className={styles.tableCell}>{wf.source}</td>
                       <td className={styles.tableCell}>{wf.target}</td>
                       <td className={styles.tableCell}>
-                        <button 
+                        <button
                           onClick={() => handleDelete(wf.id)}
                           style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
                         >
@@ -167,7 +167,7 @@ const AllowedWorkflows = () => {
             <h3 className={styles.modalTitle}>Add Custom Workflow</h3>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>From Column</label>
-              <select 
+              <select
                 className={styles.selectInput}
                 value={sourceColumn}
                 onChange={(e) => setSourceColumn(e.target.value)}
@@ -180,7 +180,7 @@ const AllowedWorkflows = () => {
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>To Column</label>
-              <select 
+              <select
                 className={styles.selectInput}
                 value={targetColumn}
                 onChange={(e) => setTargetColumn(e.target.value)}

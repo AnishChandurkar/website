@@ -76,7 +76,7 @@ const NotificationCentre = () => {
             </div>
           ) : (
             notifications.map((notif) => (
-              <div 
+              <div
                 key={notif.id}
                 style={{
                   backgroundColor: notif.is_read ? '#f9f9f9' : '#ffffff',

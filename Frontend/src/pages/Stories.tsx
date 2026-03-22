@@ -24,11 +24,11 @@ const Stories = () => {
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
-  
+
   const [stories, setStories] = useState<Story[]>([]);
   const [childTasks, setChildTasks] = useState<ChildTask[]>([]);
   const [availableBoardTasks, setAvailableBoardTasks] = useState<ChildTask[]>([]);
-  
+
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [newStoryTitle, setNewStoryTitle] = useState('');
   const [newStoryDesc, setNewStoryDesc] = useState('');
@@ -49,8 +49,8 @@ const Stories = () => {
         setAvailableBoardTasks(allAvailableTasks);
 
         if (selectedStory) {
-            const updated = allStories.find((s: any) => s.id === selectedStory.id);
-            if (updated) setSelectedStory(updated);
+          const updated = allStories.find((s: any) => s.id === selectedStory.id);
+          if (updated) setSelectedStory(updated);
         }
       }
     } catch (error) {
@@ -73,8 +73,8 @@ const Stories = () => {
         setNewStoryDesc('');
         loadData();
       }
-    } catch(err: any) {
-        alert(err.message || "Failed to create story");
+    } catch (err: any) {
+      alert(err.message || "Failed to create story");
     }
   };
 
@@ -85,7 +85,7 @@ const Stories = () => {
       await updateTask(Number(selectedTaskId), { parent_id: selectedStory.id });
       setSelectedTaskId('');
       loadData();
-    } catch(err: any) {
+    } catch (err: any) {
       alert(err.message || 'Failed to add task to story');
     }
   };
@@ -96,7 +96,7 @@ const Stories = () => {
         // unlink task from story
         await updateTask(taskId, { parent_id: null });
         loadData();
-      } catch(err: any) {
+      } catch (err: any) {
         alert(err.message || "Failed to remove task from story");
       }
     }
@@ -132,17 +132,17 @@ const Stories = () => {
 
       <div className={styles.contentArea}>
         <div className={styles.boardSidebar}>
-          <button 
+          <button
             className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/allowed-workflows`) ? styles.active : ''}`}
             onClick={() => navigate(`/board/${boardId}/allowed-workflows`)}>
             Allowed Workflows
           </button>
-          <button 
+          <button
             className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/stories`) ? styles.active : ''}`}
             onClick={() => navigate(`/board/${boardId}/stories`)}>
             Stories
           </button>
-          <button 
+          <button
             className={`${styles.sidebarBtn} ${isActive(`/board/${boardId}/audit-history`) ? styles.active : ''}`}
             onClick={() => navigate(`/board/${boardId}/audit-history`)}>
             Audit History
@@ -151,7 +151,7 @@ const Stories = () => {
 
         <div className={styles.mainWorkArea}>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-            <button 
+            <button
               className={styles.addBtn}
               onClick={() => setShowAddStoryModal(true)}
             >
@@ -162,8 +162,8 @@ const Stories = () => {
             {stories.map(story => {
               const storyTasks = childTasks.filter(t => t.parent_id === story.id);
               return (
-                <div 
-                  key={story.id} 
+                <div
+                  key={story.id}
                   className={styles.storyCard}
                   onClick={() => setSelectedStory(story)}
                 >
@@ -173,7 +173,7 @@ const Stories = () => {
                       <span className={styles.statusBadgeGlobal}>
                         {story.column_name || 'Unplaced'}
                       </span>
-                      <button 
+                      <button
                         onClick={(e) => { e.stopPropagation(); handleDeleteStory(story.id); }}
                         style={{ padding: '0px 6px', backgroundColor: 'transparent', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 'bold' }}
                         title="Delete Story"
@@ -198,7 +198,7 @@ const Stories = () => {
             <h3 className={styles.modalTitle}>Create New Story</h3>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Story Title</label>
-              <input 
+              <input
                 type="text"
                 className={styles.textInput}
                 value={newStoryTitle}
@@ -208,7 +208,7 @@ const Stories = () => {
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Description</label>
-              <textarea 
+              <textarea
                 className={styles.textInput}
                 value={newStoryDesc}
                 onChange={(e) => setNewStoryDesc(e.target.value)}
@@ -230,8 +230,8 @@ const Stories = () => {
               <div>
                 <h3 className={styles.modalTitle} style={{ margin: 0 }}>{selectedStory.title}</h3>
                 <div style={{ marginTop: '8px' }}>
-                   <span style={{ fontSize: '0.85rem', color: '#666' }}>Current Story Status: </span>
-                   <span className={styles.statusBadgeDetail}>{selectedStory.column_name || 'Unplaced'}</span>
+                  <span style={{ fontSize: '0.85rem', color: '#666' }}>Current Story Status: </span>
+                  <span className={styles.statusBadgeDetail}>{selectedStory.column_name || 'Unplaced'}</span>
                 </div>
               </div>
               <button className={styles.cancelBtn} style={{ padding: '4px 12px' }} onClick={() => setSelectedStory(null)}>Close</button>
@@ -267,8 +267,8 @@ const Stories = () => {
 
             <div className={styles.addTaskRow}>
               <label className={styles.formLabel} style={{ marginBottom: 0, alignSelf: 'center' }}>Choose Task:</label>
-              <select 
-                className={styles.textInput} 
+              <select
+                className={styles.textInput}
                 style={{ flex: 1 }}
                 value={selectedTaskId}
                 onChange={(e) => setSelectedTaskId(e.target.value)}
