@@ -22,6 +22,11 @@ interface MysqlError extends Error {
   code?: string;
 }
 
+interface RoleCheckRow extends RowDataPacket {
+  global_role: string;
+  project_role: string;
+}
+
 // controllers
 
 export const getMembers = async (req: Request, res: Response) => {
@@ -95,6 +100,41 @@ export const updateMemberRole = async (req: AuthRequest, res: Response): Promise
     const validRoles = ['Project Admin', 'Project Member', 'Project Viewer'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ message: 'invalid role' });
+    }
+
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    if (req.user.id.toString() === req.params.userId) {
+      return res.status(403).json({ message: 'You cannot change your own role' });
+    }
+
+    const [requesterRows] = await pool.query<RoleCheckRow[]>(
+      `SELECT u.global_role, pm.role as project_role 
+       FROM users u 
+       JOIN project_members pm ON pm.user_id = u.id 
+       WHERE u.id = ? AND pm.project_id = ?`,
+      [req.user.id, req.params.projectId]
+    );
+
+    const [targetRows] = await pool.query<RoleCheckRow[]>(
+      `SELECT u.global_role, pm.role as project_role 
+       FROM users u 
+       JOIN project_members pm ON pm.user_id = u.id 
+       WHERE u.id = ? AND pm.project_id = ?`,
+      [req.params.userId, req.params.projectId]
+    );
+
+    if (targetRows.length === 0) {
+      return res.status(404).json({ message: 'User is not a member of this project' });
+    }
+
+    const requester = requesterRows[0];
+    const target = targetRows[0];
+
+    if (target.global_role === 'Global Admin') {
+      return res.status(403).json({ message: 'You cannot change the role of a Global Admin' });
+    }
+    if (target.project_role === 'Project Admin' && requester.global_role !== 'Global Admin') {
+      return res.status(403).json({ message: 'Project Admins cannot change the role of other Project Admins' });
     }
 
     await pool.query(

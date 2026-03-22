@@ -21,6 +21,7 @@ interface Member {
   surname: string;
   emailid: string;
   profile_url: string | null;
+  global_role: string;
   role: string;
 }
 
@@ -188,8 +189,16 @@ const ProjectDetails = () => {
             {project.members.map((member) => {
               const isGlobalAdmin = user?.global_role === 'Global Admin';
               const isProjectAdmin = isGlobalAdmin || project.members.find(m => m.id === user?.id)?.role === 'Project Admin';
-              // Allow admins to edit roles
-              const canEditRole = isProjectAdmin;
+
+              const isSelf = member.id === user?.id;
+              const isTargetGlobalAdmin = member.global_role === 'Global Admin';
+              const isTargetProjectAdmin = member.role === 'Project Admin';
+
+              const canEditRole =
+                isProjectAdmin &&
+                !isSelf &&
+                !isTargetGlobalAdmin &&
+                (!isTargetProjectAdmin || isGlobalAdmin);
 
               return (
                 <div key={member.id} className={styles.memberChip}>
@@ -201,8 +210,8 @@ const ProjectDetails = () => {
                       {member.first_name} {member.surname}
                     </span>
                     {canEditRole ? (
-                      <select 
-                        value={member.role} 
+                      <select
+                        value={member.role}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
                         style={{ display: 'block', marginTop: '4px', fontSize: '0.85rem', padding: '2px 4px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
                       >
