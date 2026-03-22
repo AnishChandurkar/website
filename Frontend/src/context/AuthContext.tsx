@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import { getProfile, logoutUser } from '../services/api';
 
 interface User {
@@ -6,6 +6,34 @@ interface User {
     first_name: string;
     surname: string;
     emailid: string;
+}
+
+interface AuthState {
+    user: User | null;
+    loading: boolean;
+}
+
+type AuthAction =
+    | { type: 'SET_USER'; payload: User | null }
+    | { type: 'LOGOUT' }
+    | { type: 'SET_LOADING'; payload: boolean };
+
+const initialState: AuthState = {
+    user: null,
+    loading: true,
+};
+
+function authReducer(state: AuthState, action: AuthAction): AuthState {
+    switch (action.type) {
+        case 'SET_USER':
+            return { ...state, user: action.payload, loading: false };
+        case 'LOGOUT':
+            return { ...state, user: null, loading: false };
+        case 'SET_LOADING':
+            return { ...state, loading: action.payload };
+        default:
+            return state;
+    }
 }
 
 interface AuthContextType {
@@ -18,40 +46,36 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [state, dispatch] = useReducer(authReducer, initialState);
 
     useEffect(() => {
         const loadUser = async () => {
-            // check if user is logged in on load
             try {
                 const userData = await getProfile();
-                setUser(userData);
+                dispatch({ type: 'SET_USER', payload: userData });
             } catch (error) {
                 console.log('user not logged in!?!?! or session expired');
-                setUser(null);
+                dispatch({ type: 'SET_USER', payload: null });
             }
-            setLoading(false);
         };
         loadUser();
     }, []);
 
     const saveAuth = (userData: User) => {
-        setUser(userData);
+        dispatch({ type: 'SET_USER', payload: userData });
     };
 
     const logout = async () => {
-        // clear user session and logout
         try {
             await logoutUser();
-            setUser(null);
+            dispatch({ type: 'LOGOUT' });
         } catch (error) {
             console.error('Logout failed', error);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, saveAuth, logout, loading }}>
+        <AuthContext.Provider value={{ user: state.user, saveAuth, logout, loading: state.loading }}>
             {children}
         </AuthContext.Provider>
     );
