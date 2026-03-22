@@ -32,7 +32,6 @@ CREATE TABLE IF NOT EXISTS projects (
     status ENUM('In Progress', 'Completed', 'Planning', 'On Hold', 'Review') DEFAULT 'Planning',
     progress INT DEFAULT 0,
     is_archived BOOLEAN DEFAULT FALSE,
-    is_starred BOOLEAN DEFAULT FALSE,
     owner_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -59,26 +58,25 @@ CREATE TABLE IF NOT EXISTS boards (
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
 
--- Columns Table for Configurable Workflows (References Boards)
+
 CREATE TABLE IF NOT EXISTS columns (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     board_id INT NOT NULL,
-    position INT NOT NULL, -- To maintain ordering (e.g., 1 for To Do, 2 for In Progress)
-    wip_limit INT DEFAULT NULL, -- Null means no limit
+    position INT NOT NULL, 
+    wip_limit INT DEFAULT NULL, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE CASCADE
 );
 
--- Tasks/Issues Table (References Boards, Columns, and Users)
 CREATE TABLE IF NOT EXISTS tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     type ENUM('Story', 'Task', 'Bug') NOT NULL,
-    parent_id INT DEFAULT NULL, -- To link Task/Bug to an overarching Story
+    parent_id INT DEFAULT NULL, 
     board_id INT NOT NULL,
-    column_id INT DEFAULT NULL, -- Replacing strictly defined 'status'. Tasks sit in columns.
+    column_id INT DEFAULT NULL, 
     priority ENUM('LOW', 'MEDIUM', 'HIGH', 'CRITICAL') DEFAULT 'LOW',
     assigned_to INT DEFAULT NULL,
     reporter_id INT NOT NULL,
@@ -107,19 +105,22 @@ CREATE TABLE IF NOT EXISTS comments (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Audit Trail Table (Mandatory Requirement)
+-- Audit Trail Table (Mandatory Requirement - IMMUTABLE: rows survive task/user deletion)
 CREATE TABLE IF NOT EXISTS audit_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    task_id INT NOT NULL,
-    user_id INT NOT NULL,
+    task_id INT DEFAULT NULL,
+    task_title VARCHAR(255) DEFAULT NULL,
+    board_id INT DEFAULT NULL,
+    user_id INT DEFAULT NULL,
+    user_name VARCHAR(255) DEFAULT NULL,
     event_type ENUM('STATUS_CHANGE', 'ASSIGNEE_CHANGE', 'TASK_CREATED', 'TASK_UPDATED', 'TASK_CLOSED', 'STORY_CREATED', 'STORY_UPDATED', 'STORY_CLOSED', 'BUG_CREATED', 'BUG_UPDATED', 'BUG_CLOSED', 'COMMENT_ADDED', 'COMMENT_EDITED', 'COMMENT_DELETED') NOT NULL,
     old_value VARCHAR(255) DEFAULT NULL,
     new_value VARCHAR(255) DEFAULT NULL,
     is_closed BOOLEAN DEFAULT FALSE,
     is_resolved BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Notifications Table (References Users)
@@ -143,4 +144,13 @@ CREATE TABLE IF NOT EXISTS allowed_workflows (
     FOREIGN KEY (from_column_id) REFERENCES columns(id) ON DELETE CASCADE,
     FOREIGN KEY (to_column_id) REFERENCES columns(id) ON DELETE CASCADE,
     UNIQUE(from_column_id, to_column_id)
+);
+
+-- User Starred Projects (Per-user starring - junction table)
+CREATE TABLE IF NOT EXISTS user_starred_projects (
+    user_id INT NOT NULL,
+    project_id INT NOT NULL,
+    PRIMARY KEY (user_id, project_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );

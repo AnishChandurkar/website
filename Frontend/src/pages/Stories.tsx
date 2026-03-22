@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from '../CSS Files/Stories.module.css';
-import { fetchTasks, createTask, updateTask, reSyncStories } from '../services/api';
+import { fetchTasks, createTask, updateTask } from '../services/api';
 
 interface Story {
   id: number;
@@ -102,16 +102,6 @@ const Stories = () => {
     }
   };
 
-  const handleSync = async () => {
-      try {
-          // sync story statuses from tasks
-          await reSyncStories(Number(boardId));
-          await loadData();
-          alert('Stories re-synced! All story statuses updated to reflect the minimum status of their child tasks.');
-      } catch (err: any) {
-          alert('Sync failed: ' + err.message);
-      }
-  };
 
   return (
     <div className={styles.pageContainer}>
@@ -121,9 +111,7 @@ const Stories = () => {
           <h2 className={styles.boardTitle}>Story Management</h2>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button className={styles.syncBtn} onClick={handleSync} title="Refresh all story statuses from tasks">
-            🔄 Sync Statuses
-          </button>
+          {/* Action buttons removed */}
         </div>
       </header>
 

@@ -30,17 +30,21 @@ export const getTasks = async (req: AuthRequest, res: Response): Promise<any> =>
   }
 };
 
+export const syncAllBoardStories = async (boardId: string | number) => {
+  const [stories] = await pool.query<RowDataPacket[]>(
+    "SELECT id FROM tasks WHERE board_id = ? AND type = 'Story'",
+    [boardId]
+  );
+
+  for (const story of stories) {
+    await updateParentStoryStatus(story.id, boardId);
+  }
+};
+
 export const reSyncStories = async (req: AuthRequest, res: Response): Promise<any> => {
   const boardId = req.params.boardId as string;
   try {
-    const [stories] = await pool.query<RowDataPacket[]>(
-      "SELECT id FROM tasks WHERE board_id = ? AND type = 'Story'",
-      [boardId]
-    );
-
-    for (const story of stories) {
-      await updateParentStoryStatus(story.id, boardId);
-    }
+    await syncAllBoardStories(boardId);
 
     res.json({ message: "All stories re-synced successfully!" });
   } catch (error: any) {
@@ -107,9 +111,19 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
       parent_id,
       due_date,
     } = req.body;
-    
-    if (assigned_to && req.user?.projectRole === 'Project Member') {
-      return res.status(403).json({ message: "Project Members are not allowed to assign tasks! Only Project Admins can do that :/" });
+
+    if (assigned_to) {
+      if (req.user?.projectRole === 'Project Member') {
+        return res.status(403).json({ message: "Project Members are not allowed to assign tasks! Only Project Admins can do that :/" });
+      }
+
+      const [members] = await pool.query<RowDataPacket[]>(
+        "SELECT pm.role FROM project_members pm JOIN boards b ON pm.project_id = b.project_id WHERE pm.user_id = ? AND b.id = ?",
+        [assigned_to, req.params.boardId]
+      );
+      if (members.length === 0 || members[0].role === 'Project Viewer') {
+        return res.status(403).json({ message: "Cannot assign tasks to Project Viewers or non-members!" });
+      }
     }
 
     if (parent_id) {
@@ -136,11 +150,11 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
         "SELECT wip_limit FROM columns WHERE id = ?",
         [column_id],
       );
-      
+
       // if column has a limit, check if target column is full
       if (col.length > 0 && col[0].wip_limit !== null) {
         const [count] = await pool.query<RowDataPacket[]>(
-          "SELECT COUNT(*) AS c FROM tasks WHERE column_id = ?",
+          "SELECT COUNT(*) AS c FROM tasks WHERE column_id = ? AND closed_at IS NULL AND type != 'Story'",
           [column_id],
         );
         if (count[0].c >= col[0].wip_limit) {
@@ -247,8 +261,14 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     const new_name = col[0].name;
     const new_pos = col[0].position;
 
-    // verify allowed workflows if moving across multiple columns
-    if (old_pos !== null && Math.abs(new_pos - old_pos) > 1) {
+    const [allCols] = await pool.query<RowDataPacket[]>(
+      "SELECT id FROM columns WHERE board_id = ? ORDER BY position ASC",
+      [board_id]
+    );
+    const oldIdx = allCols.findIndex(c => c.id === old_col);
+    const newIdx = allCols.findIndex(c => c.id === column_id);
+
+    if (oldIdx !== -1 && newIdx !== -1 && Math.abs(newIdx - oldIdx) > 1) {
       const [allowed] = await pool.query<RowDataPacket[]>(
         "SELECT id FROM allowed_workflows WHERE from_column_id = ? AND to_column_id = ?",
         [old_col, column_id]
@@ -263,7 +283,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
     // enforce wip limits for target column
     if (col[0].wip_limit !== null) {
       const [count] = await pool.query<RowDataPacket[]>(
-        "SELECT COUNT(*) AS c FROM tasks WHERE column_id = ? AND id != ?",
+        "SELECT COUNT(*) AS c FROM tasks WHERE column_id = ? AND id != ? AND closed_at IS NULL AND type != 'Story'",
         [column_id, taskId],
       );
       if (count[0].c >= col[0].wip_limit) {
@@ -277,7 +297,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
       "SELECT MAX(position) AS max_pos FROM columns WHERE board_id = ?",
       [board_id],
     );
-    
+
     // auto-resolve task if moved to the final column
     let extraUpdate = "";
     if (maxCol.length > 0 && new_pos === maxCol[0].max_pos) {
@@ -342,6 +362,17 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
       if (req.user?.projectRole === 'Project Member') {
         return res.status(403).json({ message: "Project Members are not allowed to assign or change task assignments! Ask a Project Admin instead :/" });
       }
+
+      if (assigned_to) {
+        const [members] = await pool.query<RowDataPacket[]>(
+          "SELECT pm.role FROM project_members pm JOIN boards b ON pm.project_id = b.project_id WHERE pm.user_id = ? AND b.id = ?",
+          [assigned_to, oldTask.board_id]
+        );
+        if (members.length === 0 || members[0].role === 'Project Viewer') {
+          return res.status(403).json({ message: "Cannot assign tasks to Project Viewers or non-members!" });
+        }
+      }
+
       await logAuditEvent(Number(req.params.id), req.user!.id, 'ASSIGNEE_CHANGE', old_assignee ? String(old_assignee) : "Unassigned", assigned_to ? String(assigned_to) : "Unassigned");
     }
 
@@ -455,7 +486,7 @@ export const deleteTask = async (req: AuthRequest, res: Response): Promise<any> 
   }
 };
 
-const updateParentStoryStatus = async (parentId: string | number, boardId: string | number) => {
+export async function updateParentStoryStatus(parentId: string | number, boardId: string | number) {
   if (!parentId) return;
 
   const [children] = await pool.query<RowDataPacket[]>(
@@ -523,12 +554,17 @@ export const closeTask = async (req: AuthRequest, res: Response): Promise<any> =
 };
 
 const logAuditEvent = async (taskId: number, userId: number, eventType: string, oldValue: string | null = null, newValue: string | null = null) => {
-  const [task] = await pool.query<RowDataPacket[]>("SELECT closed_at, resolved_at FROM tasks WHERE id = ?", [taskId]);
+  const [task] = await pool.query<RowDataPacket[]>("SELECT title, board_id, closed_at, resolved_at FROM tasks WHERE id = ?", [taskId]);
   const isClosed = task.length > 0 && task[0].closed_at !== null;
   const isResolved = task.length > 0 && task[0].resolved_at !== null;
+  const taskTitle = task.length > 0 ? task[0].title : null;
+  const boardId = task.length > 0 ? task[0].board_id : null;
+
+  const [user] = await pool.query<RowDataPacket[]>("SELECT first_name, surname FROM users WHERE id = ?", [userId]);
+  const userName = user.length > 0 ? `${user[0].first_name} ${user[0].surname}` : null;
 
   await pool.query(
-    "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value, is_closed, is_resolved) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    [taskId, userId, eventType, oldValue, newValue, isClosed, isResolved]
+    "INSERT INTO audit_logs (task_id, task_title, board_id, user_id, user_name, event_type, old_value, new_value, is_closed, is_resolved) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [taskId, taskTitle, boardId, userId, userName, eventType, oldValue, newValue, isClosed, isResolved]
   );
 };

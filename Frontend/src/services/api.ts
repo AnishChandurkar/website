@@ -2,6 +2,8 @@ const BASE_URL = 'http://localhost:3001/api';
 const apiRequest = async (endpoint: string, method: string = 'GET', body?: object) => {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-store',
+        'Pragma': 'no-cache',
     };
 
     const config: RequestInit = {

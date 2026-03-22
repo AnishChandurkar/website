@@ -37,9 +37,13 @@ export const addComment = async (req: AuthRequest, res: Response): Promise<any> 
       [req.params.taskId, req.user!.id, content]
     );
 
+    const [taskInfo] = await pool.query<RowDataPacket[]>("SELECT title, board_id FROM tasks WHERE id = ?", [req.params.taskId]);
+    const taskTitle = taskInfo.length > 0 ? taskInfo[0].title : null;
+    const boardId = taskInfo.length > 0 ? taskInfo[0].board_id : null;
+
     await pool.query(
-      "INSERT INTO audit_logs (task_id, user_id, event_type, new_value) VALUES (?, ?, 'COMMENT_ADDED', ?)",
-      [req.params.taskId, req.user!.id, content.substring(0, 50)]
+      "INSERT INTO audit_logs (task_id, task_title, board_id, user_id, user_name, event_type, new_value) VALUES (?, ?, ?, ?, ?, 'COMMENT_ADDED', ?)",
+      [req.params.taskId, taskTitle, boardId, req.user!.id, commenterName, content.substring(0, 50)]
     );
 
     // Notify assigned user
@@ -94,9 +98,11 @@ export const editComment = async (req: AuthRequest, res: Response): Promise<any>
 
     await pool.query("UPDATE comments SET content = ? WHERE id = ?", [content, req.params.id]);
 
+    const [taskInfo2] = await pool.query<RowDataPacket[]>("SELECT title, board_id FROM tasks WHERE id = ?", [existing[0].task_id]);
+    const [userInfo2] = await pool.query<RowDataPacket[]>("SELECT first_name, surname FROM users WHERE id = ?", [req.user!.id]);
     await pool.query(
-      "INSERT INTO audit_logs (task_id, user_id, event_type, old_value, new_value) VALUES (?, ?, 'COMMENT_EDITED', ?, ?)",
-      [existing[0].task_id, req.user!.id, existing[0].content.substring(0, 50), content.substring(0, 50)]
+      "INSERT INTO audit_logs (task_id, task_title, board_id, user_id, user_name, event_type, old_value, new_value) VALUES (?, ?, ?, ?, ?, 'COMMENT_EDITED', ?, ?)",
+      [existing[0].task_id, taskInfo2[0]?.title, taskInfo2[0]?.board_id, req.user!.id, userInfo2[0] ? `${userInfo2[0].first_name} ${userInfo2[0].surname}` : null, existing[0].content.substring(0, 50), content.substring(0, 50)]
     );
 
     res.json({ message: "comment updated!" });
@@ -114,9 +120,11 @@ export const deleteComment = async (req: AuthRequest, res: Response): Promise<an
 
     await pool.query("DELETE FROM comments WHERE id = ?", [req.params.id]);
 
+    const [taskInfo3] = await pool.query<RowDataPacket[]>("SELECT title, board_id FROM tasks WHERE id = ?", [existing[0].task_id]);
+    const [userInfo3] = await pool.query<RowDataPacket[]>("SELECT first_name, surname FROM users WHERE id = ?", [req.user!.id]);
     await pool.query(
-      "INSERT INTO audit_logs (task_id, user_id, event_type, old_value) VALUES (?, ?, 'COMMENT_DELETED', ?)",
-      [existing[0].task_id, req.user!.id, existing[0].content.substring(0, 50)]
+      "INSERT INTO audit_logs (task_id, task_title, board_id, user_id, user_name, event_type, old_value) VALUES (?, ?, ?, ?, ?, 'COMMENT_DELETED', ?)",
+      [existing[0].task_id, taskInfo3[0]?.title, taskInfo3[0]?.board_id, req.user!.id, userInfo3[0] ? `${userInfo3[0].first_name} ${userInfo3[0].surname}` : null, existing[0].content.substring(0, 50)]
     );
 
     res.json({ message: "comment deleted!" });

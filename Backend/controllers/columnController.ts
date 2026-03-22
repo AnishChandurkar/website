@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
+import { syncAllBoardStories } from "./taskController";
 
 interface ColumnRow extends RowDataPacket {
   id: number;
@@ -62,6 +63,13 @@ export const renameColumn = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'column name cant be empty :/' });
     }
     await pool.query('UPDATE columns SET name = ? WHERE id = ?', [name, req.params.columnId]);
+    await pool.query('UPDATE tasks SET column_name = ? WHERE column_id = ?', [name, req.params.columnId]);
+
+    const [cols] = await pool.query<RowDataPacket[]>('SELECT board_id FROM columns WHERE id = ?', [req.params.columnId]);
+    if (cols.length > 0) {
+      await syncAllBoardStories(cols[0].board_id);
+    }
+
     res.json({ message: 'column renamed!' });
   } catch (error: any) {
     res.status(500).json({ message: 'something went wrong :(', error: error.message });
@@ -71,7 +79,21 @@ export const renameColumn = async (req: Request, res: Response) => {
 export const updateColumnLimit = async (req: Request, res: Response) => {
   try {
     const { wip_limit } = req.body;
-    await pool.query('UPDATE columns SET wip_limit = ? WHERE id = ?', [wip_limit || null, req.params.columnId]);
+    const newLimit = wip_limit ? Number(wip_limit) : null;
+    if (newLimit !== null) {
+      const [tasks] = await pool.query<TaskCountRow[]>(
+        'SELECT COUNT(*) AS count FROM tasks WHERE column_id = ? AND closed_at IS NULL AND type != "Story"',
+        [req.params.columnId]
+      );
+      const currentCount = tasks[0]?.count || 0;
+      if (newLimit < currentCount) {
+        return res.status(400).json({
+          message: `can't set WIP limit to ${newLimit}, as this column already has ${currentCount} tasks! move some out first :(`
+        });
+      }
+    }
+
+    await pool.query('UPDATE columns SET wip_limit = ? WHERE id = ?', [newLimit, req.params.columnId]);
     res.json({ message: 'wip limit updated!' });
   } catch (error: any) {
     res.status(500).json({ message: 'something went wrong :(', error: error.message });
@@ -98,6 +120,7 @@ export const reorderColumns = async (req: Request, res: Response) => {
     }
 
     await Promise.all(queries);
+    await syncAllBoardStories(req.params.boardId as string);
 
     res.json({ message: 'columns reordered!' });
   } catch (error: any) {
@@ -118,7 +141,15 @@ export const deleteColumn = async (req: Request, res: Response) => {
       });
     }
 
+
+    const [cols] = await pool.query<RowDataPacket[]>('SELECT board_id FROM columns WHERE id = ?', [req.params.columnId]);
+    const boardId = cols.length > 0 ? cols[0].board_id : null;
+
     await pool.query('DELETE FROM columns WHERE id = ?', [req.params.columnId]);
+
+
+    if (boardId) await syncAllBoardStories(boardId);
+
     res.json({ message: 'column deleted!' });
   } catch (error: any) {
     res.status(500).json({ message: 'something went wrong :(', error: error.message });

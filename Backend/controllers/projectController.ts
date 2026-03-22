@@ -13,7 +13,6 @@ interface ProjectRow extends RowDataPacket {
   progress: number;
   owner_id: number;
   is_archived: boolean;
-  is_starred: boolean;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -44,8 +43,13 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
     }
 
     const [rows] = await pool.query<ProjectRow[]>(
-      "SELECT p.* FROM projects p JOIN project_members pm ON p.id = pm.project_id WHERE pm.user_id = ? AND p.is_archived = FALSE",
-      [req.user.id],
+      `SELECT p.*, 
+       CASE WHEN usp.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS is_starred
+       FROM projects p 
+       JOIN project_members pm ON p.id = pm.project_id 
+       LEFT JOIN user_starred_projects usp ON p.id = usp.project_id AND usp.user_id = ?
+       WHERE pm.user_id = ? AND p.is_archived = FALSE`,
+      [req.user.id, req.user.id],
     );
     res.json(rows);
   } catch (error: any) {
@@ -171,11 +175,26 @@ export const archiveProject = async (req: AuthRequest, res: Response) => {
 
 export const toggleStar = async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     const { is_starred } = req.body;
-    await pool.query("UPDATE projects SET is_starred = ? WHERE id = ?", [
-      is_starred,
-      req.params.id,
-    ]);
+    const projectId = req.params.id;
+    const userId = req.user.id;
+
+    if (is_starred) {
+      // Insert into junction table (ignore if already exists)
+      await pool.query(
+        "INSERT IGNORE INTO user_starred_projects (user_id, project_id) VALUES (?, ?)",
+        [userId, projectId]
+      );
+    } else {
+      // Remove from junction table
+      await pool.query(
+        "DELETE FROM user_starred_projects WHERE user_id = ? AND project_id = ?",
+        [userId, projectId]
+      );
+    }
     res.json({ message: is_starred ? "Project starred" : "Project unstarred" });
   } catch (error: any) {
     res.status(500).json({ message: "something went wrong :(", error: error.message });
