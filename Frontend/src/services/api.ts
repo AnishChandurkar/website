@@ -378,7 +378,7 @@ export const changePassword = (currentPassword: string, newPassword: string, con
 };
 
 export const fetchMyTeammates = () => {
-    return callApi<{ id: number, emailid: string, first_name: string, surname: string }[]>('/auth/teammates', 'GET');
+    return callApi<{ id: number, emailid: string, first_name: string, surname: string, avatar_data: string | null }[]>('/auth/teammates', 'GET');
 };
 
 export const updateMemberRole = (projectId: number, userId: number, role: string) => {
