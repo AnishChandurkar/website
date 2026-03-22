@@ -4,7 +4,9 @@ import { getNotifications, createNotification, deleteNotification, markAsRead, m
 
 const router = express.Router();
 
+// get user notifications
 router.get('/', auth, getNotifications);
+// create a notification
 router.post('/', auth, createNotification);
 router.put('/:id/read', auth, markAsRead);
 router.put('/read-all', auth, markAllAsRead);

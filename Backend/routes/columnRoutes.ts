@@ -5,7 +5,9 @@ import { getColumns, createColumn, renameColumn, updateColumnLimit, reorderColum
 
 const router = express.Router();
 
+// fetch all columns for a board
 router.get('/:boardId/columns', auth, getColumns);
+// create a new column
 router.post('/:boardId/columns', auth, requireAdminBoard, createColumn);
 router.put('/:boardId/columns/reorder', auth, requireAdminBoard, reorderColumns);
 router.put('/columns/:columnId/rename', auth, requireAdminColumn, renameColumn);

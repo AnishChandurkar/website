@@ -6,6 +6,7 @@ export interface AuthRequest extends Request {
   user?: any;
 }
 
+// fetch audit logs for the board
 export const getBoardAuditLogs = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const { boardId } = req.params;

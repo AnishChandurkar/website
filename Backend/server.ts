@@ -68,12 +68,12 @@ const seedAdmin = async () => {
   }
 };
 
-// Global 404 handler for API routes
+// global 404 handler for api routes
 app.use((req: Request, res: Response) => {
   res.status(404).json({ message: "Oh no! There's nothing at this endpoint :/" });
 });
 
-// Global Error handler
+// global error handler
 app.use((err: any, req: Request, res: Response, next: any) => {
   console.error('SERVER ERROR:', err);
   res.status(err.status || 500).json({

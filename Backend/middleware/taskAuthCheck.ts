@@ -3,6 +3,7 @@ import { RowDataPacket } from "mysql2";
 import pool from "../config/db";
 import { AuthRequest } from "../controllers/authController";
 
+// check if user has read access for tasks
 export const requireTaskReadAccess = async (req: AuthRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
         let boardId = req.params.boardId;
@@ -35,6 +36,7 @@ export const requireTaskReadAccess = async (req: AuthRequest, res: Response, nex
     }
 };
 
+// check if user has write access for tasks
 export const requireTaskWriteAccess = async (req: AuthRequest, res: Response, next: NextFunction): Promise<any> => {
     try {
         let boardId = req.params.boardId;

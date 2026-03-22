@@ -3,7 +3,7 @@ import { RowDataPacket } from "mysql2";
 import pool from "../config/db";
 import { AuthRequest } from "./authController";
 
-// --- Types & Interfaces ---
+// types & interfaces
 
 interface MemberRow extends RowDataPacket {
   id: number;
@@ -22,7 +22,7 @@ interface MysqlError extends Error {
   code?: string;
 }
 
-// --- Controllers ---
+// controllers
 
 export const getMembers = async (req: Request, res: Response) => {
   try {
@@ -39,6 +39,7 @@ export const getMembers = async (req: Request, res: Response) => {
   }
 };
 
+// add a member to the project
 export const addMember = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
@@ -74,6 +75,7 @@ export const addMember = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// remove a member from the project
 export const removeMember = async (req: Request, res: Response) => {
   try {
     await pool.query(

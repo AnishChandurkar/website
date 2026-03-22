@@ -3,7 +3,7 @@ import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
 import { AuthRequest } from "./authController";
 
-// --- Types & Interfaces ---
+// types & interfaces
 
 interface ProjectRow extends RowDataPacket {
   id: number;
@@ -33,8 +33,9 @@ interface MemberRow extends RowDataPacket {
   role: string;
 }
 
-// --- Controllers ---
+// controllers
 
+// get all projects for the user
 export const getProjects = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
@@ -57,6 +58,7 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// get project details by id
 export const getProjectById = async (req: AuthRequest, res: Response) => {
   try {
     const [projects] = await pool.query<ProjectRow[]>(
@@ -111,6 +113,7 @@ export const getArchivedProjects = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// create a new project
 export const createProject = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
@@ -196,13 +199,13 @@ export const toggleStar = async (req: AuthRequest, res: Response) => {
     const userId = req.user.id;
 
     if (is_starred) {
-      // Insert into junction table (ignore if already exists)
+      // insert into junction table (ignore if already exists)
       await pool.query(
         "INSERT IGNORE INTO user_starred_projects (user_id, project_id) VALUES (?, ?)",
         [userId, projectId]
       );
     } else {
-      // Remove from junction table
+      // remove from junction table
       await pool.query(
         "DELETE FROM user_starred_projects WHERE user_id = ? AND project_id = ?",
         [userId, projectId]

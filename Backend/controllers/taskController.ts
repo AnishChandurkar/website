@@ -6,6 +6,7 @@ import { AuthRequest } from "./authController";
 
 
 
+// fetch tasks for a board
 export const getTasks = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
@@ -52,6 +53,7 @@ export const reSyncStories = async (req: AuthRequest, res: Response): Promise<an
   }
 };
 
+// get a specific task by id
 export const getTaskById = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
@@ -78,6 +80,7 @@ export const getTaskById = async (req: AuthRequest, res: Response): Promise<any>
   }
 };
 
+// get child tasks of a story
 export const getChildTasks = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
@@ -98,6 +101,7 @@ export const getChildTasks = async (req: AuthRequest, res: Response): Promise<an
   }
 };
 
+// create a new task
 export const createTask = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
@@ -228,6 +232,7 @@ export const createTask = async (req: AuthRequest, res: Response): Promise<any> 
   }
 };
 
+// move task to another column
 export const moveTask = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
@@ -335,6 +340,7 @@ export const moveTask = async (req: AuthRequest, res: Response): Promise<any> =>
   }
 };
 
+// update task details
 export const updateTask = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
@@ -468,6 +474,7 @@ export const updateTask = async (req: AuthRequest, res: Response): Promise<any> 
   }
 };
 
+// delete a task
 export const deleteTask = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const [task] = await pool.query<RowDataPacket[]>("SELECT parent_id, board_id FROM tasks WHERE id = ?", [req.params.id]);
@@ -519,6 +526,7 @@ export async function updateParentStoryStatus(parentId: string | number, boardId
 };
 
 
+// close a task
 export const closeTask = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });

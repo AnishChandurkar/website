@@ -50,6 +50,7 @@ const setRefreshTokenCookie = (res: Response, token: string) => {
   });
 };
 
+// register a new user
 export const register = async (req: Request, res: Response) => {
   try {
     const { first_name, surname, emailid, password } = req.body;
@@ -92,6 +93,7 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
+// log in user
 export const login = async (req: Request, res: Response) => {
   try {
     const { emailid, password } = req.body;
@@ -138,6 +140,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// refresh access token
 export const refresh = async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
@@ -187,6 +190,7 @@ export const logout = async (req: Request, res: Response) => {
   res.json({ message: "Logged out successfully" });
 };
 
+// get user profile details
 export const getProfile = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {

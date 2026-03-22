@@ -7,8 +7,11 @@ import { getTaskAuditLogs } from "../controllers/auditController";
 
 const router = express.Router();
 
+// get project for a board
 router.get('/:boardId/project', auth, requireTaskReadAccess, getBoardProject);
+// fetch all tasks on a board
 router.get('/:boardId/tasks', auth, requireTaskReadAccess, getTasks);
+// create a new task
 router.post('/:boardId/tasks', auth, requireTaskWriteAccess, createTask);
 router.get('/tasks/:id', auth, requireTaskReadAccess, getTaskById);
 router.get('/tasks/:id/children', auth, requireTaskReadAccess, getChildTasks);

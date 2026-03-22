@@ -5,7 +5,9 @@ import { getBoards, createBoard, deleteBoard } from "../controllers/boardControl
 
 const router = express.Router();
 
+// fetch all boards in project
 router.get('/:projectId/boards', auth, projectRole(), getBoards);
+// create a new board
 router.post('/:projectId/boards', auth, projectRole('Project Admin'), createBoard);
 router.delete('/:projectId/boards/:boardId', auth, projectRole('Project Admin'), deleteBoard);
 

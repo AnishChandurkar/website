@@ -2,6 +2,7 @@ import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AuthRequest } from "../controllers/authController";
 
+// check if user is authenticated
 const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
   const token = req.cookies.accessToken;
 

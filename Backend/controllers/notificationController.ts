@@ -3,7 +3,7 @@ import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
 import { AuthRequest } from "./authController";
 
-// --- Types & Interfaces ---
+// types & interfaces
 
 interface NotificationRow extends RowDataPacket {
   id: number;
@@ -27,7 +27,7 @@ export const internalCreateNotification = async (userId: number, type: string, m
   }
 };
 
-// --- Controllers ---
+// controllers
 
 export const getNotifications = async (req: AuthRequest, res: Response) => {
   try {

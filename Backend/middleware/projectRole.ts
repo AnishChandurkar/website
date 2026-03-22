@@ -3,7 +3,7 @@ import { RowDataPacket } from "mysql2";
 import pool from "../config/db";
 import { AuthRequest } from "../controllers/authController";
 
-// --- Types & Interfaces ---
+// types & interfaces
 
 interface RoleRow extends RowDataPacket {
   role: string;
@@ -13,8 +13,9 @@ export interface ProjectRoleRequest extends AuthRequest {
   projectRole?: string;
 }
 
-// --- Middleware ---
+// middleware
 
+// check if user has required project role
 const projectRole = (...allowedRoles: string[]) => {
   return async (req: ProjectRoleRequest, res: Response, next: NextFunction) => {
     try {

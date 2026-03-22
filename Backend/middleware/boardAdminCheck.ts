@@ -3,7 +3,7 @@ import { RowDataPacket } from "mysql2";
 import pool from "../config/db";
 import { AuthRequest } from "../controllers/authController";
 
-// --- Types & Interfaces ---
+// types & interfaces
 
 interface BoardProjectRow extends RowDataPacket {
   project_id: number;
@@ -13,8 +13,9 @@ interface RoleRow extends RowDataPacket {
   role: string;
 }
 
-// --- Middleware ---
+// middleware
 
+// check if user is a board admin
 export const requireAdminBoard = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     if (!req.user) {
@@ -47,6 +48,7 @@ export const requireAdminBoard = async (req: AuthRequest, res: Response, next: N
   }
 };
 
+// check if user is a column admin
 export const requireAdminColumn = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     if (!req.user) {

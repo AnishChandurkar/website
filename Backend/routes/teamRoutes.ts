@@ -5,7 +5,9 @@ import { getMembers, addMember, removeMember } from "../controllers/teamControll
 
 const router = express.Router();
 
+// fetch project members
 router.get('/:projectId/members', auth, projectRole(), getMembers);
+// add a member to the project
 router.post('/:projectId/members', auth, projectRole('Project Admin'), addMember);
 router.delete('/:projectId/members/:userId', auth, projectRole('Project Admin'), removeMember);
 

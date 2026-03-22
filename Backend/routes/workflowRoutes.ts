@@ -5,12 +5,12 @@ import { getProjectWorkflows, addWorkflow, deleteWorkflow } from "../controllers
 
 const router = express.Router({ mergeParams: true });
 
-//get api for all allowed workFlows
+// get api for all allowed workflows
 router.get("/:projectId/workflows", auth, getProjectWorkflows);
 
 router.post("/:projectId/workflows", auth, projectRole("Project Admin"), addWorkflow);
 
-//to deletea transition
+// to delete a transition
 
 router.delete("/:projectId/workflows/:workflowId", auth, projectRole("Project Admin"), deleteWorkflow);
 

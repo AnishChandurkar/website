@@ -16,6 +16,7 @@ interface DefaultColumn {
   wip_limit: number | null;
 }
 
+// get all boards in a project
 export const getBoards = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query<BoardRow[]>(
@@ -28,6 +29,7 @@ export const getBoards = async (req: Request, res: Response) => {
   }
 };
 
+// create a new board
 export const createBoard = async (req: Request, res: Response) => {
   try {
     const { name, color } = req.body;
@@ -60,6 +62,7 @@ export const createBoard = async (req: Request, res: Response) => {
   }
 };
 
+// delete a board
 export const deleteBoard = async (req: Request, res: Response) => {
   try {
     await pool.query('DELETE FROM boards WHERE id = ?', [req.params.boardId]);

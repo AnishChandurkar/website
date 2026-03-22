@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import pool from "../config/db";
 
-// Get all workflows for all boards inside a specific project
+// get all workflows for boards inside a project
 export const getProjectWorkflows = async (req: Request, res: Response) => {
     try {
         const { projectId } = req.params;
 
-        // Join columns and boards to ensure we only get workflows belonging to this project
+        // join columns and boards to get project workflows
         const [rows] = await pool.query<RowDataPacket[]>(`
       SELECT w.id, w.from_column_id, w.to_column_id, 
              c1.name as source_name, c2.name as target_name, w.board_id
@@ -35,7 +35,7 @@ export const getProjectWorkflows = async (req: Request, res: Response) => {
 
 export const addWorkflow = async (req: Request, res: Response) => {
     try {
-        // When adding, we will expect the frontend to pass board_id and the two columns
+        // expect board_id and two column ids passed
         const { board_id, from_column_id, to_column_id } = req.body;
 
         if (!board_id || !from_column_id || !to_column_id) {

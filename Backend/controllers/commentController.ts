@@ -46,7 +46,7 @@ export const addComment = async (req: AuthRequest, res: Response): Promise<any> 
       [req.params.taskId, taskTitle, boardId, req.user!.id, commenterName, content.substring(0, 50)]
     );
 
-    // Notify assigned user
+    // notify assigned user
     const [taskRows] = await pool.query<RowDataPacket[]>(
       "SELECT title, assigned_to FROM tasks WHERE id = ?",
       [req.params.taskId]

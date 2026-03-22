@@ -19,6 +19,7 @@ interface TaskCountRow extends RowDataPacket {
   count: number;
 }
 
+// get all columns for a board
 export const getColumns = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query<ColumnRow[]>(
@@ -31,6 +32,7 @@ export const getColumns = async (req: Request, res: Response) => {
   }
 };
 
+// create a new column
 export const createColumn = async (req: Request, res: Response) => {
   try {
     const { name, wip_limit } = req.body;
@@ -56,6 +58,7 @@ export const createColumn = async (req: Request, res: Response) => {
   }
 };
 
+// rename a column
 export const renameColumn = async (req: Request, res: Response) => {
   try {
     const { name } = req.body;
