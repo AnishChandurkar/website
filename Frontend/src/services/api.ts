@@ -31,7 +31,7 @@ const apiRequest = async (endpoint: string, method: string = 'GET', body?: objec
     }
 
     const text = await response.text();
-    let data: any = null;
+    let data: unknown = null;
     try {
         data = JSON.parse(text);
     } catch (e) {
@@ -39,11 +39,11 @@ const apiRequest = async (endpoint: string, method: string = 'GET', body?: objec
     }
 
     if (!response.ok) {
-        const errorMsg = data?.message || `Server error (${response.status}) at ${BASE_URL}${endpoint}: ${text.slice(0, 100)}...`;
+        const errorMsg = (data as { message?: string })?.message || `Server error (${response.status}) at ${BASE_URL}${endpoint}: ${text.slice(0, 100)}...`;
         throw new Error(errorMsg);
     }
 
-    return data;
+    return data as any;
 };
 // auth checks 
 export const loginUser = (emailid: string, password: string) => {

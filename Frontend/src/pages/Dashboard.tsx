@@ -34,9 +34,7 @@ const Dashboard = () => {
         const data = await fetchProjects();
         setProjects(data);
       } catch (err: any) {
-        // cast to error to be safe if needed
-        const message = err?.message || 'Failed to fetch projects';
-        setError(message);
+        setError(err.message || 'Failed to fetch projects');
       } finally {
         setLoading(false);
       }
@@ -50,7 +48,7 @@ const Dashboard = () => {
       await archiveProject(id);
       setProjects(projects.filter(p => p.id !== id));
     } catch (err: any) {
-      alert(err?.message || 'Archive failed');
+      alert(err.message);
     }
   };
 
@@ -61,7 +59,7 @@ const Dashboard = () => {
         await deleteProject(id);
         setProjects(projects.filter(p => p.id !== id));
       } catch (err: any) {
-        alert(err?.message || 'Delete failed');
+        alert(err.message);
       }
     }
   };
@@ -71,7 +69,7 @@ const Dashboard = () => {
       await toggleStarProject(id, isStarred);
       setProjects(projects.map(p => p.id === id ? { ...p, is_starred: isStarred } : p));
     } catch (err: any) {
-      alert(err?.message || 'Star toggle failed');
+      alert(err.message);
     }
   };
 
@@ -87,7 +85,7 @@ const Dashboard = () => {
       setProjects(updatedProjects);
       setEditingProject(null);
     } catch (err: any) {
-      alert(err?.message || "Something went wrong while updating project.");
+      alert(err.message || "Something went wrong while updating project.");
     } finally {
       setLoading(false);
     }

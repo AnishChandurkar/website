@@ -490,7 +490,7 @@ const TaskDetailModal = ({ taskId, projectId, onClose, onUpdated, onOpenTask }: 
               <select
                 className={styles.fieldSelect}
                 value={priority}
-                onChange={e => { setPriority(e.target.value as any); markDirty(); }}
+                onChange={e => { setPriority(e.target.value as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'); markDirty(); }}
               >
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>

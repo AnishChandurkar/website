@@ -43,13 +43,13 @@ const Team = () => {
     const loadTeammates = async () => {
       try {
         const data = await fetchMyTeammates();
-        const formatted = data.map((u: any) => ({
+        const formatted = data.map((u: { id: number; first_name: string | null; surname: string | null; emailid: string; profile_url: string | null }) => ({
           id: u.id,
           name: `${u.first_name || ''} ${u.surname || ''}`.trim(),
           role: "Team Member",
           location: "Remote",
           email: u.emailid,
-          profile_url: u.profile_url
+          profile_url: u.profile_url || undefined
         }));
         setMembers(formatted);
       } catch (err) {

@@ -3,12 +3,28 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from '../CSS Files/AuditHistory.module.css';
 import { fetchAuditLogs } from '../services/api';
 
+interface AuditLog {
+  id: number;
+  task_title: string;
+  task_id: number;
+  event_type: string;
+  old_value: string | null;
+  new_value: string | null;
+  creator_first_name: string | null;
+  creator_surname: string | null;
+  editor_first_name: string | null;
+  editor_surname: string | null;
+  is_closed: boolean;
+  is_resolved: boolean;
+  created_at: string;
+}
+
 const AuditHistory = () => {
   const { boardId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
