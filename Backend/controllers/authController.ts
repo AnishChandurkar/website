@@ -198,7 +198,7 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
     }
 
     const [users] = await pool.query<UserRow[]>(
-      "SELECT id, first_name, surname, emailid, profile_url, created_at FROM users WHERE id = ?",
+      "SELECT id, first_name, surname, emailid, profile_url, created_at, global_role FROM users WHERE id = ?",
       [req.user.id]
     );
 

@@ -88,6 +88,26 @@ export const removeMember = async (req: Request, res: Response) => {
   }
 };
 
+// update a member's role in the project
+export const updateMemberRole = async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    const { role } = req.body;
+    const validRoles = ['Project Admin', 'Project Member', 'Project Viewer'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: 'invalid role' });
+    }
+
+    await pool.query(
+      'UPDATE project_members SET role = ? WHERE project_id = ? AND user_id = ?',
+      [role, req.params.projectId, req.params.userId]
+    );
+
+    res.json({ message: 'role updated!!' });
+  } catch (error: any) {
+    res.status(500).json({ message: 'something went wrong :(', error: error.message });
+  }
+};
+
 export const getMyTeammates = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });

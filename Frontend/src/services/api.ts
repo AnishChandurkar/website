@@ -276,3 +276,7 @@ export const changePassword = (currentPassword: string, newPassword: string, con
 export const fetchMyTeammates = () => {
     return apiRequest('/auth/teammates', 'GET');
 };
+
+export const updateMemberRole = (projectId: number, userId: number, role: string) => {
+    return apiRequest(`/projects/${projectId}/members/${userId}`, 'PUT', { role });
+};
