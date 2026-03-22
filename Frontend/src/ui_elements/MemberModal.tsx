@@ -6,7 +6,7 @@ interface TeamMember {
   role: string;
   location: string;
   email: string;
-  profile_url?: string;
+  avatar_data?: string;
 }
 
 interface MemberModalProps {
@@ -29,9 +29,9 @@ const MemberModal = ({ member, onClose }: MemberModalProps) => {
       <div className={styles.modal}>
         <button className={styles.closeButton} onClick={onClose}>&times;</button>
         
-        {member.profile_url ? (
+        {member.avatar_data ? (
           <img 
-            src={member.profile_url.startsWith('data:') ? member.profile_url : `http://localhost:3001${member.profile_url}`} 
+            src={member.avatar_data} 
             alt={member.name} 
             style={{
               width: '60px',

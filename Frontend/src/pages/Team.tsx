@@ -10,7 +10,7 @@ interface TeamMember {
   role: string;
   location: string;
   email: string;
-  profile_url?: string;
+  avatar_data?: string;
 }
 
 // state for the search bar
@@ -49,7 +49,7 @@ const Team = () => {
           role: "Team Member",
           location: "Remote",
           email: u.emailid,
-          profile_url: u.profile_url
+          avatar_data: u.avatar_data
         }));
         setMembers(formatted);
       } catch (err) {
@@ -150,9 +150,9 @@ const Team = () => {
                   transition: 'transform 0.1s ease',
                 }}
               >
-                {member.profile_url ? (
+                {member.avatar_data ? (
                   <img
-                    src={member.profile_url.startsWith('data:') ? member.profile_url : `http://localhost:3001${member.profile_url}`}
+                    src={member.avatar_data}
                     alt={member.name}
                     style={{
                       width: '60px',

@@ -63,7 +63,7 @@ export interface Member {
     surname: string;
     emailid: string;
     role: string;
-    profile_url?: string | null;
+    avatar_data?: string | null;
     global_role?: string;
 }
 
@@ -159,7 +159,7 @@ export const registerUser = (first_name: string, surname: string, emailid: strin
 };
 
 export const getProfile = () => {
-    return callApi<{ id: number, emailid: string, first_name: string, surname: string, global_role: string }>('/auth/profile');
+    return callApi<{ id: number, emailid: string, first_name: string, surname: string, avatar_data: string | null, global_role: string, created_at: string }>('/auth/profile');
 }
 
 export const logoutUser = () => {
@@ -185,7 +185,7 @@ export const uploadAvatar = async (file: File) => {
     if (!response.ok) {
         throw new Error(data.message || 'Upload failed');
     }
-    return data;
+    return data as { message: string, avatar_data: string };
 };
 
 export const fetchProjects = () => {
