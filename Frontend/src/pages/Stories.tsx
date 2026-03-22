@@ -2,21 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from '../CSS Files/Stories.module.css';
 import { fetchTasks, createTask, updateTask, deleteTask } from '../services/api';
+import type { Story, Task as ChildTask, Task } from '../services/api';
 
-interface Story {
-  id: number;
-  title: string;
-  description: string;
-  column_name?: string;
-}
-
-interface ChildTask {
-  id: number;
-  parent_id: number | null;
-  title: string;
-  type: string;
-  column_name?: string;
-}
 
 interface TaskItem {
   id: number;
@@ -44,7 +31,7 @@ const Stories = () => {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState('');
 
-  const loadData = async () => {
+  const refreshStories = async () => {
     try {
       if (boardId) {
         // load board tasks and stories
@@ -55,14 +42,14 @@ const Stories = () => {
           description: t.description || '',
           column_name: t.column_name
         } as Story));
-        const allChildTasks = fetchedTasks.filter((t: TaskItem) => t.type !== 'Story' && t.parent_id !== null).map((t: TaskItem) => ({
+        const children = fetchedTasks.filter((t: TaskItem) => t.type !== 'Story' && t.parent_id !== null).map((t: TaskItem) => ({
           id: t.id,
           parent_id: t.parent_id,
           title: t.title,
           type: t.type,
           column_name: t.column_name
         } as ChildTask));
-        const allAvailableTasks = fetchedTasks.filter((t: TaskItem) => t.type !== 'Story' && t.parent_id === null).map((t: TaskItem) => ({
+        const available = fetchedTasks.filter((t: TaskItem) => t.type !== 'Story' && t.parent_id === null).map((t: TaskItem) => ({
           id: t.id,
           parent_id: t.parent_id,
           title: t.title,
@@ -71,48 +58,51 @@ const Stories = () => {
         } as ChildTask));
 
         setStories(allStories);
-        setChildTasks(allChildTasks);
-        setAvailableBoardTasks(allAvailableTasks);
+        setChildTasks(children);
+        setAvailableBoardTasks(available);
 
         if (selectedStory) {
-          const updated = allStories.find((s) => s.id === selectedStory.id);
+          const updated = allStories.find(s => s.id === selectedStory.id);
           if (updated) setSelectedStory(updated);
         }
       }
-    } catch (error) {
-      console.error("Failed to fetch stories and tasks", error);
+    } catch (e) {
+      console.error("fetch failed", e);
     }
   };
 
   useEffect(() => {
-    loadData();
+    refreshStories();
   }, [boardId]);
 
   const handleAddStory = async () => {
     if (!newStoryTitle.trim()) return;
     try {
       if (boardId) {
-        // create a new story on board
         await createTask(Number(boardId), newStoryTitle, null, 'MEDIUM', 'Story', newStoryDesc, null, null, null);
         setShowAddStoryModal(false);
         setNewStoryTitle('');
         setNewStoryDesc('');
-        loadData();
+        refreshStories(); // Changed loadData to refreshStories
       }
-    } catch (err: any) {
-      alert(err.message || "Failed to create story");
+    } catch (err: unknown) {
+      console.error("Failed to create story:", err);
+      alert("Failed to create story.");
     }
   };
 
   const handleAddTaskToStory = async () => {
     if (!selectedTaskId || !selectedStory) return;
     try {
-      // link a task to a story
       await updateTask(Number(selectedTaskId), { parent_id: selectedStory.id });
       setSelectedTaskId('');
-      loadData();
-    } catch (err: any) {
-      alert(err.message || 'Failed to add task to story');
+      refreshStories();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message || 'Failed to add task to story');
+      } else {
+        alert("Failed to add task to story");
+      }
     }
   };
 
@@ -121,9 +111,13 @@ const Stories = () => {
       try {
         // unlink task from story
         await updateTask(taskId, { parent_id: null });
-        loadData();
-      } catch (err: any) {
-        alert(err.message || "Failed to remove task from story");
+        refreshStories();
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          alert(err.message || "Failed to remove task from story");
+        } else {
+          alert("Failed to remove task from story");
+        }
       }
     }
   };
@@ -136,9 +130,13 @@ const Stories = () => {
           setSelectedStory(null);
         }
         setStories(prev => prev.filter(s => s.id !== storyId));
-        loadData();
-      } catch (err: any) {
-        alert(err.message || 'Failed to delete story');
+        refreshStories();
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          alert(err.message || 'Failed to delete story');
+        } else {
+          alert("Failed to delete story");
+        }
       }
     }
   };

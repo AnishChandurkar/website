@@ -28,17 +28,17 @@ const AllowedWorkflows = () => {
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
-    const initData = async () => {
+    const setupWorkflows = async () => {
       try {
         if (!boardId) return;
 
-        // fetch board info
-        const boardInfo = await fetchBoardProject(Number(boardId));
-        setProjectId(boardInfo.project_id);
+        const info = await fetchBoardProject(Number(boardId));
+        setProjectId(info.project_id);
 
-        // fetch columns and workflows
-        const cols = await fetchColumns(Number(boardId));
-        const wfs = await fetchProjectWorkflows(boardInfo.project_id);
+        const [cols, wfs] = await Promise.all([
+          fetchColumns(Number(boardId)),
+          fetchProjectWorkflows(info.project_id)
+        ]);
 
         setColumns(Array.isArray(cols) ? cols as Column[] : []);
         setWorkflows(Array.isArray(wfs) ? wfs as Workflow[] : []);
@@ -51,7 +51,7 @@ const AllowedWorkflows = () => {
         } catch { }
       }
     };
-    initData();
+    setupWorkflows();
   }, [boardId]);
 
   const handleSave = async () => {
@@ -82,8 +82,12 @@ const AllowedWorkflows = () => {
       setShowModal(false);
       setSourceColumn('');
       setTargetColumn('');
-    } catch (err: any) {
-      alert(err.message || "Failed to add workflow.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message || "Failed to add workflow.");
+      } else {
+        alert("Failed to add workflow.");
+      }
     }
   };
 
@@ -92,7 +96,7 @@ const AllowedWorkflows = () => {
     try {
       await deleteWorkflow(projectId, wfId);
       setWorkflows(workflows.filter(w => w.id !== wfId));
-    } catch (err: any) {
+    } catch (err: unknown) {
       alert("Failed to delete workflow");
     }
   };

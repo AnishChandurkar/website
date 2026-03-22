@@ -4,38 +4,12 @@ import Sidebar from '../ui_elements/SideBar';
 import styles from '../CSS Files/ProjectDetails.module.css';
 import AddBoardModal from '../ui_elements/AddBoardModal';
 import InviteMemberModal from '../ui_elements/InviteMemberModal';
-import { fetchProjectById, createBoard, inviteMember, updateMemberRole } from '../services/api';
+import { 
+  fetchProjectById, createBoard, inviteMember, updateMemberRole
+} from '../services/api';
+import type { ProjectFull } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-interface Board {
-  id: number;
-  name: string;
-  task_count: number;
-  created_at: string;
-  color: string;
-}
-
-interface Member {
-  id: number;
-  first_name: string;
-  surname: string;
-  emailid: string;
-  profile_url: string | null;
-  global_role: string;
-  role: string;
-}
-
-interface ProjectFull {
-  id: number;
-  name: string;
-  description: string;
-  status: string;
-  progress: number;
-  created_at: string;
-  updated_at: string;
-  boards: Board[];
-  members: Member[];
-}
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
@@ -44,15 +18,14 @@ const ProjectDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // keep track of which popup is open
+  // manage which modal is visible
   interface ViewStates {
     addBoard: boolean;
     invite: boolean;
   }
-  // just simple open/close actions
+  
   type PopupActions = { type: 'SWITCH_BOARD'; payload: boolean } | { type: 'SWITCH_INVITE'; payload: boolean };
 
-  // using a reducer to manage visibility of different modals
   function viewReducer(state: ViewStates, action: PopupActions): ViewStates {
     switch (action.type) {
       case 'SWITCH_BOARD': return { ...state, addBoard: action.payload };
@@ -65,27 +38,26 @@ const ProjectDetails = () => {
   const { addBoard: showAddBoard, invite: showInvite } = popups;
 
 
-  const loadProject = async () => {
+  const fetchProjectData = async () => {
     try {
-      // load specific project data
-      const data = await fetchProjectById(Number(projectId));
-      setProject(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load project');
+      const resp = await fetchProjectById(Number(projectId));
+      setProject(resp);
+    } catch (e: any) {
+      setError(e.message || 'error loading project');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadProject();
+    fetchProjectData();
   }, [projectId]);
 
   const handleAddBoard = async (boardName: string) => {
     try {
       // create new board in project
       await createBoard(Number(projectId), boardName);
-      await loadProject();
+      await fetchProjectData();
       setPopup({ type: 'SWITCH_BOARD', payload: false });
     } catch (err: any) {
       alert(err.message || 'Failed to create board');
@@ -96,7 +68,7 @@ const ProjectDetails = () => {
     try {
       // invite member to project
       await inviteMember(Number(projectId), email, role);
-      await loadProject();
+      await fetchProjectData();
       setPopup({ type: 'SWITCH_INVITE', payload: false });
     } catch (err: any) {
       alert(err.message || 'Failed to invite member');
@@ -106,11 +78,11 @@ const ProjectDetails = () => {
   const handleRoleChange = async (userId: number, newRole: string) => {
     try {
       await updateMemberRole(Number(projectId), userId, newRole);
-      setProject(prev => {
+      setProject((prev: ProjectFull | null) => {
         if (!prev) return prev;
         return {
           ...prev,
-          members: prev.members.map(m => m.id === userId ? { ...m, role: newRole } : m)
+          members: prev.members.map((m) => m.id === userId ? { ...m, role: newRole } : m)
         };
       });
     } catch (err: any) {

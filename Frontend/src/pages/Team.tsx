@@ -10,7 +10,7 @@ interface TeamMember {
   role: string;
   location: string;
   email: string;
-  profile_url?: string;
+  avatar_data?: string;
 }
 
 // state for the search bar
@@ -43,13 +43,13 @@ const Team = () => {
     const loadTeammates = async () => {
       try {
         const data = await fetchMyTeammates();
-        const formatted = data.map((u: { id: number; first_name: string | null; surname: string | null; emailid: string; profile_url: string | null }) => ({
+        const formatted = data.map((u: { id: number; first_name: string | null; surname: string | null; emailid: string; avatar_data: string | null }) => ({
           id: u.id,
           name: `${u.first_name || ''} ${u.surname || ''}`.trim(),
           role: "Team Member",
           location: "Remote",
           email: u.emailid,
-          profile_url: u.profile_url || undefined
+          avatar_data: u.avatar_data || undefined
         }));
         setMembers(formatted);
       } catch (err) {
@@ -150,9 +150,9 @@ const Team = () => {
                   transition: 'transform 0.1s ease',
                 }}
               >
-                {member.profile_url ? (
+                {member.avatar_data ? (
                   <img
-                    src={member.profile_url.startsWith('data:') ? member.profile_url : `http://localhost:3001${member.profile_url}`}
+                    src={member.avatar_data}
                     alt={member.name}
                     style={{
                       width: '60px',

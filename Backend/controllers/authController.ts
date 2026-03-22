@@ -16,7 +16,7 @@ interface UserRow extends RowDataPacket {
   surname: string;
   emailid: string;
   password_hash: string;
-  profile_url?: string;
+  avatar_data?: string;
   created_at?: Date;
 }
 
@@ -198,7 +198,7 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
     }
 
     const [users] = await pool.query<UserRow[]>(
-      "SELECT id, first_name, surname, emailid, profile_url, created_at, global_role FROM users WHERE id = ?",
+      "SELECT id, first_name, surname, emailid, avatar_data, created_at, global_role FROM users WHERE id = ?",
       [req.user.id]
     );
 
@@ -224,11 +224,11 @@ export const updateProfilePicture = async (req: AuthRequest, res: Response) => {
     }
 
     await pool.query(
-      "UPDATE users SET profile_url = ? WHERE id = ?",
+      "UPDATE users SET avatar_data = ? WHERE id = ?",
       [avatar, req.user.id]
     );
 
-    res.json({ message: "Profile picture updated", profile_url: avatar });
+    res.json({ message: "Profile picture updated", avatar_data: avatar });
   } catch (error: any) {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
@@ -263,7 +263,7 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<an
     await pool.query(`UPDATE users SET ${sets.join(", ")} WHERE id = ?`, values);
 
     const [updated] = await pool.query<UserRow[]>(
-      "SELECT id, first_name, surname, emailid, profile_url, created_at FROM users WHERE id = ?",
+      "SELECT id, first_name, surname, emailid, avatar_data, created_at FROM users WHERE id = ?",
       [req.user.id]
     );
 

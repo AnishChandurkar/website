@@ -29,7 +29,7 @@ interface MemberRow extends RowDataPacket {
   first_name: string;
   surname: string;
   emailid: string;
-  profile_url: string | null;
+  avatar_data: string | null;
   global_role: string;
   role: string;
 }
@@ -78,7 +78,7 @@ export const getProjectById = async (req: AuthRequest, res: Response) => {
     );
 
     const [members] = await pool.query<MemberRow[]>(
-      `SELECT u.id, u.first_name, u.surname, u.emailid, u.profile_url, u.global_role, pm.role
+      `SELECT u.id, u.first_name, u.surname, u.emailid, u.avatar_data, u.global_role, pm.role
        FROM project_members pm
        JOIN users u ON pm.user_id = u.id
        WHERE pm.project_id = ?`,
