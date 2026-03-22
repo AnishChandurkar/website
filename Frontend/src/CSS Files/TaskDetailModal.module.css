@@ -457,7 +457,7 @@
 }
 
 .richContent code {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Monaco", "Courier New", monospace;
   background-color: #f0f0f0;
   border: 1px solid #dddddd;
   border-radius: 3px;
@@ -510,7 +510,7 @@
 }
 
 .commentContent code {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Monaco", "Courier New", monospace;
   background-color: #f0f0f0;
   border: 1px solid #dddddd;
   border-radius: 3px;
@@ -565,7 +565,7 @@
   cursor: pointer;
   padding: 8px 4px;
   border-bottom: 2px solid transparent;
-  font-family: inherit;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .tab:hover {
@@ -581,7 +581,7 @@
   cursor: pointer;
   padding: 8px 4px;
   border-bottom: 2px solid #007bff;
-  font-family: inherit;
+  font-family: "Monaco", "Courier New", monospace;
 }
 
 .timelineContainer {

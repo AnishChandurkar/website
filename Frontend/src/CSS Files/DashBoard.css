@@ -4,6 +4,9 @@ body {
     background: linear-gradient(135deg, #f5f5dc, #d2b48c);
     color: #333333;
 }
+button, input, select, textarea {
+    font-family: "Monaco", "Courier New", monospace;
+}
 .dashboard-layout {
     display: flex;
     height: 100vh;
