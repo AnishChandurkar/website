@@ -33,7 +33,7 @@ const Sidebar = () => {
         <div className="sidebar">
             <div className="sidebar-header">
                 <div className="brand">
-                    <img src="/logo.jpg" alt="Logo" width="60" height="50" />
+                    <img src="/workspace_fin_logo.png" alt="Logo" width="60" height="60" />
                     <h2>WORKSPACE</h2>
                 </div>
             </div>
