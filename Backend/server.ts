@@ -1,4 +1,5 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
+import { RowDataPacket } from 'mysql2';
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -28,15 +29,17 @@ app.use(express.urlencoded({ limit: '1mb', extended: true }));
 app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+
 app.get('/api/test', async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.query('SELECT 1 + 1 AS result') as any;
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT 1 + 1 AS result');
     res.json({
       message: 'backend is connected to mysql!',
-      dbResult: rows[0].result
+      dbResult: rows[0]?.result
     });
-  } catch (error: any) {
-    res.status(500).json({ message: 'database connection failed :(', error: error.message });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ message: 'database connection failed :(', error: message });
   }
 });
 
@@ -53,7 +56,7 @@ app.use('/api/boards', auditRoutes);
 
 const seedAdmin = async () => {
   try {
-    const [rows] = await pool.query('SELECT id FROM users WHERE emailid = ?', ['admin@workspace.com']) as any;
+    const [rows] = await pool.query<RowDataPacket[]>('SELECT id FROM users WHERE emailid = ?', ['admin@workspace.com']);
     if (rows.length === 0) {
       const bcrypt = require('bcryptjs');
       const hash = await bcrypt.hash('12345678', 10);
@@ -68,17 +71,19 @@ const seedAdmin = async () => {
   }
 };
 
-// global 404 handler for api routes
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ message: "Oh no! There's nothing at this endpoint :/" });
+
+// catch-all for unknown routes
+app.use((req, res) => {
+  res.status(404).send({ message: "path not found" });
 });
 
-// global error handler
-app.use((err: any, req: Request, res: Response, next: any) => {
-  console.error('SERVER ERROR:', err);
-  res.status(err.status || 500).json({
-    message: err.message || 'Something went poof on the server :(',
-    error: process.env.NODE_ENV === 'development' ? err : {}
+// app-wide error handling
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.log('--- SERVER ERROR ---', err);
+  const status = err.status || 500;
+  res.status(status).json({
+    message: err.message || 'unexpected server error',
+    error: process.env.NODE_ENV === 'dev' ? err : {}
   });
 });
 

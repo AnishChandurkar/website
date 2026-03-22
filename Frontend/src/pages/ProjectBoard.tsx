@@ -6,35 +6,9 @@ import {
   createColumn, renameColumn, deleteColumn, updateColumnLimit,
   reorderColumns, fetchTeamMembers, fetchProjectWorkflows, closeTask
 } from '../services/api';
+import type { Task, Column, Member, Workflow } from '../services/api';
 import TaskDetailModal from '../ui_elements/TaskDetailModal';
-interface Task {
-  id: number;
-  title: string;
-  description: string | null;
-  column_id: number | null;
-  column_name: string | null;
-  priority: 'HIGH' | 'CRITICAL' | 'MEDIUM' | 'LOW';
-  type: 'Story' | 'Task' | 'Bug';
-  assigned_to: number | null;
-  assigned_first_name: string | null;
-  assigned_surname: string | null;
-  parent_id: number | null;
-  parent_title: string | null;
-  parent_column_name: string | null;
-  due_date: string | null;
-  created_at: string;
-}
-interface Column {
-  id: number;
-  name: string;
-  position: number;
-  wip_limit: number | null;
-}
-interface Member {
-  id: number;
-  first_name: string;
-  surname: string;
-}
+
 const PRIORITY_DOT: Record<string, string> = {
   LOW: '#22c55e', MEDIUM: '#f59e0b', HIGH: '#ef4444', CRITICAL: '#a855f7',
 };

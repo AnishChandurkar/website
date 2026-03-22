@@ -9,6 +9,11 @@ interface Workflow {
   target: string;
 }
 
+interface Column {
+  id: number;
+  name: string;
+}
+
 const AllowedWorkflows = () => {
   const { boardId } = useParams();
   const navigate = useNavigate();
@@ -17,36 +22,33 @@ const AllowedWorkflows = () => {
   const [sourceColumn, setSourceColumn] = useState<string>('');
   const [targetColumn, setTargetColumn] = useState<string>('');
   const [projectId, setProjectId] = useState<number | null>(null);
-  const [columns, setColumns] = useState<any[]>([]);
+  const [columns, setColumns] = useState<Column[]>([]);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
 
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
-    const initData = async () => {
+    const setupWorkflows = async () => {
       try {
         if (!boardId) return;
 
-        // fetch board info
-        const boardInfo = await fetchBoardProject(Number(boardId));
-        setProjectId(boardInfo.project_id);
+        const info = await fetchBoardProject(Number(boardId));
+        setProjectId(info.project_id);
 
-        // fetch columns and workflows
-        const cols = await fetchColumns(Number(boardId));
-        const wfs = await fetchProjectWorkflows(boardInfo.project_id);
+        const [cols, wfs] = await Promise.all([
+          fetchColumns(Number(boardId)),
+          fetchProjectWorkflows(info.project_id)
+        ]);
 
-        setColumns(Array.isArray(cols) ? cols : []);
-        setWorkflows(Array.isArray(wfs) ? wfs : []);
-      } catch (err: any) {
-        console.error("failed to init allowed workflows:", err);
-        // even if workflows fail, fetch columns for dropdowns
-        try {
-          const cols = await fetchColumns(Number(boardId));
-          setColumns(Array.isArray(cols) ? cols : []);
-        } catch { }
+        setColumns(cols || []);
+        setWorkflows(wfs || []);
+      } catch (e) {
+        console.log("init failed", e);
+        // try to get columns even if workflows fail
+        fetchColumns(Number(boardId)).then(setColumns).catch(() => {});
       }
     };
-    initData();
+    setupWorkflows();
   }, [boardId]);
 
   const handleSave = async () => {
@@ -77,8 +79,12 @@ const AllowedWorkflows = () => {
       setShowModal(false);
       setSourceColumn('');
       setTargetColumn('');
-    } catch (err: any) {
-      alert(err.message || "Failed to add workflow.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message || "Failed to add workflow.");
+      } else {
+        alert("Failed to add workflow.");
+      }
     }
   };
 
@@ -87,7 +93,7 @@ const AllowedWorkflows = () => {
     try {
       await deleteWorkflow(projectId, wfId);
       setWorkflows(workflows.filter(w => w.id !== wfId));
-    } catch (err: any) {
+    } catch (err: unknown) {
       alert("Failed to delete workflow");
     }
   };

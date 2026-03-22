@@ -1,65 +1,169 @@
-const BASE_URL = 'http://localhost:3001/api';
-const apiRequest = async (endpoint: string, method: string = 'GET', body?: object) => {
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store',
-        'Pragma': 'no-cache',
-    };
+// base url for our backend server
+const BACKEND_URL = 'http://localhost:3001/api';
 
-    const config: RequestInit = {
-        // fetch wrapper with auth interception
+// --- Shared Types ---
+
+export interface Project {
+    id: number;
+    name: string;
+    description: string | null;
+    status: string;
+    progress: number;
+    is_starred: boolean;
+    is_archived: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ProjectFull extends Project {
+    boards: Board[];
+    members: Member[];
+}
+
+export interface Board {
+    id: number;
+    project_id: number;
+    name: string;
+    color: string;
+    task_count?: number;
+    created_at: string;
+}
+
+export interface Column {
+    id: number;
+    board_id: number;
+    name: string;
+    wip_limit: number | null;
+    order_index: number;
+    position: number;
+}
+
+export interface Task {
+    id: number;
+    board_id: number;
+    column_id: number | null;
+    column_name: string | null;
+    title: string;
+    description: string | null;
+    priority: 'HIGH' | 'CRITICAL' | 'MEDIUM' | 'LOW' | string;
+    type: 'Story' | 'Task' | 'Bug' | string;
+    parent_id: number | null;
+    parent_title: string | null;
+    parent_column_name: string | null;
+    assigned_to: number | null;
+    assigned_first_name: string | null;
+    assigned_surname: string | null;
+    due_date: string | null;
+    created_at: string;
+}
+
+export interface Member {
+    id: number;
+    first_name: string;
+    surname: string;
+    emailid: string;
+    role: string;
+    profile_url?: string | null;
+    global_role?: string;
+}
+
+export interface Notification {
+    id: number;
+    user_id: number;
+    type: string;
+    message: string;
+    is_read: boolean;
+    created_at: string;
+}
+
+export interface Workflow {
+    id: number;
+    project_id: number;
+    board_id: number;
+    from_column_id: number;
+    to_column_id: number;
+    source: string;
+    target: string;
+}
+
+export type Story = Task;
+
+export interface Comment {
+    id: number;
+    task_id: number;
+    user_id: number;
+    content: string;
+    created_at: string;
+    first_name: string;
+    surname: string;
+}
+
+export interface AuditLog {
+    id: number;
+    board_id: number;
+    task_id: number | null;
+    user_id: number;
+    action: string;
+    details: string;
+    created_at: string;
+    first_name: string;
+    surname: string;
+}
+
+/**
+ * Helper to handle fetch calls, auth refresh, and error parsing
+ */
+const callApi = async <T>(url: string, method: string = 'GET', payload?: any): Promise<T> => {
+    const options: RequestInit = {
         method,
-        headers,
+        headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+        },
         credentials: 'include',
     };
 
-    if (body) {
-        config.body = JSON.stringify(body);
+    if (payload) options.body = JSON.stringify(payload);
+
+    let res = await fetch(`${BACKEND_URL}${url}`, options);
+
+    // if we get a 401, try to refresh the token and retry once
+    if (res.status === 401 && !url.includes('/auth/login')) {
+        const refresh = await fetch(`${BACKEND_URL}/auth/refresh`, { method: 'POST', credentials: 'include' });
+        if (refresh.ok) res = await fetch(`${BACKEND_URL}${url}`, options);
     }
 
-    let response = await fetch(`${BASE_URL}${endpoint}`, config);
-
-    if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/register') {
-        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
-            method: 'POST',
-            credentials: 'include'
-        });
-
-        if (refreshRes.ok) {
-            response = await fetch(`${BASE_URL}${endpoint}`, config);
-        }
-    }
-
-    const text = await response.text();
-    let data: any = null;
+    const raw = await res.text();
+    let json: any = null;
     try {
-        data = JSON.parse(text);
-    } catch (e) {
-        // not a json response
+        json = JSON.parse(raw);
+    } catch { 
+        /* ignore parsing errors for non-json responses */ 
     }
 
-    if (!response.ok) {
-        const errorMsg = data?.message || `Server error (${response.status}) at ${BASE_URL}${endpoint}: ${text.slice(0, 100)}...`;
-        throw new Error(errorMsg);
+    if (!res.ok) {
+        const msg = json?.message || `Request failed with status ${res.status}`;
+        throw new Error(msg);
     }
 
-    return data;
+    return json as T;
 };
+
 // auth checks 
 export const loginUser = (emailid: string, password: string) => {
-    return apiRequest('/auth/login', 'POST', { emailid, password });
-}; // use post api for security
+    return callApi<{ message: string; user: { id: number, emailid: string, global_role: string } }>('/auth/login', 'POST', { emailid, password });
+};
 
 export const registerUser = (first_name: string, surname: string, emailid: string, password: string) => {
-    return apiRequest('/auth/register', 'POST', { first_name, surname, emailid, password });
+    return callApi<{ message: string }>('/auth/register', 'POST', { first_name, surname, emailid, password });
 };
 
 export const getProfile = () => {
-    return apiRequest('/auth/profile');
+    return callApi<{ id: number, emailid: string, first_name: string, surname: string, global_role: string }>('/auth/profile');
 }
 
 export const logoutUser = () => {
-    return apiRequest('/auth/logout', 'POST');
+    return callApi<{ message: string }>('/auth/logout', 'POST');
 };
 
 export const uploadAvatar = async (file: File) => {
@@ -70,7 +174,7 @@ export const uploadAvatar = async (file: File) => {
         reader.readAsDataURL(file);
     });
 
-    const response = await fetch(`${BASE_URL}/auth/profile/avatar`, {
+    const response = await fetch(`${BACKEND_URL}/auth/profile/avatar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -85,99 +189,99 @@ export const uploadAvatar = async (file: File) => {
 };
 
 export const fetchProjects = () => {
-    return apiRequest('/projects');
+    return callApi<Project[]>('/projects');
 };
 
 export const fetchProjectById = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}`);
+    return callApi<ProjectFull>(`/projects/${projectId}`);
 };
 
 export const createProject = (name: string, description?: string, status?: string) => {
-    return apiRequest('/projects', 'POST', { name, description, status });
+    return callApi<{ project: Project }>('/projects', 'POST', { name, description, status });
 };
 
 export const updateProject = (projectId: number, name: string, description: string, status: string, progress: number) => {
-    return apiRequest(`/projects/${projectId}`, 'PUT', { name, description, status, progress });
+    return callApi<void>(`/projects/${projectId}`, 'PUT', { name, description, status, progress });
 };
 
 export const getComments = async (taskId: number) => {
-    return apiRequest(`/tasks/${taskId}/comments`);
+    return callApi<Comment[]>(`/tasks/${taskId}/comments`);
 };
 
 export const addComment = async (taskId: number, content: string) => {
-    return apiRequest(`/tasks/${taskId}/comments`, 'POST', { content });
+    return callApi<{ message: string; comment: Comment }>(`/tasks/${taskId}/comments`, 'POST', { content });
 };
 
 export const editComment = async (taskId: number, commentId: number, content: string) => {
-    return apiRequest(`/tasks/${taskId}/comments/${commentId}`, 'PUT', { content });
+    return callApi<{ message: string }>(`/tasks/${taskId}/comments/${commentId}`, 'PUT', { content });
 };
 
 export const deleteComment = async (taskId: number, commentId: number) => {
-    return apiRequest(`/tasks/${taskId}/comments/${commentId}`, 'DELETE');
+    return callApi<{ message: string }>(`/tasks/${taskId}/comments/${commentId}`, 'DELETE');
 };
 
 export const archiveProject = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/archive`, 'PUT', { is_archived: true });
+    return callApi<void>(`/projects/${projectId}/archive`, 'PUT', { is_archived: true });
 };
 
 export const restoreProject = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/archive`, 'PUT', { is_archived: false });
+    return callApi<void>(`/projects/${projectId}/archive`, 'PUT', { is_archived: false });
 };
 
 export const deleteProject = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}`, 'DELETE');
+    return callApi<void>(`/projects/${projectId}`, 'DELETE');
 };
 
 export const toggleStarProject = (projectId: number, isStarred: boolean) => {
-    return apiRequest(`/projects/${projectId}/star`, 'PUT', { is_starred: isStarred });
+    return callApi<void>(`/projects/${projectId}/star`, 'PUT', { is_starred: isStarred });
 };
 
 export const fetchBoards = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/boards`);
+    return callApi<Board[]>(`/projects/${projectId}/boards`);
 };
 
 export const createBoard = (projectId: number, name: string) => {
-    return apiRequest(`/projects/${projectId}/boards`, 'POST', { name });
+    return callApi<{ board: Board }>(`/projects/${projectId}/boards`, 'POST', { name });
 };
 
 export const fetchBoardProject = (boardId: number) => {
-    return apiRequest(`/boards/${boardId}/project`);
+    return callApi<{ project_id: number; currentUserRole: string }>(`/boards/${boardId}/project`);
 };
 
 export const fetchColumns = (boardId: number) => {
-    return apiRequest(`/boards/${boardId}/columns`);
+    return callApi<Column[]>(`/boards/${boardId}/columns`);
 };
 
 export const createColumn = (boardId: number, name: string, wipLimit?: number) => {
-    return apiRequest(`/boards/${boardId}/columns`, 'POST', { name, wip_limit: wipLimit });
+    return callApi<{ message: string }>(`/boards/${boardId}/columns`, 'POST', { name, wip_limit: wipLimit });
 };
 
 export const renameColumn = (columnId: number, name: string) => {
-    return apiRequest(`/boards/columns/${columnId}/rename`, 'PUT', { name });
+    return callApi<{ message: string }>(`/boards/columns/${columnId}/rename`, 'PUT', { name });
 };
 
 export const updateColumnLimit = (columnId: number, wipLimit: number | null) => {
-    return apiRequest(`/boards/columns/${columnId}/limit`, 'PUT', { wip_limit: wipLimit });
+    return callApi<{ message: string }>(`/boards/columns/${columnId}/limit`, 'PUT', { wip_limit: wipLimit });
 };
 
 export const reorderColumns = (boardId: number, order: number[]) => {
-    return apiRequest(`/boards/${boardId}/columns/reorder`, 'PUT', { order });
+    return callApi<{ message: string }>(`/boards/${boardId}/columns/reorder`, 'PUT', { order });
 };
 
 export const deleteColumn = (columnId: number) => {
-    return apiRequest(`/boards/columns/${columnId}`, 'DELETE');
+    return callApi<{ message: string }>(`/boards/columns/${columnId}`, 'DELETE');
 };
 
 export const fetchTasks = (boardId: number) => {
-    return apiRequest(`/boards/${boardId}/tasks`);
+    return callApi<Task[]>(`/boards/${boardId}/tasks`);
 };
 
 export const getTask = (taskId: number) => {
-    return apiRequest(`/boards/tasks/${taskId}`);
+    return callApi<Task>(`/boards/tasks/${taskId}`);
 };
 
 export const getChildTasks = (taskId: number) => {
-    return apiRequest(`/boards/tasks/${taskId}/children`);
+    return callApi<Task[]>(`/boards/tasks/${taskId}/children`);
 };
 
 export const createTask = (
@@ -191,7 +295,7 @@ export const createTask = (
     dueDate?: string | null,
     parentId?: number | null
 ) => {
-    return apiRequest(`/boards/${boardId}/tasks`, 'POST', {
+    return callApi<{ message: string; task: Task }>(`/boards/${boardId}/tasks`, 'POST', {
         title,
         column_id: columnId,
         priority,
@@ -204,79 +308,79 @@ export const createTask = (
 };
 
 export const moveTask = (taskId: number, columnId: number) => {
-    return apiRequest(`/boards/tasks/${taskId}/move`, 'PUT', { column_id: columnId });
+    return callApi<{ message: string }>(`/boards/tasks/${taskId}/move`, 'PUT', { column_id: columnId });
 };
 
 export const closeTask = (taskId: number) => {
-    return apiRequest(`/boards/tasks/${taskId}/close`, 'PUT');
+    return callApi<{ message: string }>(`/boards/tasks/${taskId}/close`, 'PUT');
 };
 
 export const updateTask = (taskId: number, updates: object) => {
-    return apiRequest(`/boards/tasks/${taskId}`, 'PUT', updates);
+    return callApi<{ message: string }>(`/boards/tasks/${taskId}`, 'PUT', updates);
 };
 
 export const deleteTask = (taskId: number) => {
-    return apiRequest(`/boards/tasks/${taskId}`, 'DELETE');
+    return callApi<{ message: string }>(`/boards/tasks/${taskId}`, 'DELETE');
 };
 
 export const fetchTeamMembers = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/members`);
+    return callApi<Member[]>(`/projects/${projectId}/members`);
 };
 export const inviteMember = (projectId: number, emailid: string, role?: string) => {
-    return apiRequest(`/projects/${projectId}/members`, 'POST', { emailid, role });
+    return callApi<{ message: string }>('/projects/' + projectId + '/members', 'POST', { emailid, role });
 };
 export const removeMember = (projectId: number, userId: number) => {
-    return apiRequest(`/projects/${projectId}/members/${userId}`, 'DELETE');
+    return callApi<{ message: string }>(`/projects/${projectId}/members/${userId}`, 'DELETE');
 };
 
 export const fetchNotifications = () => {
-    return apiRequest('/notifications');
+    return callApi<Notification[]>('/notifications');
 };
 
 export const markNotificationAsRead = (id: number) => {
-    return apiRequest(`/notifications/${id}/read`, 'PUT');
+    return callApi<{ message: string }>(`/notifications/${id}/read`, 'PUT');
 };
 
 export const deleteNotification = (id: number) => {
-    return apiRequest(`/notifications/${id}`, 'DELETE');
+    return callApi<{ message: string }>(`/notifications/${id}`, 'DELETE');
 };
 
 export const fetchProjectWorkflows = (projectId: number) => {
-    return apiRequest(`/projects/${projectId}/workflows`);
+    return callApi<Workflow[]>(`/projects/${projectId}/workflows`);
 };
 
 export const fetchAuditLogs = (boardId: number | string) => {
-    return apiRequest(`/boards/${boardId}/audit`);
+    return callApi<AuditLog[]>(`/boards/${boardId}/audit`);
 };
 
 export const fetchTaskAuditLogs = (taskId: number) => {
-    return apiRequest(`/boards/tasks/${taskId}/audit`);
+    return callApi<AuditLog[]>(`/boards/tasks/${taskId}/audit`);
 };
 
 export const addWorkflow = (projectId: number, board_id: number, from_column_id: number, to_column_id: number) => {
-    return apiRequest(`/projects/${projectId}/workflows`, 'POST', { board_id, from_column_id, to_column_id });
+    return callApi<{ id: number }>('/projects/' + projectId + '/workflows', 'POST', { board_id, from_column_id, to_column_id });
 };
 
 export const deleteWorkflow = (projectId: number, workflowId: number) => {
-    return apiRequest(`/projects/${projectId}/workflows/${workflowId}`, 'DELETE');
+    return callApi<{ message: string }>(`/projects/${projectId}/workflows/${workflowId}`, 'DELETE');
 };
 
 export const reSyncStories = (boardId: number) => {
-    return apiRequest(`/boards/${boardId}/sync-stories`, 'PUT');
+    return callApi<{ message: string }>(`/boards/${boardId}/sync-stories`, 'PUT');
 };
 
 export const updateUserProfile = (data: { first_name?: string; surname?: string; emailid?: string }) => {
-    return apiRequest('/auth/profile', 'PUT', data);
+    return callApi<{ message: string }>('/auth/profile', 'PUT', data);
 };
 
 export const changePassword = (currentPassword: string, newPassword: string, confirmPassword: string) => {
-    return apiRequest('/auth/profile/password', 'POST', { currentPassword, newPassword, confirmPassword });
+    return callApi<{ message: string }>('/auth/profile/password', 'POST', { currentPassword, newPassword, confirmPassword });
 };
 
 export const fetchMyTeammates = () => {
-    return apiRequest('/auth/teammates', 'GET');
+    return callApi<{ id: number, emailid: string, first_name: string, surname: string }[]>('/auth/teammates', 'GET');
 };
 
 export const updateMemberRole = (projectId: number, userId: number, role: string) => {
-    return apiRequest(`/projects/${projectId}/members/${userId}`, 'PUT', { role });
+    return callApi<{ message: string }>(`/projects/${projectId}/members/${userId}`, 'PUT', { role });
 };
