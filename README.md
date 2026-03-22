@@ -7,6 +7,35 @@ This project is a full-stack web application designed for project management, bu
 - Arin Chandurkar (2024CS50002)
 
 
+File Structrue:-
+
+website/
+├── README.md               
+├── Backend/
+│   ├── config/             
+│   ├── controllers/
+│   ├── middleware/         
+│   ├── routes/             
+│   ├── uploads/            
+│   ├── jest.config.js      
+│   ├── package.json        
+│   ├── package-lock.json    
+│   ├── schema.sql          
+│   ├── server.ts            
+│   ├── tests/              
+│   └── tsconfig.json       
+└── Frontend/
+    ├── public/             
+    ├── src/                        
+    ├── eslint.config.js    
+    ├── index.html          
+    ├── package.json        
+    ├── package-lock.json    
+    ├── tsconfig.json       
+    ├── tsconfig.app.json
+    ├── tsconfig.node.json
+    └── vite.config.ts 
+    
 ## Global Admin Credentials
 
 admin@workspace.com
@@ -114,4 +143,4 @@ Alternatively, you can use a GUI tool like MySQL Workbench or phpMyAdmin to crea
 
 1. Register a new user account on the signup page.
 2. Log in with your credentials.
-3. Access the dashboard to manage projects and tasks.
+3. Access the dashboard to manage projects and tasks.     
