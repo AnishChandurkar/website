@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styles from '../CSS Files/Stories.module.css';
-import { fetchTasks, createTask, updateTask } from '../services/api';
+import { fetchTasks, createTask, updateTask, deleteTask } from '../services/api';
 
 interface Story {
   id: number;
@@ -102,6 +102,21 @@ const Stories = () => {
     }
   };
 
+  const handleDeleteStory = async (storyId: number) => {
+    if (window.confirm('Delete this story? This will also delete all tasks currently within this story!')) {
+      try {
+        await deleteTask(storyId);
+        if (selectedStory?.id === storyId) {
+          setSelectedStory(null);
+        }
+        setStories(prev => prev.filter(s => s.id !== storyId));
+        loadData();
+      } catch (err: any) {
+        alert(err.message || 'Failed to delete story');
+      }
+    }
+  };
+
 
   return (
     <div className={styles.pageContainer}>
@@ -154,9 +169,18 @@ const Stories = () => {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <h3 className={styles.storyTitle}>{story.title}</h3>
-                    <span className={styles.statusBadgeGlobal}>
-                      {story.column_name || 'Unplaced'}
-                    </span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span className={styles.statusBadgeGlobal}>
+                        {story.column_name || 'Unplaced'}
+                      </span>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleDeleteStory(story.id); }}
+                        style={{ padding: '0px 6px', backgroundColor: 'transparent', border: 'none', color: '#cc0000', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 'bold' }}
+                        title="Delete Story"
+                      >
+                        ×
+                      </button>
+                    </div>
                   </div>
                   <p className={styles.storyMeta}>
                     {storyTasks.length} items present
