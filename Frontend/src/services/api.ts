@@ -1,5 +1,5 @@
 // base url for our backend server
-const BASE_URL = 'http://localhost:3001/api';
+const BASE_URL = '/api';
 
 export interface Project {
     id: number;

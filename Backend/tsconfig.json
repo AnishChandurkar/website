@@ -39,5 +39,5 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "exclude": ["tests", "node_modules"]
+  "exclude": ["tests", "node_modules", "dist", "jest.config.js"]
 }

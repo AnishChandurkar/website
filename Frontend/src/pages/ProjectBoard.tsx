@@ -102,7 +102,7 @@ const ProjectBoard = () => {
   useEffect(() => {
     const fetchBoardInfo = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/boards/${boardId}/project`, {
+        const res = await fetch(`/api/boards/${boardId}/project`, {
           credentials: 'include',
         });
         if (res.ok) {

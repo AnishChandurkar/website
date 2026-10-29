@@ -4,7 +4,7 @@ import '../CSS Files/DashBoard.css';
 import ProjectCard from '../ui_elements/ProjectCard';
 import { restoreProject, deleteProject } from '../services/api';
 
-const BASE_URL = 'http://localhost:3001/api';
+const BASE_URL = '/api';
 
 interface ArchivedProject {
   id: number;
