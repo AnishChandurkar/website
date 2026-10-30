@@ -1,11 +1,22 @@
 # Workspace Project
 
-This project is a full-stack web application designed for project management, built as part of COP290 Assignment 2.
+This project is a full-stack web application designed for project management.
 
 **Authors:**
-- Keshav Navandar (2024CS10441)
-- Arin Chandurkar (2024CS50002)
+- Anish Chandurkar (C006)
+- Nishitia Halankar (C022)
+- Smita Kanojia (C027)
+- Devanshi Kashyap (C030)
 
+## Live Deployment
+
+**https://website-alpha-five-23.vercel.app/login**
+
+- Frontend: hosted on Vercel (`Frontend/`), which proxies `/api/*` requests to the backend (see `Frontend/vercel.json`)
+- Backend: hosted on Render at https://website-b0a3.onrender.com (`Backend/`)
+- Database: MySQL hosted on Aiven
+
+Note: the backend is on Render's free tier, so the first request after a period of inactivity can take 30-60 seconds while it wakes up.
 
 File Structrue:-
 
@@ -103,6 +114,7 @@ Alternatively, you can use a GUI tool like MySQL Workbench or phpMyAdmin to crea
    ```env
    PORT=3001
    DB_HOST=127.0.0.1
+   DB_PORT=3306
    DB_USER=root
    DB_PASSWORD=your_mysql_password
    DB_NAME=workspace_db
